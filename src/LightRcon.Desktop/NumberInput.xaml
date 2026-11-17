@@ -1,0 +1,15 @@
+<UserControl x:Class="LightRcon.Desktop.NumberInput"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:LightRcon.Desktop" MinHeight="32" Focusable="False">
+  <Grid>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="22"/></Grid.ColumnDefinitions>
+    <TextBox x:Name="Input" Text="{Binding Text, RelativeSource={RelativeSource AncestorType=local:NumberInput}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             PreviewKeyDown="Input_PreviewKeyDown" VerticalContentAlignment="Top" HorizontalContentAlignment="Left" TextAlignment="Left"/>
+    <Grid Grid.Column="1">
+      <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+      <RepeatButton Style="{StaticResource StepperButton}" Content="▴" Click="Increase_Click" ToolTip="{local:Loc Key='Increase'}"/>
+      <RepeatButton Grid.Row="1" Style="{StaticResource StepperButton}" Content="▾" Click="Decrease_Click" ToolTip="{local:Loc Key='Decrease'}"/>
+    </Grid>
+  </Grid>
+</UserControl>

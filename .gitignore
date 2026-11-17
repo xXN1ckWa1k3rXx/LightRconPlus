@@ -1,0 +1,18 @@
+**/bin/
+**/obj/
+.vs/
+.reference/
+artifacts/
+*.user
+*.log
+tmp/
+.local/
+# Local connection state, credentials and history must never be published.
+**/profiles.json
+**/profiles.json.*
+**/servers/
+*.dpapi
+*.pfx
+*.p12
+.env
+.env.*

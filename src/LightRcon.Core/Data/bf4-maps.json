@@ -1,0 +1,1460 @@
+[
+  {
+    "FileName": "XP1_002",
+    "Name": "Altai Range",
+    "Modes": [
+      {
+        "Code": "AirSuperiority0",
+        "Name": "Air Superiority"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP0_Caspian",
+    "Name": "Caspian Border 2014",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Tremors",
+    "Name": "Dawnbreaker",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP1_004",
+    "Name": "Dragon Pass",
+    "Modes": [
+      {
+        "Code": "AirSuperiority0",
+        "Name": "Air Superiority"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP7_Valley",
+    "Name": "Dragon Valley 2015",
+    "Modes": [
+      {
+        "Code": "AirSuperiority0",
+        "Name": "Air Superiority"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Flooded",
+    "Name": "Flood Zone",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP4_WlkrFtry",
+    "Name": "Giants Of Karelia",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Journey",
+    "Name": "Golmud Railway",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP1_003",
+    "Name": "Guilin Peaks",
+    "Modes": [
+      {
+        "Code": "AirSuperiority0",
+        "Name": "Air Superiority"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP0_Oman",
+    "Name": "Gulf of Oman 2014",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Resort",
+    "Name": "Hainan Resort",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP4_SubBase",
+    "Name": "Hammerhead",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP4_Titan",
+    "Name": "Hangar 21",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Damage",
+    "Name": "Lancang Dam",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP2_001",
+    "Name": "Lost Islands",
+    "Modes": [
+      {
+        "Code": "CarrierAssaultLarge0",
+        "Name": "Carrier Assault Large"
+      },
+      {
+        "Code": "CarrierAssaultSmall0",
+        "Name": "Carrier Assault Small"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP3_UrbanGdn",
+    "Name": "Lumphini Garden",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "Chainlink0",
+        "Name": "Chain Link"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP2_002",
+    "Name": "Nansha Strike",
+    "Modes": [
+      {
+        "Code": "CarrierAssaultLarge0",
+        "Name": "Carrier Assault Large"
+      },
+      {
+        "Code": "CarrierAssaultSmall0",
+        "Name": "Carrier Assault Small"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP0_Firestorm",
+    "Name": "Operation Firestorm 2014",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Prison",
+    "Name": "Operation Locker",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP0_Metro",
+    "Name": "Operation Metro 2014",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP2_004",
+    "Name": "Operation Mortar",
+    "Modes": [
+      {
+        "Code": "CarrierAssaultLarge0",
+        "Name": "Carrier Assault Large"
+      },
+      {
+        "Code": "CarrierAssaultSmall0",
+        "Name": "Carrier Assault Small"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP6_CMP",
+    "Name": "Operation Outbreak",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "Chainlink0",
+        "Name": "Chain Link"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "GunMaster1",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadDeathMatch1",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch1",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP4_Arctic",
+    "Name": "Operation Whiteout",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Naval",
+    "Name": "Paracel Storm",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP3_MarketPl",
+    "Name": "Pearl Market",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "Chainlink0",
+        "Name": "Chain Link"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP3_Prpganda",
+    "Name": "Propaganda",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "Chainlink0",
+        "Name": "Chain Link"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_TheDish",
+    "Name": "Rogue Transmission",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Siege",
+    "Name": "Siege of Shanghai",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP1_001",
+    "Name": "Silk Road",
+    "Modes": [
+      {
+        "Code": "AirSuperiority0",
+        "Name": "Air Superiority"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP3_WtrFront",
+    "Name": "Sunken Dragon",
+    "Modes": [
+      {
+        "Code": "CaptureTheFlag0",
+        "Name": "CTF"
+      },
+      {
+        "Code": "Chainlink0",
+        "Name": "Chain Link"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP2_003",
+    "Name": "Wavebreaker",
+    "Modes": [
+      {
+        "Code": "CarrierAssaultLarge0",
+        "Name": "Carrier Assault Large"
+      },
+      {
+        "Code": "CarrierAssaultSmall0",
+        "Name": "Carrier Assault Small"
+      },
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "MP_Abandoned",
+    "Name": "Zavod 311",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "Elimination0",
+        "Name": "Defuse"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "SquadDeathMatch0",
+        "Name": "Squad Deathmatch"
+      },
+      {
+        "Code": "SquadObliteration0",
+        "Name": "Squad Obliteration"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  },
+  {
+    "FileName": "XP5_Night_01",
+    "Name": "Zavod:Graveyard Shift",
+    "Modes": [
+      {
+        "Code": "ConquestLarge0",
+        "Name": "Conquest Large"
+      },
+      {
+        "Code": "ConquestSmall0",
+        "Name": "Conquest Small"
+      },
+      {
+        "Code": "Domination0",
+        "Name": "Domination"
+      },
+      {
+        "Code": "GunMaster0",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "GunMaster1",
+        "Name": "Gun Master"
+      },
+      {
+        "Code": "Obliteration",
+        "Name": "Obliteration"
+      },
+      {
+        "Code": "RushLarge0",
+        "Name": "Rush"
+      },
+      {
+        "Code": "TeamDeathMatch0",
+        "Name": "Team Deathmatch"
+      }
+    ]
+  }
+]

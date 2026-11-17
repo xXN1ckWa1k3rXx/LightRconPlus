@@ -1,0 +1,2382 @@
+{
+  " · Retry in {0}s": {
+    "en": " · Retry in {0}s",
+    "zh": " · {0} 秒后重试",
+    "de": " · Erneuter Versuch in {0}s"
+  },
+  "3D spotting": {
+    "en": "3D spotting",
+    "zh": "3D 标记",
+    "de": "3D-Markierungen"
+  },
+  "A SHA-256 fingerprint must contain 64 hexadecimal characters.": {
+    "en": "A SHA-256 fingerprint must contain 64 hexadecimal characters.",
+    "zh": "SHA-256 指纹必须包含 64 个十六进制字符。",
+    "de": "Ein SHA-256-Fingerabdruck muss 64 Hexadezimalzeichen enthalten."
+  },
+  "Accounts & permissions": {
+    "en": "Accounts & permissions",
+    "zh": "账号与权限",
+    "de": "Konten und Berechtigungen"
+  },
+  "Actions": {
+    "en": "Actions",
+    "zh": "操作",
+    "de": "Aktionen"
+  },
+  "Add server": {
+    "en": "Add server",
+    "zh": "添加服务器",
+    "de": "Server hinzufügen"
+  },
+  "Address": {
+    "en": "Address",
+    "zh": "地址",
+    "de": "Adresse"
+  },
+  "All": {
+    "en": "All",
+    "zh": "全部",
+    "de": "Alle"
+  },
+  "All Players": {
+    "en": "All Players",
+    "zh": "所有玩家",
+    "de": "Alle Spieler"
+  },
+  "Always allow spectators": {
+    "en": "Always allow spectators",
+    "zh": "始终允许观战",
+    "de": "Zuschauer immer erlauben"
+  },
+  "Audience": {
+    "en": "Audience",
+    "zh": "接收对象",
+    "de": "Empfänger"
+  },
+  "Authenticating": {
+    "en": "Authenticating",
+    "zh": "验证中",
+    "de": "Anmeldung wird geprüft"
+  },
+  "Auto balance": {
+    "en": "Auto balance",
+    "zh": "自动平衡",
+    "de": "Automatischer Teamausgleich"
+  },
+  "Auto login": {
+    "en": "Auto login",
+    "zh": "自动登录",
+    "de": "Automatisch anmelden"
+  },
+  "Available Maps": {
+    "en": "Available Maps",
+    "zh": "可用地图",
+    "de": "Verfügbare Karten"
+  },
+  "Back": {
+    "en": "Back",
+    "zh": "返回",
+    "de": "Zurück"
+  },
+  "Ban List": {
+    "en": "Ban List",
+    "zh": "封禁列表",
+    "de": "Sperrliste"
+  },
+  "Ban {0} for {1} minutes?": {
+    "en": "Ban {0} for {1} minutes?",
+    "zh": "封禁 {0}，时长 {1} 分钟？",
+    "de": "{0} für {1} Minuten sperren?"
+  },
+  "Bind IP": {
+    "en": "Bind IP",
+    "zh": "监听 IP",
+    "de": "Bindungs-IP"
+  },
+  "Bullet damage (%)": {
+    "en": "Bullet damage (%)",
+    "zh": "子弹伤害 (%)",
+    "de": "Geschossschaden (%)"
+  },
+  "C# DLL and Lua support is planned. Plugins are not available in this version.": {
+    "en": "C# DLL and Lua support is planned. Plugins are not available in this version.",
+    "zh": "计划支持 C# DLL 与 Lua。此版本暂不支持插件。",
+    "de": "Unterstützung für C#-DLLs und Lua ist geplant. Plugins sind in dieser Version noch nicht verfügbar."
+  },
+  "Cancel": {
+    "en": "Cancel",
+    "zh": "取消",
+    "de": "Abbrechen"
+  },
+  "Chat": {
+    "en": "Chat",
+    "zh": "聊天",
+    "de": "Chat"
+  },
+  "Chat and events": {
+    "en": "Chat and events",
+    "zh": "聊天与事件",
+    "de": "Chat und Ereignisse"
+  },
+  "Clear ban list": {
+    "en": "Clear ban list",
+    "zh": "清空封禁列表",
+    "de": "Sperrliste leeren"
+  },
+  "Commander": {
+    "en": "Commander",
+    "zh": "指挥官",
+    "de": "Commander"
+  },
+  "Confirm action": {
+    "en": "Confirm action",
+    "zh": "确认操作",
+    "de": "Aktion bestätigen"
+  },
+  "Connected": {
+    "en": "Connected",
+    "zh": "已连接",
+    "de": "Verbunden"
+  },
+  "Connecting": {
+    "en": "Connecting",
+    "zh": "连接中",
+    "de": "Verbindungsaufbau"
+  },
+  "Connection": {
+    "en": "Connection",
+    "zh": "连接方式",
+    "de": "Verbindung"
+  },
+  "Console": {
+    "en": "Console",
+    "zh": "控制台",
+    "de": "Konsole"
+  },
+  "Crosshair": {
+    "en": "Crosshair",
+    "zh": "准星",
+    "de": "Fadenkreuz"
+  },
+  "Current map list": {
+    "en": "Current map list",
+    "zh": "当前地图列表",
+    "de": "Aktuelle Kartenliste"
+  },
+  "Delete Layer account {0}?": {
+    "en": "Delete Layer account {0}?",
+    "zh": "删除 Layer 账号 {0}？",
+    "de": "Layer-Konto {0} löschen?"
+  },
+  "Description": {
+    "en": "Description",
+    "zh": "服务器描述",
+    "de": "Beschreibung"
+  },
+  "Direct RCON": {
+    "en": "Direct RCON",
+    "zh": "直连 RCON",
+    "de": "Direktes RCON"
+  },
+  "Disabled": {
+    "en": "Disabled",
+    "zh": "已禁用",
+    "de": "Deaktiviert"
+  },
+  "Display": {
+    "en": "Display",
+    "zh": "显示方式",
+    "de": "Anzeige"
+  },
+  "Display Time": {
+    "en": "Display Time",
+    "zh": "显示时长",
+    "de": "Anzeigedauer"
+  },
+  "Edit": {
+    "en": "Edit",
+    "zh": "编辑",
+    "de": "Bearbeiten"
+  },
+  "Edit server": {
+    "en": "Edit server",
+    "zh": "编辑服务器",
+    "de": "Server bearbeiten"
+  },
+  "Enabled": {
+    "en": "Enabled",
+    "zh": "启用",
+    "de": "Aktiviert"
+  },
+  "Enter a password.": {
+    "en": "Enter a password.",
+    "zh": "请输入密码。",
+    "de": "Ein Passwort eingeben."
+  },
+  "Enter a server name.": {
+    "en": "Enter a server name.",
+    "zh": "请输入服务器名称。",
+    "de": "Einen Servernamen eingeben."
+  },
+  "Failed to sync {0}; local value retained: {1}": {
+    "en": "Failed to sync {0}; local value retained: {1}",
+    "zh": "{0} 同步失败，保留本地值：{1}",
+    "de": "Abgleich von {0} fehlgeschlagen; lokaler Wert beibehalten: {1}"
+  },
+  "Force reload whole magazines": {
+    "en": "Force reload whole magazines",
+    "zh": "强制整弹匣换弹",
+    "de": "Nachladen ganzer Magazine erzwingen"
+  },
+  "Friendly fire": {
+    "en": "Friendly fire",
+    "zh": "友军伤害",
+    "de": "Eigenbeschuss"
+  },
+  "GUID / Name / IP": {
+    "en": "GUID / Name / IP",
+    "zh": "GUID / 名称 / IP",
+    "de": "GUID / Name / IP"
+  },
+  "Game mode counter (%)": {
+    "en": "Game mode counter (%)",
+    "zh": "游戏模式计数 (%)",
+    "de": "Spielmodus-Zähler (%)"
+  },
+  "Gameplay": {
+    "en": "Gameplay",
+    "zh": "游戏规则",
+    "de": "Spielregeln"
+  },
+  "General": {
+    "en": "General",
+    "zh": "常规",
+    "de": "Allgemein"
+  },
+  "Gun Master weapons preset": {
+    "en": "Gun Master weapons preset",
+    "zh": "枪王武器预设",
+    "de": "Waffenvorgabe für Waffenmeister"
+  },
+  "HUD": {
+    "en": "HUD",
+    "zh": "抬头显示",
+    "de": "HUD"
+  },
+  "HUD & Visibility": {
+    "en": "HUD & Visibility",
+    "zh": "HUD 与可见性",
+    "de": "HUD und Sichtbarkeit"
+  },
+  "Hit indicators": {
+    "en": "Hit indicators",
+    "zh": "命中提示",
+    "de": "Trefferanzeigen"
+  },
+  "IP / hostname:port": {
+    "en": "IP / hostname:port",
+    "zh": "IP / 主机名:端口",
+    "de": "IP / Hostname:Port"
+  },
+  "Idle ban rounds": {
+    "en": "Idle ban rounds",
+    "zh": "闲置封禁回合数",
+    "de": "Sperrrunden bei Inaktivität"
+  },
+  "Idle timeout (seconds)": {
+    "en": "Idle timeout (seconds)",
+    "zh": "闲置超时（秒）",
+    "de": "Inaktivitätslimit (Sekunden)"
+  },
+  "Instances": {
+    "en": "Instances",
+    "zh": "实例",
+    "de": "Instanzen"
+  },
+  "Invalid draft for {0}; not synchronized.": {
+    "en": "Invalid draft for {0}; not synchronized.",
+    "zh": "{0} 草稿格式无效，未同步。",
+    "de": "Ungültiger Entwurf für {0}; nicht abgeglichen."
+  },
+  "Join Message": {
+    "en": "Join Message",
+    "zh": "加入提示",
+    "de": "Beitrittsnachricht"
+  },
+  "Kick": {
+    "en": "Kick",
+    "zh": "踢出",
+    "de": "Kicken"
+  },
+  "Kick {0}?": {
+    "en": "Kick {0}?",
+    "zh": "踢出 {0}？",
+    "de": "{0} kicken?"
+  },
+  "Kill": {
+    "en": "Kill",
+    "zh": "击杀",
+    "de": "Töten"
+  },
+  "Kill camera": {
+    "en": "Kill camera",
+    "zh": "击杀镜头",
+    "de": "Abschusskamera"
+  },
+  "Kill {0}?": {
+    "en": "Kill {0}?",
+    "zh": "击杀 {0}？",
+    "de": "{0} töten?"
+  },
+  "Kit": {
+    "en": "Kit",
+    "zh": "兵种",
+    "de": "Klasse"
+  },
+  "Language": {
+    "en": "Language",
+    "zh": "语言",
+    "de": "Sprache"
+  },
+  "Layer certificate": {
+    "en": "Layer certificate",
+    "zh": "Layer 证书",
+    "de": "Layer-Zertifikat"
+  },
+  "Layer listener": {
+    "en": "Layer listener",
+    "zh": "Layer 监听",
+    "de": "Layer-Listener"
+  },
+  "Layers": {
+    "en": "Layers",
+    "zh": "Layer",
+    "de": "Layer"
+  },
+  "Leave the username blank for a direct RCON connection. Enter a username to connect to a Layer.": {
+    "en": "Leave the username blank for a direct RCON connection. Enter a username to connect to a Layer.",
+    "zh": "直连 RCON 时留空用户名；连接 Layer 时填写用户名。",
+    "de": "Für eine direkte RCON-Verbindung den Benutzernamen leer lassen. Für eine Layer-Verbindung einen Benutzernamen eingeben."
+  },
+  "LightRcon+ · Battlefield 4 Administration": {
+    "en": "LightRcon+ · Battlefield 4 Administration",
+    "zh": "LightRcon+ · 战地 4 管理",
+    "de": "LightRcon+ · Battlefield-4-Verwaltung"
+  },
+  "Listening · {0} clients": {
+    "en": "Listening · {0} clients",
+    "zh": "监听中 · {0} 个客户端",
+    "de": "Aktiv · {0} Clients"
+  },
+  "Local value applied: {0}": {
+    "en": "Local value applied: {0}",
+    "zh": "已应用本地值：{0}",
+    "de": "Lokaler Wert angewendet: {0}"
+  },
+  "MP experience": {
+    "en": "MP experience",
+    "zh": "多人游戏体验标识",
+    "de": "Mehrspieler-Erfahrungskennung"
+  },
+  "Map List": {
+    "en": "Map List",
+    "zh": "地图列表",
+    "de": "Kartenliste"
+  },
+  "Map rotation": {
+    "en": "Map rotation",
+    "zh": "地图轮换",
+    "de": "Kartenrotation"
+  },
+  "Maximum players": {
+    "en": "Maximum players",
+    "zh": "最大玩家数",
+    "de": "Maximale Spielerzahl"
+  },
+  "Maximum spectators": {
+    "en": "Maximum spectators",
+    "zh": "最大观战人数",
+    "de": "Maximale Zuschauerzahl"
+  },
+  "Minimap": {
+    "en": "Minimap",
+    "zh": "小地图",
+    "de": "Minikarte"
+  },
+  "Minimap spotting": {
+    "en": "Minimap spotting",
+    "zh": "小地图标记",
+    "de": "Minikarten-Markierungen"
+  },
+  "Minimum ready players": {
+    "en": "Minimum ready players",
+    "zh": "最少就绪人数",
+    "de": "Mindestzahl bereiter Spieler"
+  },
+  "Miscellaneous": {
+    "en": "Miscellaneous",
+    "zh": "其他",
+    "de": "Sonstiges"
+  },
+  "Moderation": {
+    "en": "Moderation",
+    "zh": "管理规则",
+    "de": "Moderation"
+  },
+  "Name": {
+    "en": "Name",
+    "zh": "名称",
+    "de": "Name"
+  },
+  "Name tags": {
+    "en": "Name tags",
+    "zh": "名称标签",
+    "de": "Namensanzeigen"
+  },
+  "Next round": {
+    "en": "Next round",
+    "zh": "下一回合",
+    "de": "Nächste Runde"
+  },
+  "No saved servers. Use Add server to create a connection.": {
+    "en": "No saved servers. Use Add server to create a connection.",
+    "zh": "尚未保存服务器，请点击“添加服务器”创建连接。",
+    "de": "Keine Server gespeichert. Mit „Server hinzufügen“ eine Verbindung anlegen."
+  },
+  "Offline": {
+    "en": "Offline",
+    "zh": "离线",
+    "de": "Offline"
+  },
+  "Only squad leader spawn": {
+    "en": "Only squad leader spawn",
+    "zh": "仅允许在小队长处重生",
+    "de": "Nur beim Truppführer einsteigen"
+  },
+  "Open": {
+    "en": "Open",
+    "zh": "打开",
+    "de": "Öffnen"
+  },
+  "Operation failed": {
+    "en": "Operation failed",
+    "zh": "操作失败",
+    "de": "Vorgang fehlgeschlagen"
+  },
+  "Optional for direct RCON connections": {
+    "en": "Optional for direct RCON connections",
+    "zh": "可选，当使用直连 rcon 而非 Layer 时",
+    "de": "Optional bei direkter RCON-Verbindung"
+  },
+  "Password": {
+    "en": "Password",
+    "zh": "密码",
+    "de": "Passwort"
+  },
+  "Permanent ban": {
+    "en": "Permanent ban",
+    "zh": "永久封禁",
+    "de": "Dauerhaft sperren"
+  },
+  "Permanently ban {0}?": {
+    "en": "Permanently ban {0}?",
+    "zh": "永久封禁 {0}？",
+    "de": "{0} dauerhaft sperren?"
+  },
+  "Play Time": {
+    "en": "Play Time",
+    "zh": "游玩时长",
+    "de": "Spielzeit"
+  },
+  "Player actions": {
+    "en": "Player actions",
+    "zh": "玩家操作",
+    "de": "Spieleraktionen"
+  },
+  "Player man-down time (%)": {
+    "en": "Player man-down time (%)",
+    "zh": "玩家倒地时间 (%)",
+    "de": "Zeit bis zum Verbluten (%)"
+  },
+  "Player respawn time (%)": {
+    "en": "Player respawn time (%)",
+    "zh": "玩家重生时间 (%)",
+    "de": "Spieler-Wiedereinstiegszeit (%)"
+  },
+  "Players": {
+    "en": "Players",
+    "zh": "玩家",
+    "de": "Spieler"
+  },
+  "Plugin": {
+    "en": "Plugin",
+    "zh": "插件",
+    "de": "Plugins"
+  },
+  "Plugins": {
+    "en": "Plugins",
+    "zh": "插件",
+    "de": "Plugins"
+  },
+  "Port": {
+    "en": "Port",
+    "zh": "端口",
+    "de": "Port"
+  },
+  "Premium priority": {
+    "en": "Premium priority",
+    "zh": "高级版玩家优先",
+    "de": "Premium-Priorität"
+  },
+  "Preset": {
+    "en": "Preset",
+    "zh": "预设",
+    "de": "Voreinstellung"
+  },
+  "RCON / Layer password": {
+    "en": "RCON / Layer password",
+    "zh": "RCON / Layer 密码",
+    "de": "RCON- / Layer-Passwort"
+  },
+  "RCON / Layer password (leave blank to keep)": {
+    "en": "RCON / Layer password (leave blank to keep)",
+    "zh": "RCON / Layer 密码（留空保留原密码）",
+    "de": "RCON- / Layer-Passwort (leer lassen zum Beibehalten)"
+  },
+  "Rank": {
+    "en": "Rank",
+    "zh": "等级",
+    "de": "Rang"
+  },
+  "Ready bypass timer": {
+    "en": "Ready bypass timer",
+    "zh": "就绪跳过计时器",
+    "de": "Timer zum Überspringen der Bereitschaft"
+  },
+  "Ready players (%)": {
+    "en": "Ready players (%)",
+    "zh": "就绪玩家比例 (%)",
+    "de": "Bereite Spieler (%)"
+  },
+  "Reason": {
+    "en": "Reason",
+    "zh": "原因",
+    "de": "Grund"
+  },
+  "Regenerate health": {
+    "en": "Regenerate health",
+    "zh": "生命值恢复",
+    "de": "Lebensregeneration"
+  },
+  "Remaining": {
+    "en": "Remaining",
+    "zh": "剩余时间",
+    "de": "Verbleibend"
+  },
+  "Remove": {
+    "en": "Remove",
+    "zh": "移除",
+    "de": "Entfernen"
+  },
+  "Remove server {0}? Connections will close. Existing chat log files will be kept.": {
+    "en": "Remove server {0}? Connections will close. Existing chat log files will be kept.",
+    "zh": "移除实例 {0}？连接会断开，已有聊天日志文件将保留。",
+    "de": "Server {0} entfernen? Verbindungen werden geschlossen. Vorhandene Chatprotokolle bleiben erhalten."
+  },
+  "Remove the ban for {0}?": {
+    "en": "Remove the ban for {0}?",
+    "zh": "移除 {0} 的封禁？",
+    "de": "Die Sperre für {0} aufheben?"
+  },
+  "Reserved Slots": {
+    "en": "Reserved Slots",
+    "zh": "预留席位",
+    "de": "Reservierte Plätze"
+  },
+  "Reserved slots aggressive join": {
+    "en": "Reserved slots aggressive join",
+    "zh": "为预留席位强制腾出位置",
+    "de": "Plätze für reservierte Spieler erzwingen"
+  },
+  "Restart": {
+    "en": "Restart",
+    "zh": "重启回合",
+    "de": "Runde neu starten"
+  },
+  "Retry failed logins every 20 seconds.": {
+    "en": "Retry failed logins every 20 seconds.",
+    "zh": "登录失败后每 20 秒重试。",
+    "de": "Fehlgeschlagene Anmeldungen alle 20 Sekunden wiederholen."
+  },
+  "Retry in {0}s": {
+    "en": "Retry in {0}s",
+    "zh": "{0} 秒后重试",
+    "de": "Erneuter Versuch in {0}s"
+  },
+  "Round lockdown countdown": {
+    "en": "Round lockdown countdown",
+    "zh": "回合锁定倒计时",
+    "de": "Sperrzeit vor Rundenbeginn"
+  },
+  "Round restart player count": {
+    "en": "Round restart player count",
+    "zh": "回合重启人数",
+    "de": "Spielerzahl für Rundenneustart"
+  },
+  "Round start player count": {
+    "en": "Round start player count",
+    "zh": "回合开始人数",
+    "de": "Spielerzahl für Rundenstart"
+  },
+  "Round time limit (%)": {
+    "en": "Round time limit (%)",
+    "zh": "回合时间限制 (%)",
+    "de": "Rundenzeitlimit (%)"
+  },
+  "Round warmup timeout": {
+    "en": "Round warmup timeout",
+    "zh": "回合热身超时",
+    "de": "Aufwärmzeitlimit"
+  },
+  "Round: {0}": {
+    "en": "Round: {0}",
+    "zh": "回合：{0}",
+    "de": "Runde: {0}"
+  },
+  "Rounds": {
+    "en": "Rounds",
+    "zh": "回合",
+    "de": "Runden"
+  },
+  "SHA-256 certificate fingerprint": {
+    "en": "SHA-256 certificate fingerprint",
+    "zh": "SHA-256 证书指纹",
+    "de": "SHA-256-Zertifikatsfingerabdruck"
+  },
+  "SHA-256 fingerprint (optional until first connection)": {
+    "en": "SHA-256 fingerprint (optional until first connection)",
+    "zh": "SHA-256 指纹（首次连接前可选）",
+    "de": "SHA-256-Fingerabdruck (bis zur ersten Verbindung optional)"
+  },
+  "Save": {
+    "en": "Save",
+    "zh": "保存",
+    "de": "Speichern"
+  },
+  "Save and connect": {
+    "en": "Save and connect",
+    "zh": "保存并连接",
+    "de": "Speichern und verbinden"
+  },
+  "Say": {
+    "en": "Say",
+    "zh": "聊天",
+    "de": "Chatnachricht"
+  },
+  "Send": {
+    "en": "Send",
+    "zh": "发送",
+    "de": "Senden"
+  },
+  "Server": {
+    "en": "Server",
+    "zh": "服务器",
+    "de": "Server"
+  },
+  "Server Information": {
+    "en": "Server Information",
+    "zh": "服务器信息",
+    "de": "Serverinformationen"
+  },
+  "Server Settings": {
+    "en": "Server Settings",
+    "zh": "服务器设置",
+    "de": "Servereinstellungen"
+  },
+  "Server name": {
+    "en": "Server name",
+    "zh": "服务器名称",
+    "de": "Servername"
+  },
+  "Server type": {
+    "en": "Server type",
+    "zh": "服务器类型",
+    "de": "Servertyp"
+  },
+  "Servers": {
+    "en": "Servers",
+    "zh": "服务器",
+    "de": "Server"
+  },
+  "Slots & Teams": {
+    "en": "Slots & Teams",
+    "zh": "席位与队伍",
+    "de": "Plätze und Teams"
+  },
+  "Soldier health (%)": {
+    "en": "Soldier health (%)",
+    "zh": "士兵生命值 (%)",
+    "de": "Soldatenleben (%)"
+  },
+  "Soldier name": {
+    "en": "Soldier name",
+    "zh": "士兵名称",
+    "de": "Soldatenname"
+  },
+  "Special Slots": {
+    "en": "Special Slots",
+    "zh": "特殊席位",
+    "de": "Besondere Plätze"
+  },
+  "Spectator Slots": {
+    "en": "Spectator Slots",
+    "zh": "观战席位",
+    "de": "Zuschauerplätze"
+  },
+  "Squad": {
+    "en": "Squad",
+    "zh": "小队",
+    "de": "Trupp"
+  },
+  "Startup Config": {
+    "en": "Startup Config",
+    "zh": "启动配置",
+    "de": "Startkonfiguration"
+  },
+  "Status": {
+    "en": "Status",
+    "zh": "状态",
+    "de": "Status"
+  },
+  "Synchronized and saved {0} maps.": {
+    "en": "Synchronized and saved {0} maps.",
+    "zh": "已同步并保存 {0} 张地图。",
+    "de": "{0} Karten abgeglichen und gespeichert."
+  },
+  "Synchronizing": {
+    "en": "Synchronizing",
+    "zh": "同步中",
+    "de": "Abgleich läuft"
+  },
+  "TLS Layer listening on {0}:{1}": {
+    "en": "TLS Layer listening on {0}:{1}",
+    "zh": "TLS Layer 正在监听 {0}:{1}",
+    "de": "TLS-Layer lauscht auf {0}:{1}"
+  },
+  "Tags": {
+    "en": "Tags",
+    "zh": "战队标签",
+    "de": "Clan-Tag"
+  },
+  "Team kills before kick": {
+    "en": "Team kills before kick",
+    "zh": "踢出前允许的击杀队友次数",
+    "de": "Teamkills bis zum Kick"
+  },
+  "Team {0}": {
+    "en": "Team {0}",
+    "zh": "队伍 {0}",
+    "de": "Team {0}"
+  },
+  "Team-kill kicks before ban": {
+    "en": "Team-kill kicks before ban",
+    "zh": "封禁前因击杀队友被踢次数",
+    "de": "Teamkill-Kicks bis zur Sperre"
+  },
+  "Team-kill value before kick": {
+    "en": "Team-kill value before kick",
+    "zh": "踢出前的击杀队友惩罚值",
+    "de": "Teamkill-Wert bis zum Kick"
+  },
+  "Team-kill value decrease per second": {
+    "en": "Team-kill value decrease per second",
+    "zh": "每秒减少的击杀队友惩罚值",
+    "de": "Teamkill-Wertabnahme pro Sekunde"
+  },
+  "Team-kill value increase": {
+    "en": "Team-kill value increase",
+    "zh": "击杀队友惩罚值增量",
+    "de": "Teamkill-Wertzuwachs"
+  },
+  "Temp ban": {
+    "en": "Temp ban",
+    "zh": "临时封禁",
+    "de": "Temporär sperren"
+  },
+  "Third-person vehicle camera": {
+    "en": "Third-person vehicle camera",
+    "zh": "载具第三人称视角",
+    "de": "Fahrzeugkamera in dritter Person"
+  },
+  "Ticket bleed rate (%)": {
+    "en": "Ticket bleed rate (%)",
+    "zh": "兵力流失速度 (%)",
+    "de": "Ticketverlust (%)"
+  },
+  "Type": {
+    "en": "Type",
+    "zh": "类型",
+    "de": "Typ"
+  },
+  "Unlock mode": {
+    "en": "Unlock mode",
+    "zh": "解锁模式",
+    "de": "Freischaltungsmodus"
+  },
+  "Username": {
+    "en": "Username",
+    "zh": "用户名",
+    "de": "Benutzername"
+  },
+  "Vehicle spawn allowed": {
+    "en": "Vehicle spawn allowed",
+    "zh": "允许载具生成",
+    "de": "Fahrzeugspawn erlauben"
+  },
+  "Vehicle spawn delay (%)": {
+    "en": "Vehicle spawn delay (%)",
+    "zh": "载具生成延迟 (%)",
+    "de": "Fahrzeugspawn-Verzögerung (%)"
+  },
+  "Vehicles": {
+    "en": "Vehicles",
+    "zh": "载具",
+    "de": "Fahrzeuge"
+  },
+  "Waiting for connection": {
+    "en": "Waiting for connection",
+    "zh": "等待连接",
+    "de": "Warten auf Verbindung"
+  },
+  "Work In Progress": {
+    "en": "Work In Progress",
+    "zh": "开发中",
+    "de": "In Entwicklung"
+  },
+  "Yell": {
+    "en": "Yell",
+    "zh": "大字广播",
+    "de": "Bildschirmnachricht"
+  },
+  "guid": {
+    "en": "guid",
+    "zh": "GUID",
+    "de": "GUID"
+  },
+  "ip": {
+    "en": "ip",
+    "zh": "IP",
+    "de": "IP"
+  },
+  "name": {
+    "en": "name",
+    "zh": "名称",
+    "de": "Name"
+  },
+  "perm": {
+    "en": "perm",
+    "zh": "永久",
+    "de": "Dauerhaft"
+  },
+  "rounds": {
+    "en": "rounds",
+    "zh": "回合",
+    "de": "Runden"
+  },
+  "seconds": {
+    "en": "seconds",
+    "zh": "秒",
+    "de": "Sekunden"
+  },
+  "{0} / {1}": {
+    "en": "{0} / {1}",
+    "zh": "{0} / {1}",
+    "de": "{0} / {1}"
+  },
+  "{0} messages must be shorter than {1} characters.": {
+    "en": "{0} messages must be shorter than {1} characters.",
+    "zh": "{0} 消息必须少于 {1} 个字符。",
+    "de": "{0}-Nachrichten müssen kürzer als {1} Zeichen sein."
+  },
+  "{0} must be a number.": {
+    "en": "{0} must be a number.",
+    "zh": "{0} 必须填写数字。",
+    "de": "{0} muss eine Zahl sein."
+  },
+  "{0} players · Play time measured during this client session": {
+    "en": "{0} players · Play time measured during this client session",
+    "zh": "{0} 名玩家 · 游玩时长为本次客户端观察时长",
+    "de": "{0} Spieler · Spielzeit seit Beginn dieser Clientsitzung"
+  },
+  "{0} servers · {1} connected · {2} players": {
+    "en": "{0} servers · {1} connected · {2} players",
+    "zh": "{0} 个服务器 · {1} 个已连接 · {2} 名玩家",
+    "de": "{0} Server · {1} verbunden · {2} Spieler"
+  },
+  "{0} signed in ({1})": {
+    "en": "{0} signed in ({1})",
+    "zh": "{0} 已登录 ({1})",
+    "de": "{0} angemeldet ({1})"
+  },
+  "{0} — {1}    Round: {2}/{3}    Uptime: {4}": {
+    "en": "{0} — {1}    Round: {2}/{3}    Uptime: {4}",
+    "zh": "{0} — {1}    回合：{2}/{3}    运行时间：{4}",
+    "de": "{0} — {1}    Runde: {2}/{3}    Laufzeit: {4}"
+  },
+  "Text files (*.txt)|*.txt|All files (*.*)|*.*": {
+    "en": "Text files (*.txt)|*.txt|All files (*.*)|*.*",
+    "zh": "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*",
+    "de": "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*"
+  },
+  "Welcome": {
+    "en": "Welcome",
+    "zh": "欢迎",
+    "de": "Willkommen"
+  },
+  "Settings": {
+    "en": "Settings",
+    "zh": "设置",
+    "de": "Einstellungen"
+  },
+  "About": {
+    "en": "About",
+    "zh": "关于",
+    "de": "Über"
+  },
+  "Create Connection": {
+    "en": "Create Connection",
+    "zh": "创建连接",
+    "de": "Verbindung erstellen"
+  },
+  "Preferred language": {
+    "en": "Preferred language",
+    "zh": "首选语言",
+    "de": "Bevorzugte Sprache"
+  },
+  "Theme": {
+    "en": "Theme",
+    "zh": "主题",
+    "de": "Design"
+  },
+  "Follow System": {
+    "en": "Follow System",
+    "zh": "跟随系统",
+    "de": "Systemeinstellung"
+  },
+  "Light": {
+    "en": "Light",
+    "zh": "浅色",
+    "de": "Hell"
+  },
+  "Dark": {
+    "en": "Dark",
+    "zh": "深色",
+    "de": "Dunkel"
+  },
+  "Score": {
+    "en": "Score",
+    "zh": "得分",
+    "de": "Punkte"
+  },
+  "Duration": {
+    "en": "Duration",
+    "zh": "时长",
+    "de": "Dauer"
+  },
+  "Base Game": {
+    "en": "Base Game",
+    "zh": "基础游戏",
+    "de": "Hauptspiel"
+  },
+  "China Rising": {
+    "en": "China Rising",
+    "zh": "中国崛起",
+    "de": "China Rising"
+  },
+  "Second Assault": {
+    "en": "Second Assault",
+    "zh": "二次突袭",
+    "de": "Second Assault"
+  },
+  "Naval Strike": {
+    "en": "Naval Strike",
+    "zh": "海军突袭",
+    "de": "Naval Strike"
+  },
+  "Dragon's Teeth": {
+    "en": "Dragon's Teeth",
+    "zh": "龙之獠牙",
+    "de": "Dragon's Teeth"
+  },
+  "Final Stand": {
+    "en": "Final Stand",
+    "zh": "最终反击",
+    "de": "Final Stand"
+  },
+  "Additional Maps": {
+    "en": "Additional Maps",
+    "zh": "附加地图",
+    "de": "Zusätzliche Karten"
+  },
+  "The map list changed. Select the map again.": {
+    "en": "The map list changed. Select the map again.",
+    "zh": "地图列表已发生变化，请重新选择地图。",
+    "de": "Die Kartenliste wurde geändert. Bitte die Karte erneut auswählen."
+  },
+  "{0} — {1} is not connected": {
+    "en": "{0} — {1} is not connected",
+    "zh": "{0} — {1} 尚未连接",
+    "de": "{0} — {1} ist nicht verbunden"
+  },
+  "Reason: {0}": {
+    "en": "Reason: {0}",
+    "zh": "原因：{0}",
+    "de": "Grund: {0}"
+  },
+  "Edit connection": {
+    "en": "Edit connection",
+    "zh": "编辑连接",
+    "de": "Verbindung bearbeiten"
+  },
+  "Edit the connection to change its address, credentials or automatic login.": {
+    "en": "Edit the connection to change its address, credentials or automatic login.",
+    "zh": "编辑连接以更改地址、账号密码或自动登录选项。",
+    "de": "Verbindung bearbeiten, um Adresse, Anmeldedaten oder automatische Anmeldung zu ändern."
+  },
+  "Players: {0}/{1} — Battlefield 4": {
+    "en": "Players: {0}/{1} — Battlefield 4",
+    "zh": "玩家：{0}/{1} — 战地 4",
+    "de": "Spieler: {0}/{1} — Battlefield 4"
+  },
+  "Unassigned / Spectators": {
+    "en": "Unassigned / Spectators",
+    "zh": "未分配 / 观战",
+    "de": "Nicht zugewiesen / Zuschauer"
+  },
+  " — {0} tickets": {
+    "en": " — {0} tickets",
+    "zh": " — {0} 兵力值",
+    "de": " — {0} Tickets"
+  },
+  "killed": {
+    "en": "killed",
+    "zh": "击杀了",
+    "de": "tötete"
+  },
+  "with": {
+    "en": "with",
+    "zh": "使用",
+    "de": "mit"
+  },
+  "connected to the server": {
+    "en": "connected to the server",
+    "zh": "已连接到服务器",
+    "de": "hat sich mit dem Server verbunden"
+  },
+  "disconnected from the server": {
+    "en": "disconnected from the server",
+    "zh": "已离开服务器",
+    "de": "hat den Server verlassen"
+  },
+  "{0} players | {1}": {
+    "en": "{0} players | {1}",
+    "zh": "{0} 名玩家 | {1}",
+    "de": "{0} Spieler | {1}"
+  },
+  "Map synchronization failed; restored the server rotation.": {
+    "en": "Map synchronization failed; restored the server rotation.",
+    "zh": "地图同步失败，已恢复服务器原地图列表。",
+    "de": "Kartensynchronisierung fehlgeschlagen; die Kartenrotation des Servers wurde wiederhergestellt."
+  },
+  "Add": {
+    "en": "Add",
+    "zh": "添加",
+    "de": "Hinzufügen"
+  },
+  "Provider": {
+    "en": "Provider",
+    "zh": "执行方式",
+    "de": "Ausführung"
+  },
+  "Time": {
+    "en": "Time",
+    "zh": "时间",
+    "de": "Dauer"
+  },
+  "Time unit": {
+    "en": "Time unit",
+    "zh": "时间单位",
+    "de": "Zeiteinheit"
+  },
+  "Temporary ban duration": {
+    "en": "Temporary ban duration",
+    "zh": "临时封禁时长",
+    "de": "Dauer der temporären Sperre"
+  },
+  "Time unit · Months are 30 days": {
+    "en": "Time unit · Months are 30 days",
+    "zh": "时间单位 · 每月按 30 天计算",
+    "de": "Zeiteinheit · Ein Monat entspricht 30 Tagen"
+  },
+  "Enter a positive whole duration, up to 365 days. Months are 30 days.": {
+    "en": "Enter a positive whole duration, up to 365 days. Months are 30 days.",
+    "zh": "请输入正整数时长，最长 365 天；每月按 30 天计算。",
+    "de": "Geben Sie eine positive ganze Dauer bis zu 365 Tagen ein. Ein Monat entspricht 30 Tagen."
+  },
+  "Ban {0} for {1} {2}?": {
+    "en": "Ban {0} for {1} {2}?",
+    "zh": "封禁 {0}，时长 {1} {2}？",
+    "de": "{0} für {1} {2} sperren?"
+  },
+  "Minutes": {
+    "en": "Minutes",
+    "zh": "分钟",
+    "de": "Minuten"
+  },
+  "minutes": {
+    "en": "minutes",
+    "zh": "分钟",
+    "de": "Minuten"
+  },
+  "Hours": {
+    "en": "Hours",
+    "zh": "小时",
+    "de": "Stunden"
+  },
+  "hours": {
+    "en": "hours",
+    "zh": "小时",
+    "de": "Stunden"
+  },
+  "Days": {
+    "en": "Days",
+    "zh": "天",
+    "de": "Tage"
+  },
+  "days": {
+    "en": "days",
+    "zh": "天",
+    "de": "Tage"
+  },
+  "Weeks": {
+    "en": "Weeks",
+    "zh": "周",
+    "de": "Wochen"
+  },
+  "weeks": {
+    "en": "weeks",
+    "zh": "周",
+    "de": "Wochen"
+  },
+  "Months": {
+    "en": "Months",
+    "zh": "月",
+    "de": "Monate"
+  },
+  "months": {
+    "en": "months",
+    "zh": "月",
+    "de": "Monate"
+  },
+  "Game preset (server side)": {
+    "en": "Game preset (server side)",
+    "zh": "游戏预设（服务器端）",
+    "de": "Spielvoreinstellung (serverseitig)"
+  },
+  "Normal": {
+    "en": "Normal",
+    "zh": "普通",
+    "de": "Normal"
+  },
+  "Classic": {
+    "en": "Classic",
+    "zh": "经典",
+    "de": "Klassisch"
+  },
+  "Hardcore": {
+    "en": "Hardcore",
+    "zh": "硬核",
+    "de": "Hardcore"
+  },
+  "Infantry": {
+    "en": "Infantry",
+    "zh": "步兵",
+    "de": "Infanterie"
+  },
+  "Custom": {
+    "en": "Custom",
+    "zh": "自定义",
+    "de": "Benutzerdefiniert"
+  },
+  "Standard": {
+    "en": "Standard",
+    "zh": "标准",
+    "de": "Standard"
+  },
+  "Pistols": {
+    "en": "Pistols",
+    "zh": "手枪",
+    "de": "Pistolen"
+  },
+  "DLC Weapons": {
+    "en": "DLC Weapons",
+    "zh": "DLC 武器",
+    "de": "DLC-Waffen"
+  },
+  "Troll": {
+    "en": "Troll",
+    "zh": "恶搞",
+    "de": "Troll"
+  },
+  "None": {
+    "en": "None",
+    "zh": "不解锁",
+    "de": "Keine"
+  },
+  "Common": {
+    "en": "Common",
+    "zh": "通用",
+    "de": "Allgemein"
+  },
+  "Based on stats": {
+    "en": "Based on stats",
+    "zh": "根据战绩解锁",
+    "de": "Nach Statistiken"
+  },
+  "Lock preset related values": {
+    "en": "Lock preset related values",
+    "zh": "锁定预设相关设置",
+    "de": "Zur Voreinstellung gehörende Werte sperren"
+  },
+  "Apply": {
+    "en": "Apply",
+    "zh": "应用",
+    "de": "Anwenden"
+  },
+  "Increase": {
+    "en": "Increase",
+    "zh": "增加",
+    "de": "Erhöhen"
+  },
+  "Decrease": {
+    "en": "Decrease",
+    "zh": "减少",
+    "de": "Verringern"
+  },
+  "Select a valid value for {0}.": {
+    "en": "Select a valid value for {0}.",
+    "zh": "请为 {0} 选择有效值。",
+    "de": "Wählen Sie einen gültigen Wert für {0}."
+  },
+  "Base tickets (100%)": {
+    "en": "Base tickets (100%)",
+    "zh": "基础兵力 / 分数（100%）",
+    "de": "Basis-Tickets / Zielpunktzahl (100 %)"
+  },
+  "Estimated tickets": {
+    "en": "Estimated tickets",
+    "zh": "预计兵力 / 分数",
+    "de": "Geschätzte Tickets / Zielpunktzahl"
+  },
+  "Estimated tickets: {0}": {
+    "en": "Estimated tickets: {0}",
+    "zh": "预计兵力 / 分数：{0}",
+    "de": "Geschätzte Tickets / Zielpunktzahl: {0}"
+  },
+  "Preview only: map defaults may differ. Adjust the base value; the server may round fractional tickets.": {
+    "en": "Preview only: map defaults may differ. Adjust the base value; the server may round fractional tickets.",
+    "zh": "仅供预览：不同地图的基础值可能不同，可手动调整；服务器可能对小数兵力取整。",
+    "de": "Nur Vorschau: Karten können andere Basiswerte haben. Passen Sie den Basiswert an; der Server kann Bruchteile runden."
+  },
+  "Enter a positive percentage and base tickets to preview.": {
+    "en": "Enter a positive percentage and base tickets to preview.",
+    "zh": "请输入正百分比和基础兵力后预览。",
+    "de": "Geben Sie einen positiven Prozentsatz und Basis-Tickets für die Vorschau ein."
+  },
+  "The ticket estimate is too large.": {
+    "en": "The ticket estimate is too large.",
+    "zh": "预计兵力值过大。",
+    "de": "Die geschätzte Ticketzahl ist zu groß."
+  },
+  "Load MapList.txt": {
+    "en": "Load MapList.txt",
+    "zh": "读取 MapList.txt",
+    "de": "MapList.txt laden"
+  },
+  "Load the server MapList.txt and replace the current rotation?": {
+    "en": "Load the server MapList.txt and replace the current rotation?",
+    "zh": "读取服务端 MapList.txt，替换当前地图轮换？",
+    "de": "Die MapList.txt des Servers laden und die aktuelle Kartenrotation ersetzen?"
+  },
+  "Loaded the server MapList.txt.": {
+    "en": "Loaded the server MapList.txt.",
+    "zh": "已读取服务端 MapList.txt。",
+    "de": "Die MapList.txt des Servers wurde geladen."
+  },
+  "Drag to reorder; changes save to the server MapList.txt. Double-click a map to switch now.": {
+    "en": "Drag to reorder; changes save to the server MapList.txt. Double-click a map to switch now.",
+    "zh": "拖拽调整顺序，修改保存到服务端 MapList.txt；双击地图立即切换。",
+    "de": "Zum Sortieren ziehen; Änderungen werden in der MapList.txt des Servers gespeichert. Doppelklick zum sofortigen Kartenwechsel."
+  },
+  "Switching to {0} — {1}.": {
+    "en": "Switching to {0} — {1}.",
+    "zh": "正在切换至 {0} — {1}。",
+    "de": "Wechsel zu {0} — {1}."
+  },
+  "Next map: {0} — {1}.": {
+    "en": "Next map: {0} — {1}.",
+    "zh": "下一张地图：{0} — {1}。",
+    "de": "Nächste Karte: {0} — {1}."
+  },
+  "ID_CHAT_ATTACK_DEFEND": {
+    "en": "[Commo Rose] Attack / defend!",
+    "zh": "[快捷指令] 进攻／防守！",
+    "de": "[Commo Rose] Angreifen / verteidigen!"
+  },
+  "ID_CHAT_REQUEST_MEDIC": {
+    "en": "[Commo Rose] Need a medic!",
+    "zh": "[快捷指令] 需要医疗兵！",
+    "de": "[Commo Rose] Sanitäter benötigt!"
+  },
+  "ID_CHAT_REQUEST_ORDER": {
+    "en": "[Commo Rose] Requesting orders!",
+    "zh": "[快捷指令] 请求命令！",
+    "de": "[Commo Rose] Befehle erbeten!"
+  },
+  "ID_CHAT_REQUEST_REPAIRS": {
+    "en": "[Commo Rose] Need repairs!",
+    "zh": "[快捷指令] 需要修理！",
+    "de": "[Commo Rose] Reparatur benötigt!"
+  },
+  "ID_CHAT_GOGOGO": {
+    "en": "[Commo Rose] Go, go, go!",
+    "zh": "[快捷指令] 前进！前进！",
+    "de": "[Commo Rose] Los, los, los!"
+  },
+  "ID_CHAT_AFFIRMATIVE": {
+    "en": "[Commo Rose] Affirmative!",
+    "zh": "[快捷指令] 收到！",
+    "de": "[Commo Rose] Bestätigt!"
+  },
+  "ID_CHAT_THANKS": {
+    "en": "[Commo Rose] Thank you!",
+    "zh": "[快捷指令] 谢谢！",
+    "de": "[Commo Rose] Vielen Dank!"
+  },
+  "ID_CHAT_REQUEST_AMMO": {
+    "en": "[Commo Rose] Need ammunition!",
+    "zh": "[快捷指令] 需要弹药！",
+    "de": "[Commo Rose] Munition benötigt!"
+  },
+  "ID_CHAT_REQUEST_RIDE": {
+    "en": "[Commo Rose] Need a ride!",
+    "zh": "[快捷指令] 请求搭载！",
+    "de": "[Commo Rose] Mitfahrgelegenheit benötigt!"
+  },
+  "ID_CHAT_GET_OUT": {
+    "en": "[Commo Rose] Get out!",
+    "zh": "[快捷指令] 下车！",
+    "de": "[Commo Rose] Aussteigen!"
+  },
+  "ID_CHAT_GET_IN": {
+    "en": "[Commo Rose] Get in!",
+    "zh": "[快捷指令] 上车！",
+    "de": "[Commo Rose] Einsteigen!"
+  },
+  "ID_CHAT_NEGATIVE": {
+    "en": "[Commo Rose] Negative!",
+    "zh": "[快捷指令] 否定！",
+    "de": "[Commo Rose] Negativ!"
+  },
+  "ID_CHAT_SORRY": {
+    "en": "[Commo Rose] Sorry!",
+    "zh": "[快捷指令] 抱歉！",
+    "de": "[Commo Rose] Entschuldigung!"
+  },
+  "{0} (underbarrel on {1})": {
+    "en": "{0} (underbarrel on {1})",
+    "zh": "{0}（挂载于 {1}）",
+    "de": "{0} (Unterlauf an {1})"
+  },
+  "Ammobag": {
+    "en": "Ammo bag",
+    "zh": "弹药包",
+    "de": "Munitionstasche"
+  },
+  "Ballistic Shield": {
+    "en": "Ballistic shield",
+    "zh": "防弹盾牌",
+    "de": "Ballistischer Schild"
+  },
+  "Claymore": {
+    "en": "Claymore",
+    "zh": "阔剑地雷",
+    "de": "Claymore"
+  },
+  "Defibrillator": {
+    "en": "Defibrillator",
+    "zh": "除颤器",
+    "de": "Defibrillator"
+  },
+  "Flashbang": {
+    "en": "Flashbang",
+    "zh": "闪光弹",
+    "de": "Blendgranate"
+  },
+  "Handflare": {
+    "en": "Hand flare",
+    "zh": "手持照明棒",
+    "de": "Handleuchtfackel"
+  },
+  "Knife": {
+    "en": "Knife",
+    "zh": "战斗刀",
+    "de": "Messer"
+  },
+  "M15 AT Mine": {
+    "en": "M15 AT mine",
+    "zh": "M15 反坦克地雷",
+    "de": "M15-Panzerabwehrmine"
+  },
+  "M18 Smoke": {
+    "en": "M18 smoke grenade",
+    "zh": "M18 烟雾弹",
+    "de": "M18-Rauchgranate"
+  },
+  "M224 Mortar": {
+    "en": "M224 mortar",
+    "zh": "M224 迫击炮",
+    "de": "M224-Mörser"
+  },
+  "M34 Incendiary": {
+    "en": "M34 incendiary grenade",
+    "zh": "M34 燃烧弹",
+    "de": "M34-Brandgranate"
+  },
+  "M67 Frag": {
+    "en": "M67 frag grenade",
+    "zh": "M67 破片手榴弹",
+    "de": "M67-Splittergranate"
+  },
+  "Medkit": {
+    "en": "Medkit",
+    "zh": "医疗箱",
+    "de": "Sanitätskasten"
+  },
+  "Portable Medkit": {
+    "en": "First aid pack",
+    "zh": "急救包",
+    "de": "Erste-Hilfe-Tasche"
+  },
+  "Repair Tool": {
+    "en": "Repair tool",
+    "zh": "修理工具",
+    "de": "Reparaturwerkzeug"
+  },
+  "Tomahawk": {
+    "en": "Tomahawk",
+    "zh": "战术斧",
+    "de": "Tomahawk"
+  },
+  "V40 Mini": {
+    "en": "V40 mini grenade",
+    "zh": "V40 迷你手榴弹",
+    "de": "V40-Minigranate"
+  },
+  "EOD Bot": {
+    "en": "EOD bot",
+    "zh": "排爆机器人",
+    "de": "EOD-Roboter"
+  },
+  "Stationary machine gun": {
+    "en": "Stationary machine gun",
+    "zh": "固定机枪",
+    "de": "Stationäres Maschinengewehr"
+  },
+  "US Army": {
+    "en": "US Army",
+    "zh": "美国陆军",
+    "de": "US-Armee"
+  },
+  "Russian Army": {
+    "en": "Russian Army",
+    "zh": "俄罗斯陆军",
+    "de": "Russische Armee"
+  },
+  "Chinese Army": {
+    "en": "Chinese Army",
+    "zh": "中国陆军",
+    "de": "Chinesische Armee"
+  },
+  "Attackers": {
+    "en": "Attackers",
+    "zh": "进攻方",
+    "de": "Angreifer"
+  },
+  "Defenders": {
+    "en": "Defenders",
+    "zh": "防守方",
+    "de": "Verteidiger"
+  },
+  "Squad {0}": {
+    "en": "Squad {0}",
+    "zh": "小队 {0}",
+    "de": "Trupp {0}"
+  },
+  "{0} ({1})": {
+    "en": "{0} ({1})",
+    "zh": "{0}（{1}）",
+    "de": "{0} ({1})"
+  },
+  "Lightweight": {
+    "zh": "轻装",
+    "de": "Leichtgewicht",
+    "en": "Lightweight"
+  },
+  "Move to team": {
+    "zh": "移动至队伍",
+    "de": "In Team verschieben",
+    "en": "Move to team"
+  },
+  "Licensed under GNU GPL v3.0. Includes data derived from Procon Frostbite; see LICENSE and THIRD-PARTY-NOTICES.md.": {
+    "zh": "采用 GNU GPL v3.0。包含源自 Procon Frostbite 的数据；详见 LICENSE 和 THIRD-PARTY-NOTICES.md。",
+    "de": "Lizenziert unter GNU GPL v3.0. Enthält von Procon Frostbite abgeleitete Daten; siehe LICENSE und THIRD-PARTY-NOTICES.md.",
+    "en": "Licensed under GNU GPL v3.0. Includes data derived from Procon Frostbite; see LICENSE and THIRD-PARTY-NOTICES.md."
+  },
+  "Sniper heaven": {
+    "zh": "狙击天堂",
+    "de": "Scharfschützenparadies",
+    "en": "Sniper heaven"
+  },
+  "A lightweight RCON manager inspired by Procon Frostbite.": {
+    "zh": "受 Procon Frostbite 启发的轻量 RCON 管理器。",
+    "de": "Ein schlanker RCON-Manager, inspiriert von Procon Frostbite.",
+    "en": "A lightweight RCON manager inspired by Procon Frostbite."
+  },
+  "Initially created entirely with AI. Maintained and reviewed by xXN1ckWa1k3rXx.": {
+    "zh": "最初完全由 AI 制作，由 xXN1ckWa1k3rXx 持续维护和审阅。",
+    "de": "Ursprünglich vollständig mit KI erstellt. Wartung und Prüfung durch xXN1ckWa1k3rXx.",
+    "en": "Initially created entirely with AI. Maintained and reviewed by xXN1ckWa1k3rXx."
+  },
+  "Players: {0}/{1}": {
+    "zh": "玩家：{0}/{1}",
+    "de": "Spieler: {0}/{1}",
+    "en": "Players: {0}/{1}"
+  },
+  "RU arms race": {
+    "zh": "俄军军备竞赛",
+    "de": "RU-Wettrüsten",
+    "en": "RU arms race"
+  },
+  "Pistol run": {
+    "zh": "手枪竞赛",
+    "de": "Pistolenlauf",
+    "en": "Pistol run"
+  },
+  "Heavy gear": {
+    "zh": "重装",
+    "de": "Schwere Ausrüstung",
+    "en": "Heavy gear"
+  },
+  "Criminals": {
+    "zh": "罪犯",
+    "de": "Kriminelle",
+    "en": "Criminals"
+  },
+  "Cops": {
+    "zh": "警察",
+    "de": "Polizei",
+    "en": "Cops"
+  },
+  "Battlefield and related trademarks belong to Electronic Arts and DICE. Not affiliated with or endorsed by EA, DICE or Procon contributors.": {
+    "zh": "Battlefield 及相关商标归 Electronic Arts 和 DICE 所有。本项目与 EA、DICE 或 Procon 贡献者无关联，亦未获其背书。",
+    "de": "Battlefield und zugehörige Marken gehören Electronic Arts und DICE. Keine Verbindung zu oder Unterstützung durch EA, DICE oder Procon-Mitwirkende.",
+    "en": "Battlefield and related trademarks belong to Electronic Arts and DICE. Not affiliated with or endorsed by EA, DICE or Procon contributors."
+  },
+  "Maps": {
+    "zh": "地图",
+    "de": "Karten",
+    "en": "Maps"
+  },
+  "Player profile": {
+    "zh": "玩家档案",
+    "de": "Spielerprofil",
+    "en": "Player profile"
+  },
+  "Reversed": {
+    "zh": "逆序",
+    "de": "Umgekehrt",
+    "en": "Reversed"
+  },
+  "EU arms race": {
+    "zh": "欧洲军备竞赛",
+    "de": "EU-Wettrüsten",
+    "en": "EU arms race"
+  },
+  "US arms race": {
+    "zh": "美军军备竞赛",
+    "de": "US-Wettrüsten",
+    "en": "US arms race"
+  },
+  "Hacker": {
+    "zh": "骇客",
+    "de": "Hacker",
+    "en": "Hacker"
+  },
+  "Bans · Manage bans": {
+    "en": "Bans · Manage bans",
+    "zh": "Bans · 封禁管理",
+    "de": "Bans · Sperren verwalten"
+  },
+  "Chat · Send Say / Yell messages": {
+    "en": "Chat · Send Say / Yell messages",
+    "zh": "Chat · 发送 Say / Yell",
+    "de": "Chat · Say- / Yell-Nachrichten senden"
+  },
+  "Console · Use console (command permissions still apply)": {
+    "en": "Console · Use console (command permissions still apply)",
+    "zh": "Console · 使用控制台（仍受命令所属权限限制）",
+    "de": "Console · Konsole verwenden (Befehlsrechte gelten weiterhin)"
+  },
+  "Press Enter to send": {
+    "en": "Press Enter to send",
+    "zh": "Enter 发送",
+    "de": "Zum Senden Eingabetaste drücken"
+  },
+  "Layer passwords must contain 12–1024 characters.": {
+    "en": "Layer passwords must contain 12–1024 characters.",
+    "zh": "Layer 密码需要 12–1024 个字符。",
+    "de": "Layer-Passwörter müssen 12–1024 Zeichen enthalten."
+  },
+  "Layer not connected.": {
+    "en": "Layer not connected.",
+    "zh": "Layer 尚未连接。",
+    "de": "Layer nicht verbunden."
+  },
+  "Disable Layer before changing its listening address.": {
+    "en": "Disable Layer before changing its listening address.",
+    "zh": "Layer 已启用；修改监听地址前请先关闭。",
+    "de": "Layer vor dem Ändern der Listener-Adresse deaktivieren."
+  },
+  "Layer connected": {
+    "en": "Layer connected",
+    "zh": "Layer 已连接",
+    "de": "Layer verbunden"
+  },
+  "Layer logging enabled · Latest 5000 entries shown": {
+    "en": "Layer logging enabled · Latest 5000 entries shown",
+    "zh": "Layer 持续保存 · 最近 5000 条可回放",
+    "de": "Layer-Protokollierung aktiv · Letzte 5000 Einträge angezeigt"
+  },
+  "Layer did not return account information.": {
+    "en": "Layer did not return account information.",
+    "zh": "Layer 未返回账号信息。",
+    "de": "Layer hat keine Kontoinformationen zurückgegeben."
+  },
+  "Insufficient Layer permission: ": {
+    "en": "Insufficient Layer permission: ",
+    "zh": "Layer 权限不足：",
+    "de": "Unzureichende Layer-Berechtigung: "
+  },
+  "Layer listening address must be an IP address.": {
+    "en": "Layer listening address must be an IP address.",
+    "zh": "Layer 监听地址必须是 IP 地址。",
+    "de": "Die Layer-Listener-Adresse muss eine IP-Adresse sein."
+  },
+  "Layer port must be between 1 and 65535.": {
+    "en": "Layer port must be between 1 and 65535.",
+    "zh": "Layer 端口必须在 1–65535 之间。",
+    "de": "Der Layer-Port muss zwischen 1 und 65535 liegen."
+  },
+  "Layer certificate is untrusted or has changed. Verify the SHA-256 fingerprint with the administrator.": {
+    "en": "Layer certificate is untrusted or has changed. Verify the SHA-256 fingerprint with the administrator.",
+    "zh": "Layer 证书尚未信任或已更换。请与管理员核对 SHA-256 指纹。",
+    "de": "Das Layer-Zertifikat ist nicht vertrauenswürdig oder wurde geändert. SHA-256-Fingerabdruck mit dem Administrator prüfen."
+  },
+  "Layer connection closed.": {
+    "en": "Layer connection closed.",
+    "zh": "Layer 连接已关闭。",
+    "de": "Layer-Verbindung geschlossen."
+  },
+  "LayerAdmin · Manage Layer accounts and permissions": {
+    "en": "LayerAdmin · Manage Layer accounts and permissions",
+    "zh": "LayerAdmin · 管理 Layer 账号与权限",
+    "de": "LayerAdmin · Layer-Konten und Berechtigungen verwalten"
+  },
+  "LightRcon+ · Operation failed": {
+    "en": "LightRcon+ · Operation failed",
+    "zh": "LightRcon+ · 操作失败",
+    "de": "LightRcon+ · Vorgang fehlgeschlagen"
+  },
+  "Maps · Map lists, restart and next round": {
+    "en": "Maps · Map lists, restart and next round",
+    "zh": "Maps · 地图列表、重启与下一回合",
+    "de": "Maps · Kartenlisten, Neustart und nächste Runde"
+  },
+  "OFFICIAL / RANKED / UNRANKED / PRIVATE; some settings can only be changed at startup": {
+    "en": "OFFICIAL / RANKED / UNRANKED / PRIVATE; some settings can only be changed at startup",
+    "zh": "OFFICIAL / RANKED / UNRANKED / PRIVATE；部分设置仅可启动时修改",
+    "de": "OFFICIAL / RANKED / UNRANKED / PRIVATE; einige Einstellungen können nur beim Start geändert werden"
+  },
+  "Password · Leave blank to keep current password": {
+    "en": "Password · Leave blank to keep current password",
+    "zh": "Password · 留空保留原密码",
+    "de": "Passwort · Leer lassen, um das bisherige Passwort zu behalten"
+  },
+  "Password · At least 12 characters": {
+    "en": "Password · At least 12 characters",
+    "zh": "Password · 至少 12 个字符",
+    "de": "Passwort · Mindestens 12 Zeichen"
+  },
+  "Permissions (blank inherits global)": {
+    "en": "Permissions (blank inherits global)",
+    "zh": "Permissions (空值继承全局)",
+    "de": "Berechtigungen (leer: global erben)"
+  },
+  "Players · Player actions and special slots": {
+    "en": "Players · Player actions and special slots",
+    "zh": "Players · 玩家操作与特殊名单",
+    "de": "Players · Spieleraktionen und besondere Plätze"
+  },
+  "PunkBuster arguments cannot contain quotes, newlines or command separators.": {
+    "en": "PunkBuster arguments cannot contain quotes, newlines or command separators.",
+    "zh": "PunkBuster 参数不允许引号、换行或命令分隔符。",
+    "de": "PunkBuster-Parameter dürfen keine Anführungszeichen, Zeilenumbrüche oder Befehlstrenner enthalten."
+  },
+  "PunkBuster has no kill command. Select Server.": {
+    "en": "PunkBuster has no kill command. Select Server.",
+    "zh": "PunkBuster 没有可用的击杀命令，请选择 Server。",
+    "de": "PunkBuster hat keinen Tötungsbefehl. Server auswählen."
+  },
+  "RCON connected": {
+    "en": "RCON connected",
+    "zh": "RCON 已连接",
+    "de": "RCON verbunden"
+  },
+  "Settings · Change server settings": {
+    "en": "Settings · Change server settings",
+    "zh": "Settings · 修改服务器设置",
+    "de": "Settings · Servereinstellungen ändern"
+  },
+  "TLS encryption, separate accounts and server-side permissions. Chat and events are saved locally while enabled.": {
+    "en": "TLS encryption, separate accounts and server-side permissions. Chat and events are saved locally while enabled.",
+    "zh": "TLS 加密、独立账号、服务端权限检查；启用后聊天与事件持续保存在本地。",
+    "de": "TLS-Verschlüsselung, eigene Konten und serverseitige Rechteprüfung. Chat und Ereignisse werden bei aktiviertem Layer lokal gespeichert."
+  },
+  "View · Sign in, read status and chat history": {
+    "en": "View · Sign in, read status and chat history",
+    "zh": "View · 登录、读取状态与聊天历史",
+    "de": "View · Anmelden, Status und Chatverlauf lesen"
+  },
+  "Connection to the remote server has been lost": {
+    "en": "Connection to the remote server has been lost",
+    "zh": "与远程服务器的连接已丢失",
+    "de": "Verbindung zum entfernten Server unterbrochen"
+  },
+  "Connection to the remote server has been lost. Client settings are saved; reconnecting.": {
+    "en": "Connection to the remote server has been lost. Client settings are saved; reconnecting.",
+    "zh": "与远程服务器的连接已丢失 · 客户端状态已保存，正在尝试恢复连接。",
+    "de": "Die Verbindung zum entfernten Server wurde unterbrochen. Clienteinstellungen sind gespeichert; Verbindung wird wiederhergestellt."
+  },
+  "Temporary ban duration must be 1–525600 minutes.": {
+    "en": "Temporary ban duration must be 1–525600 minutes.",
+    "zh": "临时封禁分钟数需要在 1–525600 之间。",
+    "de": "Die temporäre Sperrdauer muss 1–525600 Minuten betragen."
+  },
+  "Temporary ban duration in minutes": {
+    "en": "Temporary ban duration in minutes",
+    "zh": "临时封禁时间，分钟",
+    "de": "Dauer der temporären Sperre in Minuten"
+  },
+  "Use a separate password. Individual permissions override global defaults.": {
+    "en": "Use a separate password. Individual permissions override global defaults.",
+    "zh": "使用独立密码；单独权限将覆盖全局权限。",
+    "de": "Ein eigenes Passwort verwenden. Individuelle Rechte überschreiben globale Vorgaben."
+  },
+  "For example: serverInfo or punkBuster.pb_sv_command \"pb_sv_plist\"": {
+    "en": "For example: serverInfo or punkBuster.pb_sv_command \"pb_sv_plist\"",
+    "zh": "例如 serverInfo 或 punkBuster.pb_sv_command \"pb_sv_plist\"",
+    "de": "Beispiel: serverInfo oder punkBuster.pb_sv_command \"pb_sv_plist\""
+  },
+  "Save and sync settings": {
+    "en": "Save and sync settings",
+    "zh": "保存并同步设置",
+    "de": "Einstellungen speichern und abgleichen"
+  },
+  "Edit ban": {
+    "en": "Edit ban",
+    "zh": "修改封禁",
+    "de": "Sperre bearbeiten"
+  },
+  "Edit ban duration / reason": {
+    "en": "Edit ban duration / reason",
+    "zh": "修改封禁时间 / 原因",
+    "de": "Sperrdauer / Grund bearbeiten"
+  },
+  "Global permissions": {
+    "en": "Global permissions",
+    "zh": "全局权限",
+    "de": "Globale Berechtigungen"
+  },
+  "Global default permissions: ": {
+    "en": "Global default permissions: ",
+    "zh": "全局默认权限：",
+    "de": "Globale Standardberechtigungen: "
+  },
+  "Clear all": {
+    "en": "Clear all",
+    "zh": "全清理",
+    "de": "Alles leeren"
+  },
+  "Disable Layer": {
+    "en": "Disable Layer",
+    "zh": "关闭 Layer",
+    "de": "Layer deaktivieren"
+  },
+  "Disable Layer and disconnect all downstream clients?": {
+    "en": "Disable Layer and disconnect all downstream clients?",
+    "zh": "关闭 Layer 并断开所有下游客户端？",
+    "de": "Layer deaktivieren und alle untergeordneten Clients trennen?"
+  },
+  "Delete selected": {
+    "en": "Delete selected",
+    "zh": "删除选中",
+    "de": "Auswahl löschen"
+  },
+  "Refresh": {
+    "en": "Refresh",
+    "zh": "刷新",
+    "de": "Aktualisieren"
+  },
+  "Refresh accounts": {
+    "en": "Refresh accounts",
+    "zh": "刷新账号",
+    "de": "Konten aktualisieren"
+  },
+  "Account permissions override global defaults. Changing permissions or passwords disconnects existing sessions.": {
+    "en": "Account permissions override global defaults. Changing permissions or passwords disconnects existing sessions.",
+    "zh": "单独账号权限覆盖全局默认值。变更权限或密码会断开现有会话。",
+    "de": "Kontoberechtigungen überschreiben globale Vorgaben. Änderungen an Rechten oder Passwort trennen bestehende Sitzungen."
+  },
+  "History from upstream Layer": {
+    "en": "History from upstream Layer",
+    "zh": "历史来自上游 Layer",
+    "de": "Verlauf vom übergeordneten Layer"
+  },
+  "Synchronization failed. Original server map list restored; local draft retained.": {
+    "en": "Synchronization failed. Original server map list restored; local draft retained.",
+    "zh": "同步失败，已恢复服务器原地图列表；本地草稿保留。",
+    "de": "Abgleich fehlgeschlagen. Ursprüngliche Serverkartenliste wiederhergestellt; lokaler Entwurf bleibt erhalten."
+  },
+  "Enable Layer": {
+    "en": "Enable Layer",
+    "zh": "启用 Layer",
+    "de": "Layer aktivieren"
+  },
+  "Enable account": {
+    "en": "Enable account",
+    "zh": "启用账号",
+    "de": "Konto aktivieren"
+  },
+  "Invalid map or round count.": {
+    "en": "Invalid map or round count.",
+    "zh": "地图或回合数不正确。",
+    "de": "Ungültige Karte oder Rundenzahl."
+  },
+  "Password must contain at least 12 characters.": {
+    "en": "Password must contain at least 12 characters.",
+    "zh": "密码至少需要 12 个字符。",
+    "de": "Das Passwort muss mindestens 12 Zeichen enthalten."
+  },
+  "Export MapList.txt": {
+    "en": "Export MapList.txt",
+    "zh": "导出 MapList.txt",
+    "de": "MapList.txt exportieren"
+  },
+  "Export Startup.txt": {
+    "en": "Export Startup.txt",
+    "zh": "导出 Startup.txt",
+    "de": "Startup.txt exportieren"
+  },
+  "Ban reasons may contain at most 80 characters.": {
+    "en": "Ban reasons may contain at most 80 characters.",
+    "zh": "封禁原因最多 80 个字符。",
+    "de": "Der Sperrgrund darf höchstens 80 Zeichen enthalten."
+  },
+  "Ban identifier cannot be empty.": {
+    "en": "Ban identifier cannot be empty.",
+    "zh": "封禁标识不能为空。",
+    "de": "Die Sperrkennung darf nicht leer sein."
+  },
+  "No PunkBuster slot received for this player. Refresh and wait for the pb_sv_plist response.": {
+    "en": "No PunkBuster slot received for this player. Refresh and wait for the pb_sv_plist response.",
+    "zh": "尚未收到此玩家的 PunkBuster slot。请刷新并等待 pb_sv_plist 响应。",
+    "de": "Noch kein PunkBuster-Slot für diesen Spieler empfangen. Aktualisieren und auf die Antwort von pb_sv_plist warten."
+  },
+  "Not connected": {
+    "en": "Not connected",
+    "zh": "尚未连接",
+    "de": "Nicht verbunden"
+  },
+  "Ready": {
+    "en": "Ready",
+    "zh": "就绪",
+    "de": "Bereit"
+  },
+  "Expand a map to choose a mode. Drag it to the list or use Add.": {
+    "en": "Expand a map to choose a mode. Drag it to the list or use Add.",
+    "zh": "展开地图选择模式；拖入右侧或点击添加。",
+    "de": "Karte aufklappen und Modus wählen. In die Liste ziehen oder hinzufügen."
+  },
+  "Local settings saved; synchronization will resume after reconnecting.": {
+    "en": "Local settings saved; synchronization will resume after reconnecting.",
+    "zh": "已保存本地设置，连接恢复后将同步。",
+    "de": "Lokale Einstellungen gespeichert; Abgleich nach erneuter Verbindung."
+  },
+  "Exported ": {
+    "en": "Exported ",
+    "zh": "已导出 ",
+    "de": "Exportiert: "
+  },
+  "Disconnected": {
+    "en": "Disconnected",
+    "zh": "已断开",
+    "de": "Getrennt"
+  },
+  "Connected upstream Layer": {
+    "en": "Connected upstream Layer",
+    "zh": "已连接的上游 Layer",
+    "de": "Verbundener übergeordneter Layer"
+  },
+  "Boolean values must be true or false.": {
+    "en": "Boolean values must be true or false.",
+    "zh": "布尔值必须是 true 或 false。",
+    "de": "Boolesche Werte müssen true oder false sein."
+  },
+  "Incomplete quote or escape sequence.": {
+    "en": "Incomplete quote or escape sequence.",
+    "zh": "引号或转义不完整。",
+    "de": "Unvollständiges Anführungszeichen oder Escape-Sequenz."
+  },
+  "No active connection.": {
+    "en": "No active connection.",
+    "zh": "当前没有可用连接。",
+    "de": "Keine aktive Verbindung."
+  },
+  "Restore failed; local list will be retried after reconnecting: ": {
+    "en": "Restore failed; local list will be retried after reconnecting: ",
+    "zh": "恢复失败，将在重连时重试本地列表：",
+    "de": "Wiederherstellung fehlgeschlagen; lokale Liste wird nach erneuter Verbindung erneut angewendet: "
+  },
+  "I have verified the administrator’s SHA-256 fingerprint": {
+    "en": "I have verified the administrator's SHA-256 fingerprint",
+    "zh": "我已核对管理员提供的 SHA-256 指纹",
+    "de": "Ich habe den SHA-256-Fingerabdruck des Administrators geprüft"
+  },
+  "Manual ban": {
+    "en": "Manual ban",
+    "zh": "手动封禁 / Manual ban",
+    "de": "Manuell sperren"
+  },
+  "Execute": {
+    "en": "Execute",
+    "zh": "执行",
+    "de": "Ausführen"
+  },
+  "Execute this RCON command?\n": {
+    "en": "Execute this RCON command?\n",
+    "zh": "执行此 RCON 命令？\n",
+    "de": "Diesen RCON-Befehl ausführen?\n"
+  },
+  "Drag to reorder. Changes are saved to the server.": {
+    "en": "Drag to reorder. Changes are saved to the server.",
+    "zh": "拖拽排列顺序；修改会保存到服务器。",
+    "de": "Zum Sortieren ziehen. Änderungen werden auf dem Server gespeichert."
+  },
+  "Fingerprint matches; trust and connect": {
+    "en": "Fingerprint matches; trust and connect",
+    "zh": "指纹一致，信任并连接",
+    "de": "Fingerabdruck stimmt überein; vertrauen und verbinden"
+  },
+  "Search by name, IP, GUID or reason": {
+    "en": "Search by name, IP, GUID or reason",
+    "zh": "按 Name / IP / GUID / Reason 查找",
+    "de": "Nach Name, IP, GUID oder Grund suchen"
+  },
+  "Disconnect": {
+    "en": "Disconnect",
+    "zh": "断开",
+    "de": "Trennen"
+  },
+  "New accounts require a password.": {
+    "en": "New accounts require a password.",
+    "zh": "新账号必须设置密码。",
+    "de": "Neue Konten benötigen ein Passwort."
+  },
+  "Invalid Layer username.": {
+    "en": "Invalid Layer username.",
+    "zh": "无效的 Layer 用户名。",
+    "de": "Ungültiger Layer-Benutzername."
+  },
+  "Duration must be a positive integer.": {
+    "en": "Duration must be a positive integer.",
+    "zh": "时长必须为正整数。",
+    "de": "Die Dauer muss eine positive ganze Zahl sein."
+  },
+  "Windows Server 2019 / Windows 10 1809 or later is required.": {
+    "en": "Windows Server 2019 / Windows 10 1809 or later is required.",
+    "zh": "最低支持 Windows Server 2019 / Windows 10 1809。",
+    "de": "Windows Server 2019 / Windows 10 1809 oder neuer erforderlich."
+  },
+  "At most 100 accounts.": {
+    "en": "At most 100 accounts.",
+    "zh": "最多 100 个账号。",
+    "de": "Höchstens 100 Konten."
+  },
+  "At most 100 Layer accounts are supported.": {
+    "en": "At most 100 Layer accounts are supported.",
+    "zh": "最多支持 100 个 Layer 账号。",
+    "de": "Höchstens 100 Layer-Konten werden unterstützt."
+  },
+  "Server not connected; action not sent.": {
+    "en": "Server not connected; action not sent.",
+    "zh": "服务器尚未连接，操作未发送。",
+    "de": "Server nicht verbunden; Aktion nicht gesendet."
+  },
+  "Setting unavailable or account has no permission to read it.": {
+    "en": "Setting unavailable or account has no permission to read it.",
+    "zh": "服务器未提供此设置，或账号无读取权限。",
+    "de": "Einstellung nicht verfügbar oder keine Leseberechtigung."
+  },
+  "Not available": {
+    "en": "Not available",
+    "zh": "未提供",
+    "de": "Nicht verfügbar"
+  },
+  "No EA GUID received; cannot ban by GUID.": {
+    "en": "No EA GUID received; cannot ban by GUID.",
+    "zh": "未收到 EA GUID，不能按 GUID 封禁。",
+    "de": "Keine EA-GUID empfangen; Sperren per GUID nicht möglich."
+  },
+  "Unknown setting.": {
+    "en": "Unknown setting.",
+    "zh": "未知的设置项。",
+    "de": "Unbekannte Einstellung."
+  },
+  "Local settings take priority. Offline changes sync after reconnecting.": {
+    "en": "Local settings take priority. Offline changes sync after reconnecting.",
+    "zh": "本地设置优先 · 离线修改会在重连后同步。",
+    "de": "Lokale Einstellungen haben Vorrang. Offline-Änderungen werden nach erneuter Verbindung abgeglichen."
+  },
+  "Local settings saved. See Console for synchronization results.": {
+    "en": "Local settings saved. See Console for synchronization results.",
+    "zh": "本地设置已保存；同步结果见 Console。",
+    "de": "Lokale Einstellungen gespeichert. Abgleichergebnisse stehen in der Konsole."
+  },
+  "This instance’s Layer": {
+    "en": "This instance's Layer",
+    "zh": "本实例提供的 Layer",
+    "de": "Layer dieser Instanz"
+  },
+  "Search maps or file names": {
+    "en": "Search maps or file names",
+    "zh": "查找地图或文件名",
+    "de": "Karten oder Dateinamen suchen"
+  },
+  "Generate from saved local settings. Layer clients always hide the RCON password.": {
+    "en": "Generate from saved local settings. Layer clients always hide the RCON password.",
+    "zh": "根据已保存的本地设置生成。Layer 客户端生成时始终隐藏 RCON 密码。",
+    "de": "Aus gespeicherten lokalen Einstellungen erzeugen. Layer-Clients blenden das RCON-Passwort immer aus."
+  },
+  "Comparing local settings…": {
+    "en": "Comparing local settings…",
+    "zh": "正在比对本地设置…",
+    "de": "Lokale Einstellungen werden abgeglichen…"
+  },
+  "Connecting…": {
+    "en": "Connecting…",
+    "zh": "正在连接…",
+    "de": "Verbindung wird hergestellt…"
+  },
+  "Authenticating with Layer…": {
+    "en": "Authenticating with Layer…",
+    "zh": "正在验证 Layer 身份…",
+    "de": "Layer-Anmeldung wird geprüft…"
+  },
+  "Authenticating with RCON…": {
+    "en": "Authenticating with RCON…",
+    "zh": "正在验证 RCON 身份…",
+    "de": "RCON-Anmeldung wird geprüft…"
+  },
+  "This PunkBuster command is not available through Layer.": {
+    "en": "This PunkBuster command is not available through Layer.",
+    "zh": "此 PunkBuster 命令未开放给 Layer。",
+    "de": "Dieser PunkBuster-Befehl ist über Layer nicht verfügbar."
+  },
+  "This command is not available through Layer.": {
+    "en": "This command is not available through Layer.",
+    "zh": "此命令未开放给 Layer。",
+    "de": "Dieser Befehl ist über Layer nicht verfügbar."
+  },
+  "This data directory is already in use by LightRcon+ desktop or console.": {
+    "en": "This data directory is already in use by LightRcon+ desktop or console.",
+    "zh": "此数据目录已被 LightRcon+ 桌面端或控制台占用。",
+    "de": "Dieses Datenverzeichnis wird bereits von LightRcon+ Desktop oder Konsole verwendet."
+  },
+  "No permission to change server settings.": {
+    "en": "No permission to change server settings.",
+    "zh": "没有修改服务器设置的权限。",
+    "de": "Keine Berechtigung zum Ändern der Servereinstellungen."
+  },
+  "No map management permission.": {
+    "en": "No map management permission.",
+    "zh": "没有地图管理权限。",
+    "de": "Keine Berechtigung zur Kartenverwaltung."
+  },
+  "You do not have console permission.": {
+    "en": "You do not have console permission.",
+    "zh": "没有控制台权限。",
+    "de": "Keine Konsolenberechtigung."
+  },
+  "Add Layer account": {
+    "en": "Add Layer account",
+    "zh": "添加 Layer 账号",
+    "de": "Layer-Konto hinzufügen"
+  },
+  "Add ban": {
+    "en": "Add ban",
+    "zh": "添加封禁",
+    "de": "Sperre hinzufügen"
+  },
+  "Clear the entire current map list? The server’s map rotation will also be cleared.": {
+    "en": "Clear the entire current map list? The server's map rotation will also be cleared.",
+    "zh": "清空整个 Current map list？服务器地图轮换也会清空。",
+    "de": "Die gesamte aktuelle Kartenliste leeren? Die Kartenrotation auf dem Server wird ebenfalls geleert."
+  },
+  "Clear and save all server bans? This cannot be undone.": {
+    "en": "Clear and save all server bans? This cannot be undone.",
+    "zh": "清空服务器全部封禁记录并保存？此操作不可撤销。",
+    "de": "Alle Serversperren löschen und speichern? Dies kann nicht rückgängig gemacht werden."
+  },
+  "Generate / refresh": {
+    "en": "Generate / refresh",
+    "zh": "生成 / 刷新",
+    "de": "Erzeugen / aktualisieren"
+  },
+  "Invalid username, password or login permission.": {
+    "en": "Invalid username, password or login permission.",
+    "zh": "用户名、密码或登录权限无效。",
+    "de": "Benutzername, Passwort oder Anmeldeberechtigung ungültig."
+  },
+  "Username must contain 1–64 characters.": {
+    "en": "Username must contain 1–64 characters.",
+    "zh": "用户名需要 1–64 个字符。",
+    "de": "Der Benutzername muss 1–64 Zeichen enthalten."
+  },
+  "Login, subscriptions and the RCON password are managed by the connection manager and cannot be changed through the console.": {
+    "en": "Login, subscriptions and the RCON password are managed by the connection manager and cannot be changed through the console.",
+    "zh": "登录、订阅和 RCON 密码由连接管理器维护，不允许通过控制台修改。",
+    "de": "Anmeldung, Abonnements und RCON-Passwort werden von der Verbindungsverwaltung verwaltet und können nicht über die Konsole geändert werden."
+  },
+  "Login failed": {
+    "en": "Login failed",
+    "zh": "登录失败",
+    "de": "Anmeldung fehlgeschlagen"
+  },
+  "Retry failed logins every 20 seconds; keep reconnecting after a lost connection.": {
+    "en": "Retry failed logins every 20 seconds; keep reconnecting after a lost connection.",
+    "zh": "登录失败每 20 秒重试；已建立的连接断开后持续重连。",
+    "de": "Fehlgeschlagene Anmeldungen alle 20 Sekunden wiederholen; nach Verbindungsabbruch weiter verbinden."
+  },
+  "Login failed; retrying in 20 seconds": {
+    "en": "Login failed; retrying in 20 seconds",
+    "zh": "登录失败，20 秒后重试",
+    "de": "Anmeldung fehlgeschlagen; erneuter Versuch in 20 Sekunden"
+  },
+  "Listener failed: ": {
+    "en": "Listener failed: ",
+    "zh": "监听失败：",
+    "de": "Listener fehlgeschlagen: "
+  },
+  "Direct session · Cleared when the app closes": {
+    "en": "Direct session · Cleared when the app closes",
+    "zh": "直连会话 · 关闭程序后清空",
+    "de": "Direkte Sitzung · Beim Schließen der App geleert"
+  },
+  "The direct connection config will contain the RCON password. Continue exporting?": {
+    "en": "The direct connection config will contain the RCON password. Continue exporting?",
+    "zh": "直连配置文件会包含真实 RCON 密码。是否继续导出？",
+    "de": "Die Konfiguration für die direkte Verbindung enthält das RCON-Passwort. Weiter exportieren?"
+  },
+  "Seconds / rounds": {
+    "en": "Seconds / rounds",
+    "zh": "秒数 / 回合数",
+    "de": "Sekunden / Runden"
+  },
+  "Seconds or rounds": {
+    "en": "Seconds or rounds",
+    "zh": "秒数或回合数",
+    "de": "Sekunden oder Runden"
+  },
+  "Remove ban": {
+    "en": "Remove ban",
+    "zh": "移除封禁",
+    "de": "Sperre aufheben"
+  },
+  "Remove selected": {
+    "en": "Remove selected",
+    "zh": "移除选中名单",
+    "de": "Auswahl entfernen"
+  },
+  "Switch to the next round now?": {
+    "en": "Switch to the next round now?",
+    "zh": "立即切换到下一回合？",
+    "de": "Jetzt zur nächsten Runde wechseln?"
+  },
+  "Restart the current round now?": {
+    "en": "Restart the current round now?",
+    "zh": "立即重新开始当前回合？",
+    "de": "Die aktuelle Runde jetzt neu starten?"
+  },
+  "Waiting for server connection": {
+    "en": "Waiting for server connection",
+    "zh": "等待服务器连接",
+    "de": "Warten auf Serververbindung"
+  },
+  "Scope": {
+    "en": "Scope",
+    "zh": "管理范围",
+    "de": "Verwaltungsbereich"
+  },
+  "Inherit global permissions": {
+    "en": "Inherit global permissions",
+    "zh": "继承全局权限",
+    "de": "Globale Berechtigungen erben"
+  },
+  "Edit Layer account": {
+    "en": "Edit Layer account",
+    "zh": "编辑 Layer 账号",
+    "de": "Layer-Konto bearbeiten"
+  },
+  "Edit selected": {
+    "en": "Edit selected",
+    "zh": "编辑选中",
+    "de": "Auswahl bearbeiten"
+  },
+  "Set as next map": {
+    "en": "Set as next map",
+    "zh": "设为下一张",
+    "de": "Als nächste Karte festlegen"
+  },
+  "Settings cannot contain NUL characters.": {
+    "en": "Settings cannot contain NUL characters.",
+    "zh": "设置不能包含 NUL 字符。",
+    "de": "Einstellungen dürfen keine NUL-Zeichen enthalten."
+  },
+  "Verify the fingerprint first.": {
+    "en": "Verify the fingerprint first.",
+    "zh": "请先核对指纹。",
+    "de": "Zuerst den Fingerabdruck prüfen."
+  },
+  "Connect to the upstream Layer first.": {
+    "en": "Connect to the upstream Layer first.",
+    "zh": "请先连接上游 Layer。",
+    "de": "Zuerst mit dem übergeordneten Layer verbinden."
+  },
+  "Select a server first.": {
+    "en": "Select a server first.",
+    "zh": "请先选择服务器实例。",
+    "de": "Zuerst einen Server auswählen."
+  },
+  "Select a player first.": {
+    "en": "Select a player first.",
+    "zh": "请先选择玩家。",
+    "de": "Zuerst einen Spieler auswählen."
+  },
+  "Enter or select a player name.": {
+    "en": "Enter or select a player name.",
+    "zh": "请填写或选择玩家名称。",
+    "de": "Einen Spielernamen eingeben oder auswählen."
+  },
+  "Enter a username.": {
+    "en": "Enter a username.",
+    "zh": "请填写用户名。",
+    "de": "Einen Benutzernamen eingeben."
+  },
+  "Enter an RCON command.": {
+    "en": "Enter an RCON command.",
+    "zh": "请输入 RCON 命令。",
+    "de": "Einen RCON-Befehl eingeben."
+  },
+  "Enter a valid IP/hostname:port. For IPv6 use [address]:port.": {
+    "en": "Enter a valid IP/hostname:port. For IPv6 use [address]:port.",
+    "zh": "请输入有效的 IP/主机名:端口；IPv6 请使用 [地址]:端口。",
+    "de": "Eine gültige IP/Hostname:Port eingeben. Für IPv6 [Adresse]:Port verwenden."
+  },
+  "Enter a valid port.": {
+    "en": "Enter a valid port.",
+    "zh": "请输入有效端口。",
+    "de": "Einen gültigen Port eingeben."
+  },
+  "Verify this fingerprint with the Layer administrator through a separate trusted channel. Trust only an exact match.": {
+    "en": "Verify this fingerprint with the Layer administrator through a separate trusted channel. Trust only an exact match.",
+    "zh": "请通过独立可信渠道向 Layer 管理员核对以下指纹。只有完全一致时才信任。",
+    "de": "Diesen Fingerabdruck über einen separaten vertrauenswürdigen Kanal mit dem Layer-Administrator prüfen. Nur bei exakter Übereinstimmung vertrauen."
+  },
+  "Used when an account has no individual permissions. View is required to sign in.": {
+    "en": "Used when an account has no individual permissions. View is required to sign in.",
+    "zh": "账号未设置单独权限时使用以下权限。View 决定能否登录。",
+    "de": "Gilt für Konten ohne eigene Berechtigungen. View ist für die Anmeldung erforderlich."
+  },
+  "Authenticated; local settings compared.": {
+    "en": "Authenticated; local settings compared.",
+    "zh": "身份验证成功，本地设置比对完成。",
+    "de": "Anmeldung erfolgreich; lokale Einstellungen abgeglichen."
+  },
+  "The remote server closed the connection.": {
+    "en": "The remote server closed the connection.",
+    "zh": "远程服务器关闭了连接。",
+    "de": "Der entfernte Server hat die Verbindung geschlossen."
+  },
+  "Remote connection closed.": {
+    "en": "Remote connection closed.",
+    "zh": "远程连接已关闭。",
+    "de": "Entfernte Verbindung geschlossen."
+  },
+  "Connect": {
+    "en": "Connect",
+    "zh": "连接",
+    "de": "Verbinden"
+  },
+  "Connection closed.": {
+    "en": "Connection closed.",
+    "zh": "连接已关闭。",
+    "de": "Verbindung geschlossen."
+  },
+  "Share and verify through a separate trusted channel.": {
+    "en": "Share and verify through a separate trusted channel.",
+    "zh": "通过独立可信渠道分享并核对。",
+    "de": "Über einen separaten vertrauenswürdigen Kanal teilen und prüfen."
+  },
+  "Verify the Layer certificate fingerprint": {
+    "en": "Verify the Layer certificate fingerprint",
+    "zh": "需要验证 Layer 证书指纹",
+    "de": "Layer-Zertifikatsfingerabdruck prüfen"
+  },
+  "Verify Layer certificate": {
+    "en": "Verify Layer certificate",
+    "zh": "验证 Layer 证书",
+    "de": "Layer-Zertifikat prüfen"
+  },
+  "Verify certificate": {
+    "en": "Verify certificate",
+    "zh": "验证证书指纹",
+    "de": "Zertifikat prüfen"
+  },
+  "Add account": {
+    "en": "Add account",
+    "zh": "＋ 添加账号",
+    "de": "Konto hinzufügen"
+  }
+}

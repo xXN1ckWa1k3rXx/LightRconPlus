@@ -1,0 +1,1124 @@
+[
+  {
+    "Name": "Downtown",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Downtown"
+  },
+  {
+    "Name": "The Block",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Bloodout"
+  },
+  {
+    "Name": "Derailed",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Eastside"
+  },
+  {
+    "Name": "Dust Bowl",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Desert05"
+  },
+  {
+    "Name": "Bank Job",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Bank"
+  },
+  {
+    "Name": "Growhouse",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Growhouse"
+  },
+  {
+    "Name": "Riptide",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_OffShore"
+  },
+  {
+    "Name": "Hollywood Heights",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Hills"
+  },
+  {
+    "Name": "Everglades",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "MP_Glades"
+  },
+  {
+    "Name": "Black Friday",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      }
+    ],
+    "FileName": "XP1_MallCops"
+  },
+  {
+    "Name": "Code Blue",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      }
+    ],
+    "FileName": "XP1_Nights"
+  },
+  {
+    "Name": "The Beat",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      }
+    ],
+    "FileName": "XP1_Projects"
+  },
+  {
+    "Name": "Backwoods",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      }
+    ],
+    "FileName": "XP1_Sawmill"
+  },
+  {
+    "Name": "The Docks",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      }
+    ],
+    "FileName": "xp2_cargoship"
+  },
+  {
+    "Name": "Break Point",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      }
+    ],
+    "FileName": "xp2_coastal"
+  },
+  {
+    "Name": "Museum",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      }
+    ],
+    "FileName": "xp2_museum02"
+  },
+  {
+    "Name": "Precinct 7",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      }
+    ],
+    "FileName": "xp2_precinct7"
+  },
+  {
+    "Name": "Night Job",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "xp25_bank"
+  },
+  {
+    "Name": "Night Woods",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      }
+    ],
+    "FileName": "xp25_sawmill"
+  },
+  {
+    "Name": "Double Cross",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp3_border"
+  },
+  {
+    "Name": "Diversion",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp3_cistern02"
+  },
+  {
+    "Name": "Pacific Highway",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp3_highway"
+  },
+  {
+    "Name": "Train Dodge",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Small",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "BloodMoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp3_traindodge"
+  },
+  {
+    "Name": "Alcatraz",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "Bloodmoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp4_alcatraz"
+  },
+  {
+    "Name": "Cemetry",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "Bloodmoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp4_cemetery"
+  },
+  {
+    "Name": "Chinatown",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "Bloodmoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp4_chinatown"
+  },
+  {
+    "Name": "Thin Ice",
+    "Modes": [
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarLarge0"
+      },
+      {
+        "Name": "Conquest Large",
+        "Code": "TurfWarSmall0"
+      },
+      {
+        "Name": "Rescue",
+        "Code": "Hostage0"
+      },
+      {
+        "Name": "Crosshair",
+        "Code": "Hit0"
+      },
+      {
+        "Name": "Heist",
+        "Code": "Heist0"
+      },
+      {
+        "Name": "Team Deathmatch",
+        "Code": "TeamDeathMatch0"
+      },
+      {
+        "Name": "Hotwire",
+        "Code": "Hotwire0"
+      },
+      {
+        "Name": "Blood Money",
+        "Code": "Bloodmoney0"
+      },
+      {
+        "Name": "Bounty Hunter",
+        "Code": "CashGrab0"
+      },
+      {
+        "Name": "Squad Heist",
+        "Code": "SquadHeist0"
+      },
+      {
+        "Name": "Capture The Bag",
+        "Code": "CaptureTheFlag0"
+      }
+    ],
+    "FileName": "xp4_snowcrash"
+  }
+]

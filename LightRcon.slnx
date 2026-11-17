@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LightRcon.Core/LightRcon.Core.csproj" />
+    <Project Path="src/LightRcon.Desktop/LightRcon.Desktop.csproj" />
+    <Project Path="src/LightRcon.Host/LightRcon.Host.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LightRcon.Desktop.Tests/LightRcon.Desktop.Tests.csproj" />
+    <Project Path="tests/LightRcon.Tests/LightRcon.Tests.csproj" />
+  </Folder>
+</Solution>
