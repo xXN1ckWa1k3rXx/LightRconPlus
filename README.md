@@ -8,7 +8,7 @@ Maintainer: **xXN1ckWa1k3rXx**. Powered by **Codex (gpt-6.1-sol)**.
 
 ## vs. Procon Frostbite
 
-> [!IMPORTANT]
+> [!WARNING]
 > LightRcon+ still in experimental/under developer stage, We do not guarantee that many of the features will function as expected—this applies in particular to BF3/HL.  
 If you are looking for stable and long-term server management or plugins supported, you should choose [Procon Frostbite](https://myrcon.net/files/file/29-procon-client/).  
 LightRcon not support plugin yet.
@@ -26,7 +26,7 @@ One of the biggest difference is LightRcon+ support logs sync.
 In Procon v1.x, Procon layer can't view the events and chat logs when they re-open the Procon; In LightRcon+, we tried to sync the chat and events logs to every LightRcon+ client. The Layer host will record the logs in local, and sending the logs to layer client.
 
 The LightRcon+ also simplified some Procon operations, etc. Map list
-> [!IMPORTANT]
+> [!WARNING]
 > We do not currently know how the Map List performs in BF3/HL; if you encounter any issues, please create an issue.  
 
 The map list now features groups to distinguish between DLC and the base map, and gamemodes w/ map
