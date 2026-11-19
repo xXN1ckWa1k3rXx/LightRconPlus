@@ -1,7 +1,7 @@
-# 目录
+# Table of contents
 
-* [介绍](README.md)
-* [快速开始](getting-started/README.md)
-* [开发指南](guides/README.md)
-* [API 参考](api-reference/README.md)
-* [示例](examples/README.md)
+* [Introduction](README.md)
+* [Getting started](getting-started/README.md)
+* [Development guides](guides/README.md)
+* [API reference](api-reference/README.md)
+* [Examples](examples/README.md)

@@ -1,14 +1,14 @@
 # LightRcon+ Lua API
 
-欢迎来到 LightRcon+ 的 Lua 插件开发文档。
+Welcome to the Lua plugin documentation for LightRcon+.
 
-本文档将介绍插件入门、开发指南、API 参考和示例。目前正在准备文档结构，完整 API 内容尚未发布；页面中的规划不代表对应功能已经发布或经过实服验证。
+This documentation will cover getting started, development guides, API references and examples. The documentation structure is being prepared; the full API reference is not yet published. Planned topics do not imply that a feature has been released or verified on a live game server.
 
-## 阅读顺序
+## Reading order
 
-1. [快速开始](getting-started/README.md)：了解开发环境、插件文件和运行方式。
-2. [开发指南](guides/README.md)：了解事件、配置、模块和插件生命周期。
-3. [API 参考](api-reference/README.md)：按命名空间查阅函数、参数和事件。
-4. [示例](examples/README.md)：通过完整插件理解 API 的使用方式。
+1. [Getting started](getting-started/README.md): Learn about the development environment, plugin files and running plugins.
+2. [Development guides](guides/README.md): Learn about events, settings, modules and the plugin lifecycle.
+3. [API reference](api-reference/README.md): Look up functions, parameters and events by namespace.
+4. [Examples](examples/README.md): Learn how to use the API through complete plugins.
 
-项目仓库：[LightRconPlus](https://github.com/xXN1ckWa1k3rXx/LightRconPlus)。
+Project repository: [LightRconPlus](https://github.com/xXN1ckWa1k3rXx/LightRconPlus).

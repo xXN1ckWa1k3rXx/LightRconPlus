@@ -1,12 +1,12 @@
-# 快速开始
+# Getting started
 
-本节待编写，将以一个可以运行的 Lua 插件为起点。
+This section is planned and will begin with a working Lua plugin.
 
-计划包含：
+Planned topics:
 
-* 环境要求与 Lua 运行环境。
-* 创建插件文件、声明元数据和 API 版本。
-* 在 LightRcon+ 中添加、启用和停用插件。
-* 查看日志、定位加载错误与验证运行结果。
+* System requirements and the Lua runtime.
+* Creating a plugin file and declaring metadata and the API version.
+* Adding, enabling and disabling plugins in LightRcon+.
+* Reading logs, diagnosing loading errors and verifying results.
 
-具体步骤将在核对对应版本实现后补充。
+Instructions will be added after checking the implementation for the relevant version.

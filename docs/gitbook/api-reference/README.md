@@ -1,13 +1,13 @@
-# API 参考
+# API reference
 
-本节待编写，将按命名空间拆分页面，并为玩家对象和事件载荷提供单独说明。
+This section is planned and will provide separate pages for each namespace, with additional references for player objects and event payloads.
 
-每个 API 条目统一记录：
+Each API entry will document:
 
-* 名称、调用语法和引入版本。
-* 参数类型、含义、可选值和默认值。
-* 返回值、错误条件和运行限制。
-* 适用游戏、协议差异与兼容性说明。
-* 可以验证的 Lua 示例和相关 API 链接。
+* Its name, calling syntax and introduction version.
+* Parameter types, meanings, accepted values and defaults.
+* Return values, error conditions and runtime limits.
+* Supported games, protocol differences and compatibility notes.
+* Verifiable Lua examples and links to related APIs.
 
-函数清单、签名和行为将以对应版本的实现与验证结果为依据。尚未实现的接口不会作为可用 API 列出。
+The function list, signatures and behavior will be based on the implementation and validation results for the relevant version. Interfaces that are not implemented will not be listed as available APIs.

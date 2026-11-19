@@ -1,29 +1,29 @@
-# GitBook 文档维护
+# Maintaining the GitBook documentation
 
-## 当前状态
+## Current status
 
-文档源码与项目代码使用同一仓库，GitBook 内容集中放在 `docs/gitbook/`。本次仅准备文档骨架，不发布项目代码，也不连接或发布 GitBook 站点。
+The documentation and project code share a repository. GitBook content lives in `docs/gitbook/`. The current work prepares the documentation structure; it does not publish project code or connect or publish a GitBook site.
 
-`SUMMARY.md` 是读者导航，`README.md` 是文档首页。本页是维护说明，不加入读者导航。
+`SUMMARY.md` defines reader navigation, and `README.md` is the documentation home page. This maintenance guide is not included in reader navigation.
 
-## 后续连接 GitBook
+## Connecting GitBook later
 
-当前目录中的 `.gitbook.yaml.example` 是配置模板，不会自动生效。
+The `.gitbook.yaml.example` file in this directory is a configuration template and is not active.
 
-后续配置 Git Sync 时，再将模板复制为仓库根目录的 `.gitbook.yaml`，使 GitBook 使用 `docs/gitbook/` 作为内容根目录。然后在 GitBook 中连接仓库和选定分支，核对同步方向，并在发布前预览首页、导航与链接。
+When configuring Git Sync, copy the template to `.gitbook.yaml` at the repository root so GitBook uses `docs/gitbook/` as its content root. Connect the repository and chosen branch in GitBook, confirm the synchronization direction, and preview the home page, navigation and links before publishing.
 
-此次提交限制在 `docs/gitbook/` 内，因此没有添加仓库根目录配置。
+Documentation preparation commits are restricted to `docs/gitbook/`, so no repository-root configuration has been added.
 
-## 编写约定
+## Writing conventions
 
-* 正文先使用中文，API 名称、Lua 标识符和协议值保留原文。
-* 每个命名空间使用独立页面，路径使用小写英文与连字符。
-* 页面间使用相对 Markdown 链接，不链接本地磁盘或尚未提交的文件。
-* 新页面加入 `SUMMARY.md` 后再检查导航和链接。
-* 示例代码使用 `lua` 代码块；代码、参数和返回值必须核对实现。
-* 明确区分已实现、已验证和计划内容；不要将本地模拟测试写成实服验证。
-* 后续整理已有 API 草稿时，避免长期维护两套重复文档。
+* Write all documentation in English, including headings, navigation labels and maintenance instructions. Preserve API names, Lua identifiers and protocol values exactly.
+* Use a separate page for each namespace and lowercase English paths with hyphens.
+* Use relative Markdown links between pages. Do not link to local disk paths or files that have not been committed.
+* Add new pages to `SUMMARY.md`, then check navigation and links.
+* Use `lua` code blocks for examples. Check code, parameters and return values against the implementation.
+* Distinguish implemented, verified and planned behavior. Do not describe local simulator tests as live-server validation.
+* Avoid maintaining duplicate documentation when incorporating existing API drafts.
 
-## 本次提交范围
+## Commit scope
 
-仅提交 `docs/gitbook/`。项目源码、测试、发布产物以及其他文档修改均不属于本次提交。
+Commit only `docs/gitbook/` for this preparation work. Project source, tests, published binaries and changes to other documentation are outside its scope.

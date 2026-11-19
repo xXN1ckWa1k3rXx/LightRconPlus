@@ -1,12 +1,12 @@
-# 示例
+# Examples
 
-本节待编写，将提供完整插件及其预期运行结果。
+This section is planned and will provide complete plugins with their expected results.
 
-计划从以下场景开始：
+Initial examples will cover:
 
-* 插件启停时输出日志。
-* 玩家重生后发送公告。
-* 使用插件设置自定义消息。
-* 使用定时器和存储维护状态。
+* Logging when a plugin is enabled or disabled.
+* Announcing a player respawn.
+* Customizing messages through plugin settings.
+* Maintaining state with timers and storage.
 
-示例会注明运行要求、使用的 API 版本以及验证方式。
+Each example will identify its runtime requirements, API version and verification steps.

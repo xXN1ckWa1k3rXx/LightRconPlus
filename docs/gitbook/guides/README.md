@@ -1,14 +1,14 @@
-# 开发指南
+# Development guides
 
-本节待编写，将围绕实际插件开发任务组织内容。
+This section is planned and will cover practical plugin development tasks.
 
-计划包含：
+Planned topics:
 
-* 插件生命周期与事件回调。
-* 玩家对象、聊天消息与管理操作。
-* 插件设置、输入验证与配置变更。
-* 本地模块、定时器和持久化存储。
-* JSON、HTTP 请求与错误处理。
-* 运行限制、Layer 中的运行位置与 Procon 互操作。
+* The plugin lifecycle and event callbacks.
+* Player objects, chat messages and administration actions.
+* Plugin settings, input validation and configuration changes.
+* Local modules, timers and persistent storage.
+* JSON, HTTP requests and error handling.
+* Runtime limits, plugin execution on Layer hosts and Procon interoperability.
 
-各指南将注明适用的 LightRcon+ 和 API 版本。
+Each guide will identify the applicable LightRcon+ and API versions.
