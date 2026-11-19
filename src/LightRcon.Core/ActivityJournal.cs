@@ -49,6 +49,11 @@ public sealed class ActivityJournal
         }
     }
     public ActivityEntry[] Snapshot() { lock (gate) return entries.ToArray(); }
+    public void ClearPersisted()
+    {
+        lock (gate)
+            foreach (var file in Directory.EnumerateFiles(directory, "activity-*.jsonl")) File.Delete(file);
+    }
     public IEnumerable<ActivityEntry[]> Replay()
     {
         // Only the visible list is bounded; a Layer receives all persisted history, in order.
@@ -56,7 +61,7 @@ public sealed class ActivityJournal
         List<ActivityEntry> batch = [];
         foreach (var path in Directory.EnumerateFiles(directory, "activity-*.jsonl").OrderBy(x => x, StringComparer.Ordinal))
         {
-            using var input = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            using var input = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete));
             while (input.ReadLine() is { } line)
             {
                 ActivityEntry? entry;

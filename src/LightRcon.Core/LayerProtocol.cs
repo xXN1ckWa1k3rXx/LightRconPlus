@@ -18,6 +18,9 @@ public sealed class LayerFrame
     public LayerPermission Permissions { get; set; }
     public int Protocol { get; set; } = 1;
     public PublicLayerOptions? Layer { get; set; }
+    public Plugins.PluginDetails[] Plugins { get; set; } = [];
+    public Plugins.PluginDetails? Plugin { get; set; }
+    public Plugins.PluginSetting[] PluginSettings { get; set; } = [];
 }
 
 public sealed record PublicLayerAccount(string Username, bool Enabled, LayerPermission? Permissions);
@@ -36,6 +39,8 @@ public static class LayerWire
         await stream.ReadExactlyAsync(data, token);
         var frame = JsonSerializer.Deserialize<LayerFrame>(data) ?? throw new InvalidDataException("Empty Layer frame.");
         if (frame.Type is null || frame.Type.Length > 64 || frame.Username is null || frame.Password is null || frame.Words is null || frame.Entries is null ||
+            frame.Plugins is null || frame.PluginSettings is null || frame.Plugins.Any(x => x is null || x.Path is null || x.Name is null || x.Kind is null || x.Error is null) ||
+            frame.PluginSettings.Any(x => x is null || x.Name is null || x.Type is null || x.Value is null) ||
             frame.Words.Length > 4096 || frame.Words.Any(x => x is null || x.Contains('\0')) || frame.Entries.Length > 5000 ||
             frame.Entries.Any(x => x is null || x.Kind is null || x.Name is null || x.Team is null || x.Text is null) ||
             (frame.Layer is not null && (frame.Layer.Accounts is null || frame.Layer.Accounts.Any(x => x is null || x.Username is null))))

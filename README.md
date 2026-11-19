@@ -2,7 +2,7 @@
 
 A native Windows RCON manager for **Battlefield 3, Battlefield 4 and Battlefield Hardline**, inspired by Procon Frostbite. LightRcon+ aims to make everyday server administration lighter and faster through a focused WPF desktop interface and a separate console host.
 
-**Pre-alpha.** Built with C# and .NET 10, without external NuGet packages, Electron or WebView. Lower resource use is a design goal; performance against Procon has not been benchmarked. BF3/BF4/BFHL support is implemented and tested with local protocol simulators; live-server compatibility still needs validation.
+**Pre-alpha 1.0.** Built with C# and .NET 10. Lower resource use is a design goal. BF3/BF4/BFHL support is tested with local protocol simulators. Live-server compatibility still needs validation.
 
 Maintainer: **xXN1ckWa1k3rXx**. Powered by **Codex (gpt-6.1-sol)**.
 
@@ -11,7 +11,7 @@ Maintainer: **xXN1ckWa1k3rXx**. Powered by **Codex (gpt-6.1-sol)**.
 > [!WARNING]
 > LightRcon+ still in experimental/under developer stage, We do not guarantee that many of the features will function as expected—this applies in particular to BF3/HL.  
 If you are looking for stable and long-term server management or plugins supported, you should choose [Procon Frostbite](https://myrcon.net/files/file/29-procon-client/).  
-LightRcon not support plugin yet.
+Plugin support is experimental. See [Writing and running plugins](docs/PLUGINS.md).
 
 | Area | LightRcon+ | Procon Frostbite v1.x |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ The map list now features groups to distinguish between DLC and the base map, an
 - Monitor RCON and PunkBuster output. PunkBuster actions require server support; PunkBuster does not offer a kill command.
 - Host a Layer with named accounts and per-account or inherited permissions, without sharing the upstream RCON password. Authorized Layer administrators can manage accounts remotely.
 - English (default), Chinese and German; system, light and dark themes. Dates and numbers follow the local PC.
-- Native framed desktop window and a headless console host. Plugins are **Work In Progress**; no DLL or Lua plugins are loaded.
+- Native desktop and headless hosts with per-server C#, Lua and Procon v1 plugin support.
 
 ## Requirements
 
@@ -56,13 +56,13 @@ Windows-only; current publish targets **x64**.
 
 The oldest intended server OS is **Windows Server 2019/Windows 10 1809.17763**, fully updated. **Suggest Windows Server 2022/Windows 10 21H2 (20348) and above** Desktop Windows must also be supported by .NET 10. The application's build-17763 minimum check is not a certification of every Windows edition. Actual Server 2019 and Server Core deployment has not yet been tested.
 
-Install the appropriate runtime from [Microsoft's .NET 10 downloads](https://dotnet.microsoft.com/download/dotnet/10.0). A self-contained publish includes the runtime instead. Development requires the **.NET 10 SDK**; Visual Studio and the VS Code C# Dev Kit are optional. Git is needed for version control, not for running the application. Procon is not a runtime dependency.
+Install the appropriate runtime from [Microsoft's .NET 10 downloads](https://dotnet.microsoft.com/download/dotnet/10.0). A self-contained publish includes the runtime instead. Development requires the **.NET 10 SDK**; Visual Studio and the VS Code C# Dev Kit are optional. Git is needed for version control, not for running the application. Procon compatibility plugins additionally use the verified Procon v1.5.4.2 runtime and Windows .NET Framework 4.x; see [plugin setup and APIs](docs/PLUGINS.md).
 
 A reachable BF3, BF4 or BFHL server with RCON enabled and its RCON password is required. Available commands, settings, maps and modes depend on the server version and installed content.
 
 ## Desktop setup
 
-1. Build/publish as described below, then run `artifacts/desktop/LightRcon.Desktop.exe`.
+1. Build/publish as described below, then run `artifacts/releases/Pre-alpha-1.0/desktop/LightRcon.Desktop.exe`.
 2. Select **Create Connection** and enter a local instance name, `host:port` and password. IPv6 endpoints use `[address]:port`.
 3. Leave the username empty for direct RCON. For a LightRcon+ Layer, enter the Layer username and its separate account password.
 4. Enable automatic login if initial failures should retry every 20 seconds with no attempt limit. After a successful connection, unexpected disconnections retry automatically; manual disconnect stops retries.
@@ -83,7 +83,7 @@ Example PowerShell bootstrap (replace the example values locally):
 $env:LIGHTRCON_RCON_PASSWORD = 'replace-with-rcon-password'
 $env:LIGHTRCON_ADMIN_PASSWORD = 'replace-with-a-separate-admin-password'
 
-.\artifacts\host\LightRcon.Host.exe `
+.\artifacts\releases\Pre-alpha-1.0\host\LightRcon.Host.exe `
   --data-dir 'D:\LightRconData' `
   --connect '127.0.0.1:47200' `
   --name 'Main server' `
@@ -95,7 +95,7 @@ $env:LIGHTRCON_ADMIN_PASSWORD = 'replace-with-a-separate-admin-password'
   --configure-only
 
 Remove-Item Env:LIGHTRCON_RCON_PASSWORD, Env:LIGHTRCON_ADMIN_PASSWORD
-.\artifacts\host\LightRcon.Host.exe --data-dir 'D:\LightRconData'
+.\artifacts\releases\Pre-alpha-1.0\host\LightRcon.Host.exe --data-dir 'D:\LightRconData'
 ```
 
 `--configure-only` saves without opening connections. Omit it to configure and start immediately. Repeating bootstrap for the same direct endpoint updates its profile and named administrator. The administrator receives all permissions; use a desktop Layer connection to create additional accounts.
@@ -103,9 +103,9 @@ Remove-Item Env:LIGHTRCON_RCON_PASSWORD, Env:LIGHTRCON_ADMIN_PASSWORD
 For remote clients, choose the listener interface with `--layer-bind` and configure the firewall yourself. New CLI profiles bind to `127.0.0.1` by default. A desktop-created listener currently defaults to `0.0.0.0`; check its bind address before enabling it.
 
 ```powershell
-.\artifacts\host\LightRcon.Host.exe --help
-.\artifacts\host\LightRcon.Host.exe --data-dir 'D:\LightRconData' --list
-.\artifacts\host\LightRcon.Host.exe --data-dir 'D:\LightRconData' --server '<saved-profile-guid>'
+.\artifacts\releases\Pre-alpha-1.0\host\LightRcon.Host.exe --help
+.\artifacts\releases\Pre-alpha-1.0\host\LightRcon.Host.exe --data-dir 'D:\LightRconData' --list
+.\artifacts\releases\Pre-alpha-1.0\host\LightRcon.Host.exe --data-dir 'D:\LightRconData' --server '<saved-profile-guid>'
 ```
 
 Other bootstrap options include `--name`, `--rcon-password` and `--admin-password`. The direct password flags expose values in process arguments; prefer their `-env` alternatives. Omitting `--server` runs all saved profiles. Ctrl+C saves and stops sessions. This is a console application, not an installed Windows Service; unattended execution can use Windows Task Scheduler under the Windows account that owns the saved data.
@@ -142,7 +142,7 @@ dotnet run --project tests/LightRcon.Desktop.Tests -c Release
 
 The test projects are executable regression harnesses; use `dotnet run`. Desktop checks open temporary WPF windows and need an interactive desktop. Tests use isolated temporary data and loopback mocks, with no real game-server credentials. Reconnect checks intentionally take at least 20 seconds.
 
-The publish script creates framework-dependent single-file win-x64 programs in `artifacts/desktop/` and `artifacts/host/`, together with README, license and notices. Use `./tools/publish.ps1 -SelfContained` to include .NET; output will be larger. Stop the application before publishing over an installed copy. Intermediates and local application data are excluded from Git.
+The publish script creates framework-dependent single-file win-x64 programs in `artifacts/releases/Pre-alpha-1.0/desktop/` and `artifacts/releases/Pre-alpha-1.0/host/`, together with README, license and notices. Use `./tools/publish.ps1 -SelfContained` to include .NET; output will be larger. Stop the application before publishing over an installed copy. Intermediates and local application data are excluded from Git.
 
 See [validation notes](docs/VALIDATION.md) for tested scope and remaining gaps. Mock success is not live-server or production acceptance. Unsupported settings are disabled. BF4 ticket estimates are reference values; BF3/BFHL do not reuse them. Live team scores come from `serverInfo`. Unknown player fields display as unavailable; Play Time is the client's observed duration. Map rotation edits are not atomic server transactions and competing administrators can cause conflicts.
 

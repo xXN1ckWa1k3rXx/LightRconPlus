@@ -1,0 +1,91 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using PRoCon.Core;
+
+internal static class Worker
+{
+    private static readonly object output = new object();
+    private static void Reply(object value)
+    {
+        lock (output) Console.WriteLine("LRP:" + JsonConvert.SerializeObject(value));
+    }
+    public static int Main(string[] args)
+    {
+        var application = new PRoConApplication(true, new string[0]);
+        try
+        {
+            application.Execute();
+            var client = application.Connections[0];
+            var compiled = new ManualResetEvent(false);
+            client.CompilingPlugins += sender =>
+            {
+                client.PluginsManager.PluginOutput += message => Reply(new { log = message });
+                foreach (var path in Directory.GetFiles(client.PluginsManager.PluginBaseDirectory, "*.cs"))
+                {
+                    using (var input = File.OpenRead(path))
+                        if (input.ReadByte() == 'M' && input.ReadByte() == 'Z')
+                            client.PluginsManager.IgnoredPluginClassNames.Add(Path.GetFileNameWithoutExtension(path));
+                }
+                client.GetType().GetProperty("HostName").GetSetMethod(true).Invoke(client, new object[] { args[0] });
+                client.GetType().GetProperty("Port").GetSetMethod(true).Invoke(client, new object[] { UInt16.Parse(args[1]) });
+            };
+            client.PluginsCompiled += sender => compiled.Set();
+            client.Connect();
+            var timeout = DateTime.UtcNow.AddSeconds(45);
+            while (!client.IsLoggedIn || client.PluginsManager == null || !compiled.WaitOne(0))
+            {
+                if (DateTime.UtcNow >= timeout) throw new InvalidOperationException("Procon connection timed out.");
+                Thread.Sleep(100);
+            }
+            Reply(new { ready = true });
+            string line;
+            while ((line = Console.ReadLine()) != null)
+            {
+                var request = JObject.Parse(line);
+                var id = (int)request["id"];
+                try
+                {
+                    var manager = client.PluginsManager;
+                    var name = (string)request["name"];
+                    object result = null;
+                    switch ((string)request["operation"])
+                    {
+                        case "load":
+                            if (!manager.Plugins.IsLoaded(name)) throw new InvalidOperationException("Procon could not load " + name);
+                            break;
+                        case "enable":
+                            manager.EnablePlugin(name);
+                            if (!manager.Plugins.IsEnabled(name)) throw new InvalidOperationException("Procon could not enable " + name);
+                            break;
+                        case "disable": manager.DisablePlugin(name); break;
+                        case "details":
+                            var details = manager.GetPluginDetails(name);
+                            result = new { details.Name, details.Version, details.Author, details.Website, details.Description };
+                            break;
+                        case "settings":
+                            result = manager.GetPluginDetails(name).DisplayPluginVariables.Select(variable => new { variable.Name, variable.Type, variable.Value, variable.ReadOnly }).ToArray();
+                            break;
+                        case "set":
+                            var variableName = (string)request["variable"];
+                            manager.SetPluginVariable(name, variableName.Substring(variableName.LastIndexOf('|') + 1), (string)request["value"]);
+                            break;
+                        case "command": application.ExecutePRoConCommand(client, request["words"].ToObject<List<string>>(), 0); break;
+                        case "call": result = manager.InvokeOnEnabled(name, (string)request["method"], request["arguments"].ToObject<object[]>()); break;
+                        default: throw new InvalidOperationException("Unknown worker operation.");
+                    }
+                    Reply(new { id, result });
+                }
+                catch (Exception error) { Reply(new { id, error = error.GetBaseException().Message }); }
+            }
+            foreach (var name in client.PluginsManager.Plugins.EnabledClassNames.ToArray()) client.PluginsManager.DisablePlugin(name);
+            return 0;
+        }
+        catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+        finally { application.Shutdown(); }
+    }
+}

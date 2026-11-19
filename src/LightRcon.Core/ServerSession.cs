@@ -17,8 +17,10 @@ public sealed class ServerSession : IAsyncDisposable
     private readonly HashSet<string> lifeQueries = [];
     private CancellationTokenSource? runCancellation;
     private Task? runner;
+    private TaskCompletionSource retryRequested = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private ICommandConnection? connection;
     private LayerServer? layerServer;
+    private readonly SessionLogWriter textLogs;
     private bool everConnected;
     private long version;
     public ServerProfile Profile { get; }
@@ -38,6 +40,8 @@ public sealed class ServerSession : IAsyncDisposable
     public bool IsHosting => layerServer is not null;
     public int LayerClientCount => layerServer?.ClientCount ?? 0;
     public event Action<string[]>? RemoteEvent;
+    public Plugins.PluginManager Plugins { get; }
+    internal CancellationToken LifetimeToken => runCancellation?.Token ?? CancellationToken.None;
     public event Action? SaveClientRequested;
     public event Action? Changed;
     public List<PlayerInfo> Players { get; private set; } = [];
@@ -52,14 +56,18 @@ public sealed class ServerSession : IAsyncDisposable
     public string[] ReservedSnapshot() { lock (dataGate) return Reserved.ToArray(); }
     public ConsoleEntry[] ConsoleSnapshot() { lock (dataGate) return console.ToArray(); }
     public Dictionary<string, string> SettingsSnapshot() { lock (dataGate) return new(remoteSettings); }
-    public bool IsSupported(string command) { lock (dataGate) return !unsupported.Contains(command); }
+    public bool IsSupported(string command) { lock (dataGate) return (SettingsCatalog.Find(command) is null || SettingsCatalog.Supports(command, Game)) && !unsupported.Contains(command); }
 
     public ServerSession(ServerProfile profile, ProfileStore store)
     {
         Profile = profile;
         this.store = store;
+        textLogs = new(store);
+        Plugins = new(this, store);
         Journal = new(store.ServerDirectory(profile.Id), profile.Layer.Enabled);
         Journal.Appended += _ => Touch();
+        Journal.Appended += entries => { if (!Profile.IsLayer) foreach (var entry in entries) textLogs.WriteActivity(entry); };
+        store.LogsCleared += Journal.ClearPersisted;
     }
     private void Touch() { Interlocked.Increment(ref version); Changed?.Invoke(); }
     public void Log(string kind, string text)
@@ -70,6 +78,7 @@ public sealed class ServerSession : IAsyncDisposable
             if (console.Count > 3000) console.RemoveRange(0, console.Count - 3000);
         }
         Touch();
+        if (!Profile.IsLayer) textLogs.Write("events", $"[{DateTimeOffset.Now:O}] [{kind}] {text}");
     }
     private void SetState(ConnectionState state, string text)
     {
@@ -77,7 +86,11 @@ public sealed class ServerSession : IAsyncDisposable
     }
     public Task StartAsync()
     {
-        if (runner is { IsCompleted: false }) return Task.CompletedTask;
+        if (runner is { IsCompleted: false })
+        {
+            if (State == ConnectionState.RetryWaiting) retryRequested.TrySetResult();
+            return Task.CompletedTask;
+        }
         runCancellation?.Dispose();
         runCancellation = new();
         runner = Task.Run(() => RunAsync(runCancellation.Token));
@@ -108,6 +121,7 @@ public sealed class ServerSession : IAsyncDisposable
                     connection = layer;
                     layer.EventReceived += HandleEvent;
                     layer.HistoryReceived += Journal.Import;
+                    layer.PluginsReceived += Plugins.AcceptRemoteSnapshot;
                     SetState(ConnectionState.Authenticating, "Authenticating with Layer…");
                     await layer.ConnectAsync(Profile, token);
                     Permissions = layer.Permissions;
@@ -149,9 +163,14 @@ public sealed class ServerSession : IAsyncDisposable
                     if (!desired.SequenceEqual(MapSnapshot())) await ReplaceMapsCoreAsync(desired, token);
                 }
                 everConnected = true;
+                if (!Profile.IsLayer)
+                {
+                    textLogs.Begin(Info.Name.Length > 0 ? Info.Name : Profile.Name, Journal.Snapshot);
+                }
                 ConnectionLost = false;
                 SetState(ConnectionState.Connected, Profile.IsLayer ? "Layer connected" : "RCON connected");
                 Log("Connection", UiText.Get("Authenticated; local settings compared."));
+                await Plugins.RestoreAsync();
                 if (Profile.Layer.Enabled && layerServer is null)
                 {
                     try { await StartLayerAsync(); }
@@ -178,6 +197,7 @@ public sealed class ServerSession : IAsyncDisposable
             }
             finally
             {
+                await Plugins.StopAsync();
                 if (connection is not null) { await connection.DisposeAsync(); connection = null; }
             }
             if (token.IsCancellationRequested) break;
@@ -186,9 +206,11 @@ public sealed class ServerSession : IAsyncDisposable
                 SetState(ConnectionState.Offline, "Login failed");
                 return;
             }
+            retryRequested = new(TaskCreationOptions.RunContinuationsAsynchronously);
             RetryAt = DateTimeOffset.Now.AddSeconds(20);
             SetState(ConnectionState.RetryWaiting, everConnected ? "Connection to the remote server has been lost" : "Login failed; retrying in 20 seconds");
-            try { await Task.Delay(TimeSpan.FromSeconds(20), token); }
+            try { await retryRequested.Task.WaitAsync(TimeSpan.FromSeconds(20), token); }
+            catch (TimeoutException) { }
             catch (OperationCanceledException) { break; }
         }
         SetState(ConnectionState.Offline, "Disconnected");
@@ -202,6 +224,12 @@ public sealed class ServerSession : IAsyncDisposable
             await RefreshAsync(++count % 6 == 0, token);
         }
     }
+    internal async Task<LayerFrame> RequestPluginsAsync(string operation, params string[] arguments)
+    {
+        if (connection is not LayerConnection layer || !IsConnected)
+            throw new IOException(UiText.Get("Connect to the upstream Layer first."));
+        return await layer.RequestAsync(new() { Type = operation, Words = arguments }, LifetimeToken);
+    }
     private void SetGame(GameId game)
     {
         lock (Profile.Sync)
@@ -211,8 +239,10 @@ public sealed class ServerSession : IAsyncDisposable
                 Profile.DesiredMaps = null; Profile.DesiredSettings.Clear(); Profile.DraftSettings.Clear();
                 Profile.Game = game;
             }
+            foreach (var key in Profile.DesiredSettings.Keys.Where(key => !SettingsCatalog.Supports(key, game)).ToArray()) Profile.DesiredSettings.Remove(key);
+            foreach (var key in Profile.DraftSettings.Keys.Where(key => !SettingsCatalog.Supports(key, game)).ToArray()) Profile.DraftSettings.Remove(key);
         }
-        lock (dataGate) { lifeStates.Clear(); lifeQueries.Clear(); }
+        lock (dataGate) { lifeStates.Clear(); lifeQueries.Clear(); remoteSettings.Clear(); }
         store.Save();
     }
     private async Task<string[]> RawAsync(string[] words, CancellationToken token = default)
@@ -224,6 +254,8 @@ public sealed class ServerSession : IAsyncDisposable
     {
         if (!IsConnected) throw new IOException(UiText.Get("Server not connected; action not sent."));
         if (words.Length == 0) throw new ArgumentException("Empty command.");
+        if (SettingsCatalog.Find(words[0]) is not null && !SettingsCatalog.Supports(words[0], Game))
+            throw new ArgumentException(UiText.Format("Setting {0} is not available for {1}.", words[0], Game));
         if (words[0] is "login.hashed" or "login.plainText" or "logout" or "quit" or "admin.eventsEnabled" or "admin.password")
             throw new UnauthorizedAccessException(UiText.Get("Login, subscriptions and the RCON password are managed by the connection manager and cannot be changed through the console."));
         await operationGate.WaitAsync(token);
@@ -267,7 +299,7 @@ public sealed class ServerSession : IAsyncDisposable
     }
     private async Task ReadSettingsAsync(CancellationToken token)
     {
-        foreach (var definition in SettingsCatalog.All)
+        foreach (var definition in SettingsCatalog.For(Game))
         {
             bool advertised; lock (dataGate) advertised = commands.Count == 0 || commands.Contains(definition.Command);
             if (!advertised) { lock (dataGate) unsupported.Add(definition.Command); continue; }
@@ -669,6 +701,7 @@ public sealed class ServerSession : IAsyncDisposable
                     break;
             }
             RemoteEvent?.Invoke(words);
+            Plugins.Dispatch(words);
             Touch();
         }
         catch (Exception ex) { Log("Event error", ex.Message); }
@@ -687,6 +720,7 @@ public sealed class ServerSession : IAsyncDisposable
     }
     public async ValueTask DisposeAsync()
     {
+        store.LogsCleared -= Journal.ClearPersisted;
         await StopAsync();
         if (layerServer is not null) { await layerServer.DisposeAsync(); layerServer = null; }
         State = ConnectionState.Disposed;

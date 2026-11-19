@@ -46,12 +46,15 @@ public partial class MainWindow
         OfflineTitle.Text = UiText.Format("{0} — {1} is not connected", session.Profile.Name, session.Profile.Endpoint);
         OfflineReason.Text = session.LastError.Length > 0 ? UiText.Format("Reason: {0}", session.LastError) : session.Status;
         OfflineRetry.Text = session.RetryAt is { } at ? UiText.Format("Retry in {0}s", Math.Max(0, (int)(at - DateTimeOffset.Now).TotalSeconds)) : "";
-        OfflineConnectButton.IsEnabled = session.State == ConnectionState.Offline;
+        OfflineConnectButton.IsEnabled = session.State is ConnectionState.Offline or ConnectionState.RetryWaiting;
         if (!session.IsConnected && offlineFormSession != session) PopulateOfflineForm(session);
         if (session.IsConnected) { offlineFormSession = null; OfflinePassword.Clear(); }
         var admin = !session.Profile.IsLayer || session.IsConnected && session.Permissions.HasFlag(LayerPermission.LayerAdmin);
         LayersTab.Visibility = admin ? Visibility.Visible : Visibility.Collapsed;
         LayerListenerPanel.Visibility = session.Profile.IsLayer ? Visibility.Collapsed : Visibility.Visible;
+        EnableLayerButton.Visibility = session.IsHosting ? Visibility.Collapsed : Visibility.Visible;
+        DisableLayerButton.Visibility = session.IsHosting ? Visibility.Visible : Visibility.Collapsed;
+        LayerBind.IsEnabled = LayerPort.IsEnabled = !session.IsHosting;
         if (!admin && MainTabs.SelectedItem == LayersTab) MainTabs.SelectedIndex = 0;
         if (displayedConnectionSession != session || displayedConnectionState != session.State)
         {

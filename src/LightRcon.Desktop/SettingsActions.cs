@@ -11,13 +11,16 @@ namespace LightRcon.Desktop;
 public partial class MainWindow
 {
     private readonly Dictionary<string, Button> settingApplyButtons = [];
+    private GameId? displayedSettingsGame;
     private void SettingChanged(Control editor)
     {
         if (!switching) { editor.Tag = true; dirty = true; }
     }
     private void BuildSettings()
     {
-        foreach (var group in SettingsCatalog.All.GroupBy(x => x.Group))
+        displayedSettingsGame = selected?.Game ?? GameId.BF4;
+        settingEditors.Clear(); settingApplyButtons.Clear(); settingSections.Clear(); SettingsSections.Children.Clear();
+        foreach (var group in SettingsCatalog.For(displayedSettingsGame.Value).GroupBy(x => x.Group))
         {
             var section = new StackPanel(); var heading = new TextBlock { FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new(0, 0, 0, 14) };
             LocExtension.Bind(heading, TextBlock.TextProperty, group.Key); section.Children.Add(heading);
@@ -85,6 +88,7 @@ public partial class MainWindow
     private void PopulateSettings(bool reset)
     {
         if (selected is null) return; var before = switching; switching = true; var profile = selected.Profile;
+        if (displayedSettingsGame != selected.Game) BuildSettings();
         lock (profile.Sync)
             foreach (var item in settingEditors)
             {
@@ -147,6 +151,8 @@ public partial class MainWindow
         {
             var changes = keys.Where(key => settingEditors[key].IsEnabled).ToDictionary(key => key, key => EditorValue(settingEditors[key]));
             if (changes.Count == 0) return;
+            lock (s.Profile.Sync)
+                foreach (var entry in changes) s.Profile.DraftSettings[entry.Key] = entry.Value;
             await s.ApplySettingsAsync(changes);
             lock (s.Profile.Sync)
                 foreach (var entry in changes)

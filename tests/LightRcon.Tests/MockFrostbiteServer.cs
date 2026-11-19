@@ -12,6 +12,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
 {
     public const string Password = "MockRcon123";
     public string GameCode { get; set; } = "BF4";
+    public bool AdvertiseAllSettings { get; set; }
     public ConcurrentDictionary<string, bool> Alive { get; } = new();
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource stop = new();
@@ -63,7 +64,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
                         var hash = Convert.ToHexString(MD5.HashData(Convert.FromHexString(salt).Concat(Encoding.UTF8.GetBytes(Password)).ToArray())); authenticated = words.Length == 2 && words[1] == hash; response = [authenticated ? "OK" : "InvalidPasswordHash"];
                     }
                     else if (!authenticated) response = ["LoginRequired"];
-                    else if (command == "admin.help") response = new[] { "OK" }.Concat(SettingsCatalog.All.Where(x => GameCode != "BF3" || x.Command is not ("vars.commander" or "vars.hacker" or "vars.maxSpectators" or "vars.preset")).Where(x => GameCode != "BFHL" || x.Command != "vars.commander").Select(x => x.Command)).Concat(new[] { "serverInfo", "admin.listPlayers", "mapList.list", "admin.eventsEnabled", "player.isAlive" }).ToArray();
+                    else if (command == "admin.help") response = new[] { "OK" }.Concat((AdvertiseAllSettings ? SettingsCatalog.All : SettingsCatalog.For(GameCatalog.Parse(GameCode))).Select(x => x.Command)).Concat(new[] { "serverInfo", "admin.listPlayers", "mapList.list", "admin.eventsEnabled", "player.isAlive" }).ToArray();
                     else if (command == "player.isAlive") response = ["OK", Alive.GetValueOrDefault(words[1], true) ? "true" : "false"];
                     else if (command == "vars.preset")
                     {

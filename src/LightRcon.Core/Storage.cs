@@ -13,6 +13,8 @@ public sealed class AppState
     public Guid? SelectedServer { get; set; }
     public double WindowWidth { get; set; } = 1440;
     public double WindowHeight { get; set; } = 900;
+    public int ChatLineLimit { get; set; } = 450;
+    public string PluginImportPreference { get; set; } = "ask";
 }
 
 public sealed class ProfileStore
@@ -21,12 +23,17 @@ public sealed class ProfileStore
     private readonly object gate = new();
     public string Root { get; }
     public AppState State { get; }
+    internal object LogGate { get; } = new();
+    public string LogsDirectory => Path.Combine(Root, "logs");
+    internal event Action? LogsCleared;
     public ProfileStore(string? root = null)
     {
         Root = root ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LightRconPlus");
         Directory.CreateDirectory(Root);
         var path = Path.Combine(Root, "profiles.json");
         State = File.Exists(path) ? JsonSerializer.Deserialize<AppState>(File.ReadAllText(path), Json) ?? new() : new();
+        State.ChatLineLimit = Math.Clamp(State.ChatLineLimit, 100, 800);
+        if (State.PluginImportPreference is not ("ask" or "keep" or "copy")) State.PluginImportPreference = "ask";
     }
     public void Save()
     {
@@ -36,7 +43,7 @@ public sealed class ProfileStore
             foreach (var server in State.Servers.ToArray())
                 lock (server.Sync)
                     copies.Add(JsonSerializer.Deserialize<ServerProfile>(JsonSerializer.Serialize(server, Json), Json)!);
-            var snapshot = new AppState { Language = State.Language, Theme = State.Theme, Servers = copies, SelectedServer = State.SelectedServer, WindowWidth = State.WindowWidth, WindowHeight = State.WindowHeight };
+            var snapshot = new AppState { Language = State.Language, Theme = State.Theme, Servers = copies, SelectedServer = State.SelectedServer, WindowWidth = State.WindowWidth, WindowHeight = State.WindowHeight, ChatLineLimit = State.ChatLineLimit, PluginImportPreference = State.PluginImportPreference };
             AtomicWrite(Path.Combine(Root, "profiles.json"), JsonSerializer.Serialize(snapshot, Json));
         }
     }
@@ -45,6 +52,22 @@ public sealed class ProfileStore
         var path = Path.Combine(Root, "servers", id.ToString("N"));
         Directory.CreateDirectory(path);
         return path;
+    }
+    public void ClearAllLogs()
+    {
+        // Journals use their own locks. Clear them before taking the text-log lock.
+        LogsCleared?.Invoke();
+        lock (LogGate)
+        {
+            var options = new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = FileAttributes.ReparsePoint };
+            if (Directory.Exists(LogsDirectory))
+                foreach (var file in Directory.EnumerateFiles(LogsDirectory, "*.log", options)) File.Delete(file);
+            var servers = Path.Combine(Root, "servers");
+            if (Directory.Exists(servers))
+                foreach (var directory in Directory.EnumerateDirectories(servers))
+                    if (Guid.TryParseExact(Path.GetFileName(directory), "N", out _) && !File.GetAttributes(directory).HasFlag(FileAttributes.ReparsePoint))
+                        foreach (var file in Directory.EnumerateFiles(directory, "activity-*.jsonl")) File.Delete(file);
+        }
     }
     public static void AtomicWrite(string path, string text)
     {

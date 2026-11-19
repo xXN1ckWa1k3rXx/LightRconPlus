@@ -130,7 +130,27 @@ public partial class MainWindow
         if (type != "perm") { if (!int.TryParse(amount, out var n) || n < 1) throw new ArgumentException(UiText.Get("Duration must be a positive integer.")); args.Add(amount); }
         args.Add(reason); await s.ExecuteAsync(args.ToArray()); await s.ExecuteAsync(["banList.save"]);
     }
-    private async void AddBan_Click(object sender, RoutedEventArgs e) => await Run(async () => { var s = RequireSession(); await AddBan(s, ComboText(BanIdType), BanIdentifier.Text.Trim(), ComboText(BanDurationType), BanDurationValue.Text, ManualBanReason.Text); await s.RefreshAsync(); });
+    internal static int ManualBanSeconds(string amount, string unit)
+    {
+        var factor = unit switch { "seconds" => 1, "minutes" => 60, "hours" => 3600, "days" => 86400, "weeks" => 604800, "months" => 2592000, _ => 0 };
+        if (factor == 0 || !int.TryParse(amount, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var count) || count < 1)
+            throw new ArgumentException(UiText.Get("Duration must be a positive integer."));
+        if ((long)count * factor > int.MaxValue) throw new ArgumentException(UiText.Get("Duration is too large."));
+        return count * factor;
+    }
+    private void ManualBanType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BanDurationValue is null || ManualBanDurationUnit is null) return;
+        var type = ComboText(BanDurationType);
+        BanDurationValue.IsEnabled = type != "perm";
+        ManualBanDurationUnit.IsEnabled = type == "seconds";
+    }
+    private async void AddBan_Click(object sender, RoutedEventArgs e) => await Run(async () =>
+    {
+        var s = RequireSession(); var type = ComboText(BanDurationType);
+        var amount = type == "seconds" ? ManualBanSeconds(BanDurationValue.Text, ComboText(ManualBanDurationUnit)).ToString(System.Globalization.CultureInfo.InvariantCulture) : BanDurationValue.Text;
+        await AddBan(s, ComboText(BanIdType), BanIdentifier.Text.Trim(), type, amount, ManualBanReason.Text); await s.RefreshAsync();
+    });
     private async void ClearBans_Click(object sender, RoutedEventArgs e)
     {
         if (!Confirm(UiText.Get("Clear and save all server bans? This cannot be undone."))) return;

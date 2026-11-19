@@ -1,0 +1,536 @@
+{
+  "api_version": 1,
+  "application_version": "Pre-alpha 1.0",
+  "engine": "MoonSharp 2.0.0",
+  "entrypoint": "plugin metadata plus event callbacks",
+  "reference": "docs/LUA-API.md",
+  "namespaces": {
+    "admin": [
+      "say(scope,text,...)",
+      "yell(scope,text,seconds,...)",
+      "kick(name,reason)",
+      "kill(name)",
+      "move(name,team,squad,force)",
+      "listPlayers(...)",
+      "kickPlayer(...)",
+      "killPlayer(...)",
+      "movePlayer(...)"
+    ],
+    "server": [
+      "get_info()",
+      "get_settings()",
+      "is_connected()",
+      "get_game()",
+      "restart_round()",
+      "next_round()"
+    ],
+    "players": [
+      "list()",
+      "get(name)",
+      "count()"
+    ],
+    "maps": [
+      "list()",
+      "add(name,mode,rounds)",
+      "remove(index)",
+      "clear()",
+      "save()",
+      "load()",
+      "set_next(index)"
+    ],
+    "bans": [
+      "list()",
+      "add(id_type,identifier,duration,...)",
+      "remove(id_type,identifier)",
+      "clear()",
+      "save()",
+      "load()"
+    ],
+    "reserved_slots": [
+      "list()",
+      "add(name)",
+      "remove(name)",
+      "clear()",
+      "save()",
+      "load()"
+    ],
+    "spectators": [
+      "list()",
+      "add(name)",
+      "remove(name)",
+      "clear()",
+      "save()",
+      "load()"
+    ],
+    "settings": [
+      "define(name,type,default_value,read_only)",
+      "get(name)"
+    ],
+    "timer": [
+      "after(seconds,callback)",
+      "every(seconds,callback)",
+      "cancel(id)"
+    ],
+    "storage": [
+      "get(key,default_value)",
+      "set(key,value)",
+      "remove(key)"
+    ],
+    "json": [
+      "encode(value)",
+      "decode(text)"
+    ],
+    "http": [
+      "request(method,url,body,headers)"
+    ],
+    "log": [
+      "info(text)",
+      "warning(text)",
+      "error(text)",
+      "debug(text)"
+    ],
+    "rcon": [
+      "command(command,...)"
+    ],
+    "procon": [
+      "execute_command(command,...)",
+      "call(class_name,method,...)"
+    ],
+    "mapList": [
+      "list(...)",
+      "availableMaps(...)",
+      "getMapIndices(...)",
+      "getRounds(...)",
+      "add(...)",
+      "remove(...)",
+      "clear(...)",
+      "save(...)",
+      "load(...)",
+      "setNextMapIndex(...)",
+      "restartRound(...)",
+      "runNextRound(...)",
+      "endRound(...)"
+    ],
+    "banList": [
+      "list(...)",
+      "add(...)",
+      "remove(...)",
+      "clear(...)",
+      "save(...)",
+      "load(...)"
+    ],
+    "reservedSlotsList": [
+      "list(...)",
+      "add(...)",
+      "remove(...)",
+      "clear(...)",
+      "save(...)",
+      "aggressiveJoin(...)"
+    ],
+    "spectatorList": [
+      "list(...)",
+      "add(...)",
+      "remove(...)",
+      "clear(...)",
+      "save(...)",
+      "load(...)"
+    ],
+    "punkBuster": [
+      "isActive(...)",
+      "pb_sv_command(...)"
+    ],
+    "fairFight": [
+      "isActive(...)"
+    ],
+    "player": [
+      "isAlive(...)"
+    ],
+    "vars": [
+      "serverName(...)",
+      "serverDescription(...)",
+      "serverMessage(...)",
+      "serverType(...)",
+      "maxPlayers(...)",
+      "maxSpectators(...)",
+      "commander(...)",
+      "hacker(...)",
+      "alwaysAllowSpectators(...)",
+      "autoBalance(...)",
+      "preset(...)",
+      "friendlyFire(...)",
+      "regenerateHealth(...)",
+      "soldierHealth(...)",
+      "bulletDamage(...)",
+      "playerRespawnTime(...)",
+      "playerManDownTime(...)",
+      "onlySquadLeaderSpawn(...)",
+      "forceReloadWholeMags(...)",
+      "unlockMode(...)",
+      "gunMasterWeaponsPreset(...)",
+      "vehicleSpawnAllowed(...)",
+      "vehicleSpawnDelay(...)",
+      "3pCam(...)",
+      "hud(...)",
+      "miniMap(...)",
+      "miniMapSpotting(...)",
+      "3dSpotting(...)",
+      "nameTag(...)",
+      "killCam(...)",
+      "crossHair(...)",
+      "hitIndicatorsEnabled(...)",
+      "gameModeCounter(...)",
+      "roundTimeLimit(...)",
+      "ticketBleedRate(...)",
+      "roundStartPlayerCount(...)",
+      "roundRestartPlayerCount(...)",
+      "roundLockdownCountdown(...)",
+      "roundWarmupTimeout(...)",
+      "idleTimeout(...)",
+      "idleBanRounds(...)",
+      "teamKillCountForKick(...)",
+      "teamKillKickForBan(...)",
+      "teamKillValueForKick(...)",
+      "teamKillValueIncrease(...)",
+      "teamKillValueDecreasePerSecond(...)",
+      "premiumStatus(...)",
+      "mpExperience(...)",
+      "roundPlayersReadyBypassTimer(...)",
+      "roundPlayersReadyMinCount(...)",
+      "roundPlayersReadyPercent(...)",
+      "bannerUrl(...)",
+      "ctfRoundTimeModifier(...)",
+      "rankLimit(...)",
+      "roundStartReadyPlayersNeeded(...)"
+    ],
+    "event": [
+      "on(raw_name,callback)",
+      "off(raw_name)"
+    ],
+    "plugin": []
+  },
+  "plugin_metadata": [
+    "api_version",
+    "name",
+    "version",
+    "author",
+    "website",
+    "description"
+  ],
+  "events": [
+    "player_respawn",
+    "player_join",
+    "player_leave",
+    "player_chat",
+    "player_kill",
+    "player_authenticated",
+    "player_disconnect",
+    "player_team_change",
+    "player_squad_change",
+    "round_over",
+    "level_loaded",
+    "level_loading",
+    "round_over_players",
+    "round_over_team_scores",
+    "punkbuster_message",
+    "plugin_enable",
+    "plugin_disable",
+    "setting_changed",
+    "raw"
+  ],
+  "event_registration": [
+    "event.<name>:set(callback_or_nil)",
+    "event.on(raw_name,callback)",
+    "event.off(raw_name)"
+  ],
+  "player_methods": [
+    "get_name()",
+    "get_guid()",
+    "get_pb_guid()",
+    "get_ip()",
+    "get_team()",
+    "get_squad()",
+    "get_kills()",
+    "get_deaths()",
+    "get_ping()",
+    "is_alive()",
+    "kick(reason)",
+    "kill()",
+    "move(team,squad,force)",
+    "say(text)",
+    "yell(text,seconds)"
+  ],
+  "settings_types": [
+    "string",
+    "multiline",
+    "bool",
+    "int",
+    "double",
+    "stringarray",
+    "onoff",
+    "yesno",
+    "enum.Name(Choice1|Choice2)"
+  ],
+  "limits": {
+    "instructions_per_callback": 100000,
+    "timers_per_plugin": 128,
+    "minimum_timer_seconds": 0.1,
+    "http_timeout_seconds": 10,
+    "http_response_bytes": 1048576,
+    "json_depth": 32
+  },
+  "array_index_base": 1,
+  "protocol_index_base": 0,
+  "module_loading": "Built-in namespace modules or local dotted module paths under the plugin directory.",
+  "server_setting_games": {
+    "vars.serverName": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.serverDescription": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.serverMessage": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.bannerUrl": [
+      "BF3"
+    ],
+    "vars.serverType": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.maxPlayers": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.maxSpectators": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.commander": [
+      "BF4"
+    ],
+    "vars.hacker": [
+      "BFHL"
+    ],
+    "vars.alwaysAllowSpectators": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.autoBalance": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "reservedSlotsList.aggressiveJoin": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.preset": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.friendlyFire": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.regenerateHealth": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.soldierHealth": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.bulletDamage": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.playerRespawnTime": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.playerManDownTime": [
+      "BF3",
+      "BFHL"
+    ],
+    "vars.onlySquadLeaderSpawn": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.forceReloadWholeMags": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.unlockMode": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.gunMasterWeaponsPreset": [
+      "BF3",
+      "BF4"
+    ],
+    "vars.vehicleSpawnAllowed": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.vehicleSpawnDelay": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.3pCam": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.hud": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.miniMap": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.miniMapSpotting": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.3dSpotting": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.nameTag": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.killCam": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.crossHair": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.hitIndicatorsEnabled": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.gameModeCounter": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.ctfRoundTimeModifier": [
+      "BF3"
+    ],
+    "vars.roundTimeLimit": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.ticketBleedRate": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.roundStartPlayerCount": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.roundRestartPlayerCount": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.roundLockdownCountdown": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.roundWarmupTimeout": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.idleTimeout": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.idleBanRounds": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.teamKillCountForKick": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.teamKillKickForBan": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.teamKillValueForKick": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.teamKillValueIncrease": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.teamKillValueDecreasePerSecond": [
+      "BF3",
+      "BF4",
+      "BFHL"
+    ],
+    "vars.rankLimit": [
+      "BF3"
+    ],
+    "vars.premiumStatus": [
+      "BF3"
+    ],
+    "vars.mpExperience": [
+      "BF4",
+      "BFHL"
+    ],
+    "vars.roundPlayersReadyBypassTimer": [
+      "BF4"
+    ],
+    "vars.roundPlayersReadyMinCount": [
+      "BF4"
+    ],
+    "vars.roundPlayersReadyPercent": [
+      "BF4"
+    ],
+    "vars.roundStartReadyPlayersNeeded": [
+      "BFHL"
+    ]
+  },
+  "server_setting_scope": "Only wrappers belonging to the detected game are registered in Lua. Server support and account permissions can further restrict calls."
+}

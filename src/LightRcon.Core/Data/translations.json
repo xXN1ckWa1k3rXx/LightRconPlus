@@ -99,11 +99,6 @@
     "zh": "子弹伤害 (%)",
     "de": "Geschossschaden (%)"
   },
-  "C# DLL and Lua support is planned. Plugins are not available in this version.": {
-    "en": "C# DLL and Lua support is planned. Plugins are not available in this version.",
-    "zh": "计划支持 C# DLL 与 Lua。此版本暂不支持插件。",
-    "de": "Unterstützung für C#-DLLs und Lua ist geplant. Plugins sind in dieser Version noch nicht verfügbar."
-  },
   "Cancel": {
     "en": "Cancel",
     "zh": "取消",
@@ -513,6 +508,16 @@
     "en": "Plugin",
     "zh": "插件",
     "de": "Plugins"
+  },
+  "Enable plugin…": {
+    "en": "Enable plugin…",
+    "zh": "启用插件…",
+    "de": "Plugin aktivieren…"
+  },
+  "Disable selected": {
+    "en": "Disable selected",
+    "zh": "禁用所选插件",
+    "de": "Auswahl deaktivieren"
   },
   "Plugins": {
     "en": "Plugins",
@@ -2378,5 +2383,350 @@
     "en": "Add account",
     "zh": "＋ 添加账号",
     "de": "Konto hinzufügen"
+  },
+  "This plugin is designed for Procon. Compatibility is enabled; stability is not guaranteed.": {
+    "en": "This plugin is designed for Procon. Compatibility is enabled; stability is not guaranteed.",
+    "zh": "此插件为Procon专用，兼容性已启用，不保证稳定性",
+    "de": "Dieses Plugin wurde für Procon entwickelt. Die Kompatibilität ist aktiviert; Stabilität ist nicht garantiert."
+  },
+  "Add plugin…": {
+    "en": "Add plugin…",
+    "zh": "添加插件…",
+    "de": "Plugin hinzufügen…"
+  },
+  "Plugin Settings": {
+    "en": "Plugin Settings",
+    "zh": "插件设置",
+    "de": "Plugin-Einstellungen"
+  },
+  "Select a plugin to view its details and settings.": {
+    "en": "Select a plugin to view its details and settings.",
+    "zh": "选择插件以查看详情和设置。",
+    "de": "Wählen Sie ein Plugin aus, um Details und Einstellungen anzuzeigen."
+  },
+  "Plugin failed": {
+    "en": "Plugin failed",
+    "zh": "插件加载失败",
+    "de": "Plugin fehlgeschlagen"
+  },
+  "Loading plugin…": {
+    "en": "Loading plugin…",
+    "zh": "正在加载插件…",
+    "de": "Plugin wird geladen…"
+  },
+  "Plugin files": {
+    "en": "Plugin files",
+    "zh": "插件文件",
+    "de": "Plugin-Dateien"
+  },
+  "Connect before loading plugins.": {
+    "en": "Connect before loading plugins.",
+    "zh": "请先连接服务器再加载插件。",
+    "de": "Verbinden Sie den Server, bevor Sie Plugins laden."
+  },
+  "This plugin has no settings.": {
+    "en": "This plugin has no settings.",
+    "zh": "此插件没有可配置的设置。",
+    "de": "Dieses Plugin hat keine Einstellungen."
+  },
+  "Plugin settings saved.": {
+    "en": "Plugin settings saved.",
+    "zh": "插件设置已保存。",
+    "de": "Plugin-Einstellungen gespeichert."
+  },
+  "Read-only": {
+    "en": "Read-only",
+    "zh": "只读",
+    "de": "Schreibgeschützt"
+  },
+  "Version": {
+    "en": "Version",
+    "zh": "版本",
+    "de": "Version"
+  },
+  "Author": {
+    "en": "Author",
+    "zh": "作者",
+    "de": "Autor"
+  },
+  "Website": {
+    "en": "Website",
+    "zh": "网站",
+    "de": "Website"
+  },
+  "File": {
+    "en": "File",
+    "zh": "文件",
+    "de": "Datei"
+  },
+  "Details": {
+    "en": "Details",
+    "zh": "详情",
+    "de": "Details"
+  },
+  "Enable": {
+    "en": "Enable",
+    "zh": "启用",
+    "de": "Aktivieren"
+  },
+  "Disable": {
+    "en": "Disable",
+    "zh": "禁用",
+    "de": "Deaktivieren"
+  },
+  "Reload": {
+    "en": "Reload",
+    "zh": "重新加载",
+    "de": "Neu laden"
+  },
+  "Enabled plugin: {0}": {
+    "en": "Enabled plugin: {0}",
+    "zh": "已启用插件：{0}",
+    "de": "Plugin aktiviert: {0}"
+  },
+  "Disabled plugin: {0}": {
+    "en": "Disabled plugin: {0}",
+    "zh": "已禁用插件：{0}",
+    "de": "Plugin deaktiviert: {0}"
+  },
+  "Downloading Procon compatibility runtime…": {
+    "en": "Downloading Procon compatibility runtime…",
+    "zh": "正在下载 Procon 兼容运行时…",
+    "de": "Procon-Kompatibilitätslaufzeit wird heruntergeladen…"
+  },
+  "Procon archive checksum mismatch.": {
+    "en": "Procon archive checksum mismatch.",
+    "zh": "Procon 文件包校验失败。",
+    "de": "Prüfsumme des Procon-Archivs stimmt nicht überein."
+  },
+  "Procon filenames must match the plugin class name.": {
+    "en": "Procon filenames must match the plugin class name.",
+    "zh": "Procon 插件文件名必须与插件类名一致。",
+    "de": "Der Procon-Dateiname muss dem Namen der Plugin-Klasse entsprechen."
+  },
+  "Procon compatibility runtime stopped.": {
+    "en": "Procon compatibility runtime stopped.",
+    "zh": "Procon 兼容运行时已停止。",
+    "de": "Die Procon-Kompatibilitätslaufzeit wurde beendet."
+  },
+  "Procon compatibility runtime could not start.": {
+    "en": "Procon compatibility runtime could not start.",
+    "zh": "Procon 兼容运行时无法启动。",
+    "de": "Die Procon-Kompatibilitätslaufzeit konnte nicht gestartet werden."
+  },
+  "Plugin event queue is full.": {
+    "en": "Plugin event queue is full.",
+    "zh": "插件事件队列已满。",
+    "de": "Die Plugin-Ereigniswarteschlange ist voll."
+  },
+  "Select a .cs, .dll or .lua plugin.": {
+    "en": "Select a .cs, .dll or .lua plugin.",
+    "zh": "请选择 .cs、.dll 或 .lua 插件。",
+    "de": "Wählen Sie ein .cs-, .dll- oder .lua-Plugin."
+  },
+  "A plugin with this class name is already installed.": {
+    "en": "A plugin with this class name is already installed.",
+    "zh": "已安装具有相同类名的插件。",
+    "de": "Ein Plugin mit diesem Klassennamen ist bereits installiert."
+  },
+  "This setting is read-only.": {
+    "en": "This setting is read-only.",
+    "zh": "此设置为只读。",
+    "de": "Diese Einstellung ist schreibgeschützt."
+  },
+  "Invalid plugin setting value.": {
+    "en": "Invalid plugin setting value.",
+    "zh": "插件设置值无效。",
+    "de": "Ungültiger Wert für die Plugin-Einstellung."
+  },
+  "Unknown plugin setting.": {
+    "en": "Unknown plugin setting.",
+    "zh": "未知的插件设置。",
+    "de": "Unbekannte Plugin-Einstellung."
+  },
+  "Unsupported Lua API version.": {
+    "en": "Unsupported Lua API version.",
+    "zh": "不支持此 Lua API 版本。",
+    "de": "Nicht unterstützte Lua-API-Version."
+  },
+  "Load a Procon plugin before using Procon services.": {
+    "en": "Load a Procon plugin before using Procon services.",
+    "zh": "使用 Procon 服务前，请先加载 Procon 插件。",
+    "de": "Laden Sie ein Procon-Plugin, bevor Sie Procon-Dienste verwenden."
+  },
+  "Add plugins on the upstream Layer.": {
+    "en": "Add plugins on the upstream Layer.",
+    "zh": "请在主 Layer 上添加插件。",
+    "de": "Plugins auf dem übergeordneten Layer hinzufügen."
+  },
+  "Plugin is not installed on the upstream Layer.": {
+    "en": "Plugin is not installed on the upstream Layer.",
+    "zh": "此插件未安装在主 Layer 上。",
+    "de": "Dieses Plugin ist auf dem übergeordneten Layer nicht installiert."
+  },
+  "Identifier type": {
+    "en": "Identifier type",
+    "zh": "标识类型",
+    "de": "Kennungstyp"
+  },
+  "Identifier": {
+    "en": "Identifier",
+    "zh": "封禁标识",
+    "de": "Kennung"
+  },
+  "Ban type": {
+    "en": "Ban type",
+    "zh": "封禁类型",
+    "de": "Sperrtyp"
+  },
+  "Temporary ban": {
+    "en": "Temporary ban",
+    "zh": "限时封禁",
+    "de": "Temporäre Sperre"
+  },
+  "Duration is too large.": {
+    "en": "Duration is too large.",
+    "zh": "封禁时长过大。",
+    "de": "Die Sperrdauer ist zu lang."
+  },
+  "Clear chat": {
+    "en": "Clear chat",
+    "zh": "清空聊天",
+    "de": "Chat leeren"
+  },
+  "Chat and logs": {
+    "en": "Chat and logs",
+    "zh": "聊天与日志",
+    "de": "Chat und Protokolle"
+  },
+  "Maximum chat lines (100–800)": {
+    "en": "Maximum chat lines (100–800)",
+    "zh": "聊天显示行数上限（100–800）",
+    "de": "Maximale Chatzeilen (100–800)"
+  },
+  "Default: 450 lines. This limit affects the display only.": {
+    "en": "Default: 450 lines. This limit affects the display only.",
+    "zh": "默认 450 行，仅影响显示，不影响日志文件。",
+    "de": "Standard: 450 Zeilen. Gilt nur für die Anzeige."
+  },
+  "Clear all logs": {
+    "en": "Clear all logs",
+    "zh": "清理所有日志",
+    "de": "Alle Protokolle löschen"
+  },
+  "Plugin import": {
+    "en": "Plugin import",
+    "zh": "插件导入",
+    "de": "Plugin-Import"
+  },
+  "Ask every time": {
+    "en": "Ask every time",
+    "zh": "每次询问",
+    "de": "Jedes Mal fragen"
+  },
+  "Keep plugin in its original location": {
+    "en": "Keep plugin in its original location",
+    "zh": "保持插件原位置",
+    "de": "Plugin am ursprünglichen Ort belassen"
+  },
+  "Copy to plugin folder": {
+    "en": "Copy to plugin folder",
+    "zh": "拷贝到插件文件夹",
+    "de": "In den Plugin-Ordner kopieren"
+  },
+  "Import preference": {
+    "en": "Import preference",
+    "zh": "导入偏好",
+    "de": "Importeinstellung"
+  },
+  "Enter a whole number from 100 to 800.": {
+    "en": "Enter a whole number from 100 to 800.",
+    "zh": "请输入 100 到 800 之间的整数。",
+    "de": "Geben Sie eine ganze Zahl von 100 bis 800 ein."
+  },
+  "Preferences saved.": {
+    "en": "Preferences saved.",
+    "zh": "偏好设置已保存。",
+    "de": "Einstellungen gespeichert."
+  },
+  "Delete all local chat and event log files? This cannot be undone. New logs will continue to be recorded.": {
+    "en": "Delete all local chat and event log files? This cannot be undone. New logs will continue to be recorded.",
+    "zh": "删除所有本地聊天和事件日志文件？此操作无法撤销，后续仍会继续记录新日志。",
+    "de": "Alle lokalen Chat- und Ereignisprotokolle löschen? Dies kann nicht rückgängig gemacht werden. Neue Protokolle werden weiterhin aufgezeichnet."
+  },
+  "All local log files cleared.": {
+    "en": "All local log files cleared.",
+    "zh": "所有本地日志文件已清理。",
+    "de": "Alle lokalen Protokolldateien gelöscht."
+  },
+  "Latest {0} lines shown": {
+    "en": "Latest {0} lines shown",
+    "zh": "最多显示最近 {0} 行",
+    "de": "Die letzten {0} Zeilen werden angezeigt"
+  },
+  "Logs saved locally": {
+    "en": "Logs saved locally",
+    "zh": "日志保存在本地",
+    "de": "Protokolle werden lokal gespeichert"
+  },
+  "Refresh list": {
+    "en": "Refresh list",
+    "zh": "刷新列表",
+    "de": "Liste aktualisieren"
+  },
+  "Open larger editor": {
+    "en": "Open larger editor",
+    "zh": "打开大编辑窗口",
+    "de": "Größeren Editor öffnen"
+  },
+  "Import plugin": {
+    "en": "Import plugin",
+    "zh": "导入插件",
+    "de": "Plugin importieren"
+  },
+  "Choose where to load this plugin. You can change the import preference in Settings.": {
+    "en": "Choose where to load this plugin. You can change the import preference in Settings.",
+    "zh": "请选择插件加载位置。你可以在设置中调整导入偏好。",
+    "de": "Wählen Sie den Speicherort des Plugins. Die Importeinstellung kann in den Einstellungen geändert werden."
+  },
+  "Plugin file was not found.": {
+    "en": "Plugin file was not found.",
+    "zh": "未找到插件文件。",
+    "de": "Plugin-Datei nicht gefunden."
+  },
+  "A plugin package with this name already exists in the plugin folder.": {
+    "en": "A plugin package with this name already exists in the plugin folder.",
+    "zh": "插件文件夹内已存在同名插件包。",
+    "de": "Ein Plugin-Paket mit diesem Namen existiert bereits im Plugin-Ordner."
+  },
+  "Select a plugin outside the destination folder.": {
+    "en": "Select a plugin outside the destination folder.",
+    "zh": "请选择目标文件夹之外的插件。",
+    "de": "Wählen Sie ein Plugin außerhalb des Zielordners."
+  },
+  "Banner URL": {
+    "en": "Banner URL",
+    "zh": "横幅图片 URL",
+    "de": "Banner-URL"
+  },
+  "Rank limit": {
+    "en": "Rank limit",
+    "zh": "等级限制",
+    "de": "Ranglimit"
+  },
+  "CTF round time modifier (%)": {
+    "en": "CTF round time modifier (%)",
+    "zh": "夺旗回合时间倍率 (%)",
+    "de": "CTF-Rundenzeit (%)"
+  },
+  "Ready players needed": {
+    "en": "Ready players needed",
+    "zh": "需要准备就绪的玩家数",
+    "de": "Benötigte bereite Spieler"
+  },
+  "Setting {0} is not available for {1}.": {
+    "en": "Setting {0} is not available for {1}.",
+    "zh": "设置 {0} 不适用于 {1}。",
+    "de": "Einstellung {0} ist für {1} nicht verfügbar."
   }
 }

@@ -55,6 +55,7 @@ public sealed class LayerServer : IAsyncDisposable
         listener.Start(32);
         session.Journal.Appended += OnActivity;
         session.RemoteEvent += OnEvent;
+        session.Plugins.Changed += OnPluginsChanged;
         accepting = AcceptAsync();
         return Task.CompletedTask;
     }
@@ -118,6 +119,7 @@ public sealed class LayerServer : IAsyncDisposable
             lock (publishGate)
             {
                 peers[id] = peer;
+                peer.Send(new() { Type = "plugins", Plugins = session.Plugins.Snapshot() });
             }
             foreach (var chunk in session.Journal.Replay())
             {
@@ -154,6 +156,12 @@ public sealed class LayerServer : IAsyncDisposable
                         response.Words = await session.ExecuteAsync(frame.Words, token);
                         session.Log("Layer audit", $"{peer.Username}: {frame.Words[0]}");
                     }
+                    else if (frame.Type.StartsWith("plugin.", StringComparison.Ordinal))
+                    {
+                        await HandlePluginAsync(frame, response, current);
+                        if (frame.Type is "plugin.set" or "plugin.enable" or "plugin.disable")
+                            session.Log("Layer audit", $"{peer.Username}: {frame.Type} {frame.Words[0]}");
+                    }
                     else if (frame.Type == "layer.get")
                     {
                         LayerAuthorization.Demand(current, LayerPermission.LayerAdmin);
@@ -173,7 +181,7 @@ public sealed class LayerServer : IAsyncDisposable
                     }
                     else throw new UnauthorizedAccessException("Unsupported Layer operation.");
                 }
-                catch (Exception ex) when (ex is RconException or UnauthorizedAccessException or ArgumentException or IOException or TimeoutException)
+                catch (Exception ex) when (ex is RconException or UnauthorizedAccessException or ArgumentException or IOException or TimeoutException || frame.Type.StartsWith("plugin.", StringComparison.Ordinal))
                 { response.Error = ex.Message; }
                 peer.Send(response);
                 if ((frame.Type is "layer.account.save" or "layer.account.delete" or "layer.global") && response.Error is null)
@@ -192,6 +200,45 @@ public sealed class LayerServer : IAsyncDisposable
         }
     }
     private static readonly string DummyHash = PasswordHash.Create("LightRcon-unknown-account-dummy");
+    private async Task HandlePluginAsync(LayerFrame frame, LayerFrame response, LayerPermission permissions)
+    {
+        var count = frame.Type switch
+        {
+            "plugin.list" => 0,
+            "plugin.details" or "plugin.settings" or "plugin.enable" or "plugin.disable" => 1,
+            "plugin.set" => 3,
+            _ => throw new UnauthorizedAccessException("Unsupported Layer operation.")
+        };
+        if (frame.Words.Length != count) throw new ArgumentException("Invalid plugin request.");
+        if (frame.Type == "plugin.set") LayerAuthorization.Demand(permissions, LayerPermission.Settings);
+        if (frame.Type is "plugin.enable" or "plugin.disable") LayerAuthorization.Demand(permissions, LayerPermission.LayerAdmin);
+        if (count > 0)
+        {
+            // A remote peer can only address installed plugins, never arbitrary host files.
+            var plugin = session.Plugins.Snapshot().FirstOrDefault(item => item.Path.Equals(frame.Words[0], StringComparison.OrdinalIgnoreCase))
+                ?? throw new ArgumentException(UiText.Get("Plugin is not installed on the upstream Layer."));
+            switch (frame.Type)
+            {
+                case "plugin.details": response.Plugin = await session.Plugins.GetDetailsAsync(plugin.Path); break;
+                case "plugin.settings": response.PluginSettings = await session.Plugins.GetSettingsAsync(plugin.Path); break;
+                case "plugin.set": await session.Plugins.SetSettingAsync(plugin.Path, frame.Words[1], frame.Words[2]); break;
+                case "plugin.enable": await session.Plugins.EnableAsync(plugin.Path); break;
+                case "plugin.disable": await session.Plugins.DisableAsync(plugin.Path); break;
+            }
+        }
+        response.Plugins = session.Plugins.Snapshot();
+        if (frame.Type == "plugin.list") OnPluginsChanged();
+    }
+    private void OnPluginsChanged()
+    {
+        lock (publishGate)
+        {
+            var plugins = session.Plugins.Snapshot();
+            foreach (var peer in peers.Values)
+                if (PermissionsFor(peer.Username)?.HasFlag(LayerPermission.View) == true)
+                    peer.Send(new() { Type = "plugins", Plugins = plugins });
+        }
+    }
     private async Task SendLoopAsync(Peer peer, Stream stream, SemaphoreSlim gate, CancellationToken token)
     {
         try
@@ -252,6 +299,7 @@ public sealed class LayerServer : IAsyncDisposable
     {
         session.Journal.Appended -= OnActivity;
         session.RemoteEvent -= OnEvent;
+        session.Plugins.Changed -= OnPluginsChanged;
         lifetime.Cancel(); listener?.Stop();
         foreach (var peer in peers.Values) peer.Client.Close();
         if (accepting is not null) await accepting;

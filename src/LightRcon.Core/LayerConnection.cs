@@ -16,6 +16,7 @@ public sealed class LayerConnection : ICommandConnection
     public Task Completion { get; private set; } = Task.CompletedTask;
     public event Action<string[]>? EventReceived;
     public event Action<ActivityEntry[]>? HistoryReceived;
+    public event Action<Plugins.PluginDetails[]>? PluginsReceived;
     public async Task ConnectAsync(ServerProfile profile, CancellationToken token)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -41,6 +42,7 @@ public sealed class LayerConnection : ICommandConnection
                 if (frame.Type == "response") { if (pending.TryRemove(frame.Id, out var promise)) promise.TrySetResult(frame); }
                 else if (frame.Type == "event") EventReceived?.Invoke(frame.Words);
                 else if (frame.Type == "history") HistoryReceived?.Invoke(frame.Entries);
+                else if (frame.Type == "plugins") PluginsReceived?.Invoke(frame.Plugins);
             }
         }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or System.Text.Json.JsonException or InvalidDataException) { failure = ex; }

@@ -11,23 +11,38 @@ internal static class MultiGameChecks
         foreach (var game in Enum.GetValues<GameId>())
         {
             var maps = MapCatalog.For(game);
+            check(SettingsCatalog.Supports("vars.hacker", game) == (game == GameId.BFHL) && SettingsCatalog.Supports("vars.commander", game) == (game == GameId.BF4) && SettingsCatalog.Supports("vars.ctfRoundTimeModifier", game) == (game == GameId.BF3), game + " has explicit game-specific setting ownership");
             check(maps.Count >= 27 && maps.All(x => x.Modes.Count > 0), game + " has a separate embedded map and mode catalog");
             var link = GameCatalog.PlayerProfile(game, "Test name/#&");
             var battlelogGame = game == GameId.BFHL ? "bfh" : game == GameId.BF3 ? "bf3" : "bf4";
             check(link.AbsoluteUri == $"https://battlelog.battlefield.com/{battlelogGame}/user/Test%20name%2F%23%26", game + " Battlelog URL uses the game and escapes the full player name");
             if (game == GameId.BF4) continue;
-            await using var mock = new MockFrostbiteServer { GameCode = game.ToString(), Map = maps[0].FileName, GameMode = maps[0].Modes[0].Code };
+            await using var mock = new MockFrostbiteServer { GameCode = game.ToString(), Map = maps[0].FileName, GameMode = maps[0].Modes[0].Code, AdvertiseAllSettings = true };
             lock (mock.Maps) { mock.Maps.Clear(); mock.Maps.Add(new(mock.Map, mock.GameMode, 2)); }
             var store = new ProfileStore(Path.Combine(root, game.ToString()));
             var profile = new ServerProfile { Host = "127.0.0.1", Port = mock.Port, ProtectedPassword = SecretProtection.Protect(MockFrostbiteServer.Password) };
             // An old endpoint may be repointed to a different game; never upload its old draft.
             profile.DraftSettings["vars.serverName"] = "Stale BF4 draft";
+            profile.DesiredSettings["vars.commander"] = "true";
             store.State.Servers.Add(profile);
             await using var session = new ServerSession(profile, store);
             await session.StartAsync(); await Wait(() => session.IsConnected);
             check(session.Game == game && profile.Game == game && session.Info.Game == game && !profile.DraftSettings.ContainsKey("vars.serverName"), game + " autodetection replaces stale game-specific drafts before reconciliation");
             check(session.Info.MapName == maps[0].Name && session.MapSnapshot()[0].Game == game && session.MapSnapshot()[0].Name == maps[0].Name, game + " live state and rotation use the detected game catalog");
             check(!session.IsSupported("vars.commander") && (game != GameId.BFHL || session.IsSupported("vars.hacker")), game + " settings follow advertised capabilities");
+            check(!mock.Received.Any(words => SettingsCatalog.Find(words[0]) is not null && !SettingsCatalog.Supports(words[0], game)) && session.SettingsSnapshot().Keys.All(command => SettingsCatalog.Supports(command, game)), game + " ignores settings from other games even when advertised by the server");
+            var countBefore = mock.Received.Count;
+            try { await session.ApplySettingsAsync(new() { ["vars.commander"] = "false" }); throw new Exception("Cross-game setting accepted"); }
+            catch (ArgumentException) { check(mock.Received.Count == countBefore && !profile.DesiredSettings.ContainsKey("vars.commander"), game + " rejects cross-game changes before persisting or sending"); }
+            try { await session.ExecuteAsync(["vars.commander", "false"]); throw new Exception("Cross-game raw setting accepted"); }
+            catch (ArgumentException) { check(!mock.Received.Any(words => words[0] == "vars.commander"), game + " raw commands cannot bypass setting ownership"); }
+            profile.DraftSettings["vars.commander"] = "true";
+            check(!SettingsCatalog.StartupConfig(profile).Contains("vars.commander"), game + " startup export omits an obsolete setting from another game");
+            profile.DraftSettings.Remove("vars.commander");
+            var luaPath = Path.Combine(store.Root, "GameScope.lua");
+            File.WriteAllText(luaPath, game == GameId.BF3 ? "assert(vars.hacker == nil and vars.commander == nil and vars.preset == nil and vars.ctfRoundTimeModifier ~= nil); plugin = {name='Game scoped Lua'}" : "assert(vars.hacker ~= nil and vars.commander == nil and vars.gunMasterWeaponsPreset == nil and vars.roundStartReadyPlayersNeeded ~= nil); plugin = {name='Game scoped Lua'}");
+            await session.Plugins.EnableAsync(luaPath);
+            check(session.Plugins.Snapshot().Single().Enabled, game + " Lua namespaces omit variables from other games");
             if (game == GameId.BF3)
             {
                 await session.ApplySettingsAsync(new() { ["vars.gunMasterWeaponsPreset"] = "8" });
@@ -50,6 +65,7 @@ internal static class MultiGameChecks
             var downstream = new ServerProfile { Host = "127.0.0.1", Port = profile.Layer.Port, Username = "admin", ProtectedPassword = SecretProtection.Protect("MultiGame-admin-test") };
             await using var layer = new ServerSession(downstream, store); await layer.StartAsync(); await Wait(() => layer.IsConnected);
             check(layer.Game == game && layer.MapSnapshot().All(x => x.Game == game), game + " Layer connections autodetect their upstream game");
+            check(layer.SettingsSnapshot().Keys.All(command => SettingsCatalog.Supports(command, game)) && !layer.IsSupported("vars.commander"), game + " Layer settings retain game separation");
             await mock.EmitAsync("player.onKill", "Example_Bravo", player, "U_M416", "false");
             await Wait(() => layer.PlayerSnapshot().First(x => x.Name == player).IsAlive == false);
             await mock.EmitAsync("player.spawn", player, "1");

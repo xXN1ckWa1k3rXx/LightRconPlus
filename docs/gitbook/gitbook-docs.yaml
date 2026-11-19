@@ -1,0 +1,13 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+version: 1
+site:
+  title: LightRcon+ Lua API
+  structure:
+    - type: space
+      key: space-lua-api
+      title: Lua API
+      path: lua-api
+      default: true
+      content:
+        directory: ./
+        language: en

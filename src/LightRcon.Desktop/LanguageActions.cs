@@ -40,6 +40,7 @@ public partial class MainWindow
         switching = previous; shownVersion = -1; RefreshView();
         UpdateMapGroups();
         UpdateSelectedPlayer();
+        RefreshPluginLanguage();
     }
     private void ServerCards_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {

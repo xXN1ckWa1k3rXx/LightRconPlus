@@ -48,6 +48,17 @@
                 <ComboBoxItem Content="{loc:Loc Key='Dark'}" Tag="dark" />
               </ComboBox>
             </Grid>
+            <StackPanel Margin="0,28,0,0" MaxWidth="700" HorizontalAlignment="Stretch">
+              <TextBlock Text="{loc:Loc Key='Chat and logs'}" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16" />
+              <DockPanel><TextBox x:Name="ChatLineLimitInput" DockPanel.Dock="Right" Width="210" LostKeyboardFocus="ChatLineLimit_LostFocus" KeyDown="ChatLineLimit_KeyDown"/><TextBlock Text="{loc:Loc Key='Maximum chat lines (100–800)'}"/></DockPanel>
+              <TextBlock Text="{loc:Loc Key='Default: 450 lines. This limit affects the display only.'}" Style="{StaticResource MutedText}" Margin="0,8,0,12"/>
+              <Button x:Name="ClearAllLogsButton" Content="{loc:Loc Key='Clear all logs'}" Click="ClearAllLogs_Click" Style="{StaticResource DangerButton}" HorizontalAlignment="Left"/>
+              <TextBlock Text="{loc:Loc Key='Plugin import'}" FontSize="18" FontWeight="SemiBold" Margin="0,28,0,16" />
+              <DockPanel><ComboBox x:Name="PluginImportPreferenceBox" DockPanel.Dock="Right" Width="260" SelectedValuePath="Tag" SelectionChanged="PluginImportPreference_Changed">
+                <ComboBoxItem Content="{loc:Loc Key='Ask every time'}" Tag="ask"/><ComboBoxItem Content="{loc:Loc Key='Keep plugin in its original location'}" Tag="keep"/><ComboBoxItem Content="{loc:Loc Key='Copy to plugin folder'}" Tag="copy"/>
+              </ComboBox><TextBlock Text="{loc:Loc Key='Import preference'}"/></DockPanel>
+              <TextBlock x:Name="AppPreferenceStatus" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,12,0,0"/>
+            </StackPanel>
           </StackPanel>
           <StackPanel x:Name="AppAboutPage" Visibility="Collapsed">
             <TextBlock Text="{loc:Loc Key='About'}" FontSize="26" FontWeight="SemiBold" Margin="0,0,0,24" />
@@ -58,7 +69,7 @@
             <TextBlock Text="{loc:Loc Key='Initially created entirely with AI. Maintained and reviewed by xXN1ckWa1k3rXx.'}" TextWrapping="Wrap" Margin="0,10,0,0" />
             <TextBlock Text="{loc:Loc Key='Licensed under GNU GPL v3.0. Includes data derived from Procon Frostbite; see LICENSE and THIRD-PARTY-NOTICES.md.'}" TextWrapping="Wrap" Margin="0,10,0,0" />
             <TextBlock Text="{loc:Loc Key='Battlefield and related trademarks belong to Electronic Arts and DICE. Not affiliated with or endorsed by EA, DICE or Procon contributors.'}" TextWrapping="Wrap" Margin="0,10,0,0" />
-            <TextBlock Text="Pre-alpha 0.1" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
+            <TextBlock Text="Pre-alpha 1.0" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
             <TextBlock Text="C# · WPF · .NET 10" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
           </StackPanel>
         </Grid>
@@ -318,23 +329,51 @@
                     </DataGrid.Columns>
                   </DataGrid>
                   <Border Grid.Row="2" Style="{StaticResource Panel}" Margin="0,12,0,0" Padding="12">
-                    <Expander Header="{loc:Loc Key='Manual ban'}" ExpandDirection="Up">
-                      <WrapPanel Margin="0,12,0,0">
-                        <ComboBox x:Name="BanIdType" Width="85" SelectedIndex="0" Margin="0,0,8,0">
+                    <Expander x:Name="ManualBanPanel" Header="{loc:Loc Key='Manual ban'}" ExpandDirection="Down" IsExpanded="True">
+                      <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <StackPanel>
+                        <Label Content="{loc:Loc Key='Identifier type'}" Target="{Binding ElementName=BanIdType}" Foreground="{DynamicResource Muted}" Padding="0,0,0,6" />
+                        <ComboBox x:Name="BanIdType" SelectedIndex="0">
                           <ComboBoxItem Content="{loc:Loc Key='guid'}" Tag="guid" />
                           <ComboBoxItem Content="{loc:Loc Key='name'}" Tag="name" />
                           <ComboBoxItem Content="{loc:Loc Key='ip'}" Tag="ip" />
                         </ComboBox>
-                        <TextBox x:Name="BanIdentifier" Width="240" Margin="0,0,8,0" ToolTip="{loc:Loc Key='GUID / Name / IP'}" />
-                        <ComboBox x:Name="BanDurationType" Width="100" SelectedIndex="0" Margin="0,0,8,0">
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Grid.ColumnSpan="3">
+                        <Label Content="{loc:Loc Key='Identifier'}" Target="{Binding ElementName=BanIdentifier}" Foreground="{DynamicResource Muted}" Padding="0,0,0,6" />
+                        <TextBox x:Name="BanIdentifier" ToolTip="{loc:Loc Key='GUID / Name / IP'}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                        <Label Content="{loc:Loc Key='Ban type'}" Target="{Binding ElementName=BanDurationType}" Foreground="{DynamicResource Muted}" Padding="0,0,0,6" />
+                        <ComboBox x:Name="BanDurationType" SelectedIndex="0" SelectionChanged="ManualBanType_SelectionChanged">
                           <ComboBoxItem Content="{loc:Loc Key='perm'}" Tag="perm" />
-                          <ComboBoxItem Content="{loc:Loc Key='seconds'}" Tag="seconds" />
+                          <ComboBoxItem Content="{loc:Loc Key='Temporary ban'}" Tag="seconds" />
                           <ComboBoxItem Content="{loc:Loc Key='rounds'}" Tag="rounds" />
                         </ComboBox>
-                        <TextBox x:Name="BanDurationValue" Text="1800" Width="75" Margin="0,0,8,0" ToolTip="{loc:Loc Key='Seconds or rounds'}" />
-                        <TextBox x:Name="ManualBanReason" Width="160" Text="Banned by admin" Margin="0,0,8,0" />
-                        <Button Content="{loc:Loc Key='Add ban'}" Click="AddBan_Click" Style="{StaticResource PrimaryButton}" />
-                      </WrapPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,12,0,0">
+                        <Label Content="{loc:Loc Key='Duration'}" Target="{Binding ElementName=BanDurationValue}" Foreground="{DynamicResource Muted}" Padding="0,0,0,6" />
+                        <TextBox x:Name="BanDurationValue" Text="1800" IsEnabled="False" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="4" Margin="0,12,0,0">
+                        <Label Content="{loc:Loc Key='Time unit'}" Target="{Binding ElementName=ManualBanDurationUnit}" Foreground="{DynamicResource Muted}" Padding="0,0,0,6" />
+                        <ComboBox x:Name="ManualBanDurationUnit" SelectedIndex="0" IsEnabled="False" ToolTip="{loc:Loc Key='Time unit · Months are 30 days'}">
+                          <ComboBoxItem Content="{loc:Loc Key='seconds'}" Tag="seconds" />
+                          <ComboBoxItem Content="{loc:Loc Key='Minutes'}" Tag="minutes" />
+                          <ComboBoxItem Content="{loc:Loc Key='Hours'}" Tag="hours" />
+                          <ComboBoxItem Content="{loc:Loc Key='Days'}" Tag="days" />
+                          <ComboBoxItem Content="{loc:Loc Key='Weeks'}" Tag="weeks" />
+                          <ComboBoxItem Content="{loc:Loc Key='Months'}" Tag="months" />
+                        </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                        <Label Content="{loc:Loc Key='Reason'}" Target="{Binding ElementName=ManualBanReason}" Foreground="{DynamicResource Muted}" Padding="0,0,0,6" />
+                        <TextBox x:Name="ManualBanReason" Text="Banned by admin" MaxLength="80" />
+                        </StackPanel>
+                        <Button Grid.Row="2" Grid.Column="4" x:Name="AddManualBanButton" Content="{loc:Loc Key='Add ban'}" Click="AddBan_Click" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" VerticalAlignment="Bottom" MinWidth="140" Margin="0" />
+                      </Grid>
                     </Expander>
                   </Border>
                 </Grid>
@@ -383,21 +422,10 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
-              <ListBox x:Name="ChatList" FontSize="13" BorderThickness="1" BorderBrush="{DynamicResource Line}" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
-                <ListBox.ItemContainerStyle>
-                  <Style TargetType="ListBoxItem">
-                    <Setter Property="Padding" Value="5,2" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                  </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                  <DataTemplate>
-                    <loc:ActivityLine Entry="{Binding}" LanguageVersion="{Binding Version, Source={x:Static loc:LocalizationView.Instance}}" TextWrapping="Wrap" />
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
+              <TextBox x:Name="ChatList" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="13" Loaded="LogText_Loaded" />
               <DockPanel Grid.Row="1" Margin="0,8,0,8">
                 <Button DockPanel.Dock="Right" x:Name="SendChatButton" Content="{loc:Loc Key='Send'}" Style="{StaticResource PrimaryButton}" Click="SendChat_Click" Margin="8,0,0,0" MinWidth="90" />
+                <Button DockPanel.Dock="Right" x:Name="ClearChatButton" Content="{loc:Loc Key='Clear chat'}" Click="ClearChat_Click" Margin="8,0,0,0" />
                 <TextBox x:Name="ChatInput" MinHeight="32" KeyDown="ChatInput_KeyDown" />
               </DockPanel>
               <WrapPanel Grid.Row="2">
@@ -561,13 +589,7 @@
                   <ComboBoxItem Content="Layer" Tag="Layer" />
                 </ComboBox>
               </DockPanel>
-              <ListBox Grid.Row="1" x:Name="ConsoleList" FontFamily="Cascadia Mono, Consolas" FontSize="12" VirtualizingPanel.VirtualizationMode="Recycling">
-                <ListBox.ItemTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding Formatted}" TextWrapping="Wrap" />
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
+              <TextBox Grid.Row="1" x:Name="ConsoleList" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="12" Loaded="LogText_Loaded" />
               <DockPanel Grid.Row="2" Margin="0,12,0,0">
                 <Button DockPanel.Dock="Right" Content="{loc:Loc Key='Execute'}" Click="SendConsole_Click" Margin="10,0,0,0" />
                 <TextBox x:Name="ConsoleInput" KeyDown="ConsoleInput_KeyDown" ToolTip="{loc:Loc Key='For example: serverInfo or punkBuster.pb_sv_command &quot;pb_sv_plist&quot;'}" FontFamily="Consolas" />
@@ -589,8 +611,8 @@
                       <TextBox x:Name="LayerBind" Text="0.0.0.0" Width="150" Margin="0,0,14,0" />
                       <TextBlock Text="{loc:Loc Key='Port'}" Margin="0,0,8,0" />
                       <TextBox x:Name="LayerPort" Text="47300" Width="85" Margin="0,0,14,0" />
-                      <Button Content="{loc:Loc Key='Enable Layer'}" Click="EnableLayer_Click" Style="{StaticResource PrimaryButton}" />
-                      <Button Content="{loc:Loc Key='Disable Layer'}" Click="DisableLayer_Click" />
+                      <Button x:Name="EnableLayerButton" Content="{loc:Loc Key='Enable Layer'}" Click="EnableLayer_Click" Style="{StaticResource PrimaryButton}" />
+                      <Button x:Name="DisableLayerButton" Content="{loc:Loc Key='Disable Layer'}" Click="DisableLayer_Click" Style="{StaticResource PrimaryButton}" Visibility="Collapsed" />
                     </WrapPanel>
                   </StackPanel>
                 </Border>
@@ -621,13 +643,54 @@
             </ScrollViewer>
           </TabItem>
           <TabItem Header="{loc:Loc Key='Plugin'}" Tag="Plugin">
-            <Border Style="{StaticResource Panel}" VerticalAlignment="Top" Padding="18">
-              <StackPanel>
-                <TextBlock Text="{loc:Loc Key='Work In Progress'}" Foreground="{DynamicResource Accent}" FontSize="12" />
-                <TextBlock Text="{loc:Loc Key='Plugins'}" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,12" />
-                <TextBlock Text="{loc:Loc Key='C# DLL and Lua support is planned. Plugins are not available in this version.'}" Style="{StaticResource MutedText}" MaxWidth="600" HorizontalAlignment="Left" />
-              </StackPanel>
-            </Border>
+            <Grid Margin="0,12,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top">
+                    <DockPanel Margin="0,0,0,12"><Button x:Name="RefreshPluginListButton" DockPanel.Dock="Right" Content="{loc:Loc Key='Refresh list'}" Click="RefreshPluginList_Click" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"/><TextBlock Text="{loc:Loc Key='Plugins'}" FontSize="18" FontWeight="SemiBold" /></DockPanel>
+                    <Button x:Name="ImportPluginButton" Content="{loc:Loc Key='Add plugin…'}" Click="ImportPlugin_Click" Margin="0,0,0,8" />
+                  </StackPanel>
+                  <ListBox x:Name="EnabledPluginList" AllowDrop="True" PreviewDragOver="PluginList_DragOver" Drop="PluginList_Drop" SelectionChanged="PluginSelection_Changed" HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate><StackPanel Margin="4,6"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{Binding Status}" Foreground="{DynamicResource Muted}" Margin="0,4,0,0" /></StackPanel></DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </DockPanel>
+                <Grid Grid.Column="2">
+                  <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                  <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                    <DockPanel>
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                        <Button x:Name="ReloadPluginSettingsButton" Content="{loc:Loc Key='Reload'}" Click="ReloadPluginSettings_Click" MinHeight="42" Margin="0,0,12,0" />
+                        <Button x:Name="EnableSelectedPluginButton" Content="{loc:Loc Key='Enable'}" Click="EnableSelectedPlugin_Click" Style="{StaticResource PrimaryButton}" MinWidth="125" MinHeight="42" FontSize="15" Margin="0" />
+                        <Button x:Name="DisableSelectedPluginButton" Content="{loc:Loc Key='Disable'}" Click="DisablePlugin_Click" Style="{StaticResource PrimaryButton}" MinWidth="125" MinHeight="42" FontSize="15" Margin="0" Visibility="Collapsed" />
+                      </StackPanel>
+                      <StackPanel>
+                        <TextBlock x:Name="PluginNameText" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="PluginPageStatus" Text="{loc:Loc Key='Select a plugin to view its details and settings.'}" TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Grid.Row="1" x:Name="ProconBanner" Background="#FFE49B" Padding="12,8" Margin="0,0,0,12" Visibility="Collapsed">
+                    <TextBlock x:Name="ProconBannerText" Text="{loc:Loc Key='This plugin is designed for Procon. Compatibility is enabled; stability is not guaranteed.'}" Foreground="#382B00" TextWrapping="Wrap" />
+                  </Border>
+                  <TabControl x:Name="PluginPages" Grid.Row="2" IsEnabled="False">
+                    <TabItem Header="{loc:Loc Key='Details'}">
+                      <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="16">
+                        <TextBlock Text="{loc:Loc Key='Version'}" Style="{StaticResource MutedText}" Margin="0,16,0,4" /><TextBlock x:Name="PluginVersionText" />
+                        <TextBlock Text="{loc:Loc Key='Author'}" Style="{StaticResource MutedText}" Margin="0,12,0,4" /><TextBlock x:Name="PluginAuthorText" TextWrapping="Wrap" />
+                        <TextBlock Text="{loc:Loc Key='Website'}" Style="{StaticResource MutedText}" Margin="0,12,0,4" /><TextBlock x:Name="PluginWebsiteText" TextWrapping="Wrap" />
+                        <TextBlock Text="{loc:Loc Key='Description'}" Style="{StaticResource MutedText}" Margin="0,12,0,4" /><TextBlock x:Name="PluginDescriptionText" TextWrapping="Wrap" />
+                        <TextBlock Text="{loc:Loc Key='File'}" Style="{StaticResource MutedText}" Margin="0,12,0,4" /><TextBlock x:Name="PluginPathText" TextWrapping="Wrap" />
+                        <TextBlock x:Name="PluginErrorText" TextWrapping="Wrap" Margin="0,16,0,0" />
+                      </StackPanel></ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="{loc:Loc Key='Plugin Settings'}">
+                      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="16,16,50,16"><StackPanel x:Name="PluginSettingFields" /></ScrollViewer>
+                    </TabItem>
+                  </TabControl>
+                </Grid>
+            </Grid>
           </TabItem>
         </TabControl>
         <Grid Grid.Row="3" x:Name="OfflinePanel" Visibility="Collapsed">

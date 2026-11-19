@@ -5,6 +5,7 @@ using System.Text.Json;
 using LightRcon.Core;
 using LightRcon.Tests;
 
+if (args.Length == 2 && args[0] == "--published-host") return await PublishedPluginChecks.Run(args[1]);
 if (args.Contains("--mock"))
 {
     await using var mock = new MockFrostbiteServer(); var dataIndex = Array.IndexOf(args, "--seed");
@@ -32,6 +33,8 @@ var root = Path.Combine(Path.GetTempPath(), "LightRcon-tests-" + Guid.NewGuid().
 try
 {
     await MultiGameChecks.Run(root, Check);
+    await LayerPluginChecks.Run(root, Check);
+    await WorkflowChecks.Run(root, Check);
     var golden = new FrostbitePacket(0, false, false, ["version"]).Encode();
     Check(Convert.ToHexString(golden) == "0000000018000000010000000700000076657273696F6E00", "golden BF4 command packet uses zero origin bit");
     var unicode = new FrostbitePacket(11, true, false, ["player.onChat", "玩家", "hello 世界", "all"]); var parsed = await FrostbitePacket.ReadAsync(new MemoryStream(unicode.Encode()), default);
@@ -115,6 +118,66 @@ try
     var store = new ProfileStore(root); var profile = new ServerProfile { Host = "127.0.0.1", Port = mock.Port, Name = "Test", AutoLogin = true, ProtectedPassword = SecretProtection.Protect(MockFrostbiteServer.Password) };
     store.State.Servers.Add(profile); store.Save(); await using var session = new ServerSession(profile, store); await session.StartAsync();
     await Wait(() => session.IsConnected, "session authenticates and loads server state");
+    await PluginChecks.Run(session, mock, store, root, Check);
+    var luaPath = Path.Combine(root, "Spawn.lua");
+    File.WriteAllText(luaPath, "event.player_respawn:set(function(self) admin.yell('all', self.get_name() .. ' respawned', 5) end)");
+    await session.Plugins.EnableAsync(luaPath);
+    await mock.EmitAsync("player.onSpawn", "PluginTester", "1");
+    await Wait(() => mock.Received.Any(words => words.SequenceEqual(new[] { "admin.yell", "PluginTester respawned", "5", "all" })), "Lua respawn yell");
+    await session.Plugins.DisableAsync(luaPath);
+    var nativePath = Path.Combine(root, "Native.cs");
+    File.WriteAllText(nativePath, """
+        using LightRcon.Core.Plugins;
+        [assembly: LightRconPlus_only(1)]
+        public class Native : ILightRconPlugin {
+            public void Enable(PluginContext context) => context.CommandAsync("admin.say", "native enabled", "all").GetAwaiter().GetResult();
+            public void OnEvent(string[] words) { }
+            public void Dispose() { }
+        }
+        """);
+    await session.Plugins.EnableAsync(nativePath);
+    Check(mock.Received.Any(words => words.Contains("native enabled")) && !session.Plugins.CompatibilityEnabled, "native C# plugin compiled and enabled");
+    await session.Plugins.DisableAsync(nativePath);
+    File.WriteAllText(nativePath, File.ReadAllText(nativePath).Replace("LightRconPlus_only(1)", "LightRconPlus_only(2)"));
+    await Reject<InvalidDataException>(() => session.Plugins.EnableAsync(nativePath), "unsupported native API version rejected");
+    if (Environment.GetEnvironmentVariable("LIGHTRCON_TEST_PROCON_ZIP") is { } archive)
+    {
+        File.Copy(archive, Path.Combine(store.Root, "Procon-v1.5.4.2.zip"), true);
+        var legacyPath = Path.Combine(root, "CompatibilityProbe.cs");
+        File.WriteAllText(legacyPath, """
+            using System.Collections.Generic;
+            using PRoCon.Core.Plugin;
+            namespace PRoConEvents {
+                public class CompatibilityProbe : PRoConPluginAPI, IPRoConPluginInterface {
+                    public string GetPluginName() { return "CompatibilityProbe"; }
+                    public string GetPluginVersion() { return "1"; }
+                    public string GetPluginAuthor() { return "Tests"; }
+                    public string GetPluginWebsite() { return ""; }
+                    public string GetPluginDescription() { return "probe"; }
+                    public void OnPluginLoaded(string host, string port, string version) { }
+                    public void OnPluginEnable() { ExecuteCommand("procon.protected.send", "admin.say", "legacy enabled", "all"); }
+                    public void OnPluginDisable() { ExecuteCommand("procon.protected.send", "admin.say", "legacy disabled", "all"); }
+                    public List<CPluginVariable> GetPluginVariables() { return new List<CPluginVariable>(); }
+                    public List<CPluginVariable> GetDisplayPluginVariables() { return GetPluginVariables(); }
+                    public void SetPluginVariable(string name, string value) { }
+                }
+            }
+            """);
+        await session.Plugins.EnableAsync(legacyPath);
+        Check(session.Plugins.CompatibilityEnabled, "Procon compatibility enabled");
+        try { await Wait(() => mock.Received.Any(words => words.Contains("legacy enabled")), "Procon v1 plugin compiled and invoked", 45); }
+        catch { foreach (var entry in session.ConsoleSnapshot().Where(entry => entry.Kind.StartsWith("Procon"))) Console.Error.WriteLine(entry.Text); throw; }
+        var compiled = Path.Combine(store.ServerDirectory(profile.Id), "plugins", "procon", "Plugins", "BF4", "CompatibilityProbe.dll");
+        var dllPath = Path.Combine(root, "CompatibilityProbe.dll");
+        File.Copy(compiled, dllPath);
+        await session.Plugins.DisableAsync(legacyPath);
+        await Wait(() => mock.Received.Any(words => words.Contains("legacy disabled")), "Procon disable callback");
+        await session.Plugins.EnableAsync(dllPath);
+        await Wait(() => mock.Received.Count(words => words.Contains("legacy enabled")) == 2, "precompiled Procon DLL invoked");
+        await session.Plugins.DisableAsync(dllPath);
+        Check(!session.Plugins.CompatibilityEnabled, "Procon compatibility disabled");
+        await ProconChecks.Run(session, mock, store, root, Check);
+    }
     Check(session.PlayerSnapshot().Length == 3 && session.PlayerSnapshot()[0].Kdr == "3.00", "dynamic player fields and KDR");
     Check(session.Info.Uptime == 93784 && session.Info.Round == 1, "variable team score block and uptime offsets");
     Check(session.Info.TeamScores.SequenceEqual(new int?[] { 700, 650 }), "live session parses decimal team scores from the mock wire response");
@@ -224,12 +287,21 @@ try
     var badProfile = new ServerProfile { Host = "127.0.0.1", Port = mock.Port, ProtectedPassword = SecretProtection.Protect("wrong"), AutoLogin = true }; store.State.Servers.Add(badProfile);
     await using var failing = new ServerSession(badProfile, store); await failing.StartAsync(); await Wait(() => failing.State == ConnectionState.RetryWaiting, "failed auto login enters retry state");
     Check(failing.RetryAt is { } at && (at - DateTimeOffset.Now).TotalSeconds is > 18 and <= 20, "retry scheduled exactly 20 seconds after failure");
+    var manualAttempts = mock.LoginAttempts.Count;
+    await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => failing.StartAsync()));
+    await Wait(() => mock.LoginAttempts.Count > manualAttempts, "manual reconnect interrupts retry countdown", 3);
     var attempts = mock.LoginAttempts.Count; profile.Client.ChatDraft = "unsent draft"; profile.DraftSettings["vars.serverMessage"] = "Draft saved while offline";
     mock.Settings["vars.serverName"] = "Remote changed"; mock.DropClients();
     await Wait(() => session.ConnectionLost && session.State == ConnectionState.RetryWaiting, "disconnect saves state and sets connection lost flag");
     var offlineMaps = new List<MapEntry> { new("MP_Abandoned", "ConquestLarge0", 5), new("MP_Damage", "RushLarge0", 2) };
     await session.ReplaceMapsAsync(offlineMaps);
     await Wait(() => session.IsConnected && mock.Settings["vars.serverName"] == "Local preferred", "reconnect restores local settings", 35);
+    if (Environment.GetEnvironmentVariable("LIGHTRCON_TEST_PROCON_ZIP") is not null)
+    {
+        var restored = Path.Combine(root, "SettingsProbe.cs");
+        await Wait(() => session.Plugins.Snapshot().Any(plugin => plugin.Path == restored && plugin.Enabled), "enabled Procon plugin restored after connection loss", 15);
+        Check((await session.Plugins.GetSettingsAsync(restored)).Single(setting => setting.Name == "Messages|Message").Value == "persisted", "Procon settings restored after connection loss");
+    }
     Check(mock.LoginAttempts.Count >= attempts + 2, "failed login retries without fixed cap"); Check(new ProfileStore(root).State.Servers[0].Client.ChatDraft == "unsent draft", "client drafts survive disconnect/reconnect");
     Check(mock.Settings["vars.serverMessage"] == "Draft saved while offline", "valid client setting drafts participate in reconnect synchronization");
     Check(mock.Maps.SequenceEqual(offlineMaps) && mock.DiskMaps.SequenceEqual(offlineMaps), "offline map edits remain locally preferred and save to disk after reconnect");

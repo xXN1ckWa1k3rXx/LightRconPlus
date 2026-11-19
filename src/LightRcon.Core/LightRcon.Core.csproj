@@ -2,13 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MoonSharp" Version="2.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
     <EmbeddedResource Include="Data\bf*-*.json" />
     <EmbeddedResource Include="Data\translations.json" />
+    <EmbeddedResource Include="Plugins\ProconWorker.cs.txt" LogicalName="ProconWorker.cs" WithCulture="false" />
   </ItemGroup>
 
 </Project>

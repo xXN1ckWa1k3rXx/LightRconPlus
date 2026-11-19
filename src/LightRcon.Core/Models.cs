@@ -13,6 +13,9 @@ public sealed class ServerProfile
     public string Username { get; set; } = "";
     public string ProtectedPassword { get; set; } = "";
     public bool AutoLogin { get; set; }
+    public List<string> EnabledPlugins { get; set; } = [];
+    public List<string> InstalledPlugins { get; set; } = [];
+    public Dictionary<string, Dictionary<string, string>> PluginSettings { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> DesiredSettings { get; set; } = [];
     public List<MapEntry>? DesiredMaps { get; set; }
     public Dictionary<string, string> DraftSettings { get; set; } = [];

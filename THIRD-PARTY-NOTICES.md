@@ -1,5 +1,8 @@
 # Third-party notices
 
+The plugin host uses MoonSharp (BSD-3-Clause) for Lua and Microsoft.CodeAnalysis.CSharp (MIT) for C# compilation. The optional compatibility worker downloads the original AdKats Procon v1.5.4.2 release with its upstream license documents and dependencies.
+Full MoonSharp and Roslyn license texts are distributed in `docs/licenses/`. The Procon runtime comes from [AdKats/Procon-1 v1.5.4.2](https://github.com/AdKats/Procon-1/tree/v1.5.4.2); its original API, compiler, plugin callbacks, commands and scheduling services execute in a shared worker for each server.
+
 ## Procon Frostbite / Procon 1
 
 LightRcon+ is inspired by Procon Frostbite. Development consulted the [Mik4sa/Procon-1 repository](https://github.com/Mik4sa/Procon-1), originally developed by Myrcon, Geoffrey 'Phogue' Green and other Procon contributors. This project does **not** claim clean-room development.
