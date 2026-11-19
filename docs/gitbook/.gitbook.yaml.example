@@ -1,0 +1,7 @@
+# Future repository-root .gitbook.yaml configuration.
+# This template is inactive while stored under docs/gitbook/.
+root: ./docs/gitbook/
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
