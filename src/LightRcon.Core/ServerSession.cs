@@ -6,14 +6,18 @@ namespace LightRcon.Core;
 public sealed class ServerSession : IAsyncDisposable
 {
     private readonly ProfileStore store;
+    private readonly TimeSpan retryDelay;
     private readonly SemaphoreSlim operationGate = new(1);
     private readonly SemaphoreSlim refreshGate = new(1);
     private readonly object dataGate = new();
     private readonly List<ConsoleEntry> console = [];
+    private readonly HashSet<Guid> importedPluginConsole = [];
+    private readonly Queue<Guid> importedPluginConsoleOrder = [];
     private readonly HashSet<string> unsupported = [];
     private readonly HashSet<string> commands = [];
     private readonly Dictionary<string, string> remoteSettings = [];
     private readonly Dictionary<string, bool> lifeStates = [];
+    private readonly List<(string Text, DateTimeOffset Sent)> adminEchoes = [];
     private readonly HashSet<string> lifeQueries = [];
     private CancellationTokenSource? runCancellation;
     private Task? runner;
@@ -27,11 +31,14 @@ public sealed class ServerSession : IAsyncDisposable
     public ActivityJournal Journal { get; }
     public ConnectionState State { get; private set; } = ConnectionState.Offline;
     private string statusKey = "Not connected";
-    public string Status => UiText.Get(statusKey);
+    public string Status => statusKey == "Connection failed; retrying in {0} seconds"
+        ? UiText.Format(statusKey, retryDelay.TotalSeconds) : UiText.Get(statusKey);
     public string LastError { get; private set; } = "";
+    public string LastFailureStage { get; private set; } = "";
     public DateTimeOffset? RetryAt { get; private set; }
     public ServerInfo Info { get; private set; } = ServerInfo.Empty;
     public GameId Game => Profile.Game;
+    public int RoundTeamCount => Math.Clamp(Info.TeamScores.Length > 0 ? Info.TeamScores.Length : Math.Max(2, PlayerSnapshot().Select(player => player.Team).DefaultIfEmpty(0).Max()), 1, 4);
     public LayerPermission Permissions { get; private set; } = LayerPermission.All;
     public bool IsConnected => State == ConnectionState.Connected;
     public bool ConnectionLost { get; private set; }
@@ -41,6 +48,8 @@ public sealed class ServerSession : IAsyncDisposable
     public int LayerClientCount => layerServer?.ClientCount ?? 0;
     public event Action<string[]>? RemoteEvent;
     public Plugins.PluginManager Plugins { get; }
+    public string PluginDirectory { get; }
+    public event Action<ConsoleEntry>? Logged;
     internal CancellationToken LifetimeToken => runCancellation?.Token ?? CancellationToken.None;
     public event Action? SaveClientRequested;
     public event Action? Changed;
@@ -58,10 +67,13 @@ public sealed class ServerSession : IAsyncDisposable
     public Dictionary<string, string> SettingsSnapshot() { lock (dataGate) return new(remoteSettings); }
     public bool IsSupported(string command) { lock (dataGate) return (SettingsCatalog.Find(command) is null || SettingsCatalog.Supports(command, Game)) && !unsupported.Contains(command); }
 
-    public ServerSession(ServerProfile profile, ProfileStore store)
+    public ServerSession(ServerProfile profile, ProfileStore store, TimeSpan? retryDelay = null, string? pluginDirectory = null)
     {
+        this.retryDelay = retryDelay ?? TimeSpan.FromSeconds(20);
+        if (this.retryDelay <= TimeSpan.Zero || this.retryDelay > TimeSpan.FromDays(1)) throw new ArgumentOutOfRangeException(nameof(retryDelay));
         Profile = profile;
         this.store = store;
+        PluginDirectory = Path.GetFullPath(pluginDirectory ?? LightRcon.Core.Plugins.PluginLibrary.DefaultRoot);
         textLogs = new(store);
         Plugins = new(this, store);
         Journal = new(store.ServerDirectory(profile.Id), profile.Layer.Enabled);
@@ -72,13 +84,32 @@ public sealed class ServerSession : IAsyncDisposable
     private void Touch() { Interlocked.Increment(ref version); Changed?.Invoke(); }
     public void Log(string kind, string text)
     {
+        var entry = new ConsoleEntry(DateTimeOffset.Now, kind, text);
         lock (dataGate)
         {
-            console.Add(new(DateTimeOffset.Now, kind, text));
+            console.Add(entry);
             if (console.Count > 3000) console.RemoveRange(0, console.Count - 3000);
         }
         Touch();
         if (!Profile.IsLayer) textLogs.Write("events", $"[{DateTimeOffset.Now:O}] [{kind}] {text}");
+        Logged?.Invoke(entry);
+    }
+    private void ImportPluginConsole(ConsoleEntry[] entries)
+    {
+        List<ConsoleEntry> fresh = [];
+        lock (dataGate)
+        {
+            foreach (var entry in entries.Where(entry => entry.IsPluginConsole))
+            {
+                if (!importedPluginConsole.Add(entry.Id)) continue;
+                importedPluginConsoleOrder.Enqueue(entry.Id); fresh.Add(entry); console.Add(entry);
+            }
+            while (importedPluginConsoleOrder.Count > 3000) importedPluginConsole.Remove(importedPluginConsoleOrder.Dequeue());
+            if (console.Count > 3000) console.RemoveRange(0, console.Count - 3000);
+        }
+        if (fresh.Count == 0) return;
+        Touch();
+        foreach (var entry in fresh) Logged?.Invoke(entry);
     }
     private void SetState(ConnectionState state, string text)
     {
@@ -112,7 +143,7 @@ public sealed class ServerSession : IAsyncDisposable
         {
             try
             {
-                LastError = ""; RetryAt = null;
+                LastError = ""; LastFailureStage = ""; RetryAt = null;
                 SetState(ConnectionState.Connecting, "Connecting…");
                 Permissions = LayerPermission.All;
                 if (Profile.IsLayer)
@@ -121,6 +152,7 @@ public sealed class ServerSession : IAsyncDisposable
                     connection = layer;
                     layer.EventReceived += HandleEvent;
                     layer.HistoryReceived += Journal.Import;
+                    layer.PluginConsoleReceived += ImportPluginConsole;
                     layer.PluginsReceived += Plugins.AcceptRemoteSnapshot;
                     SetState(ConnectionState.Authenticating, "Authenticating with Layer…");
                     await layer.ConnectAsync(Profile, token);
@@ -170,24 +202,25 @@ public sealed class ServerSession : IAsyncDisposable
                 ConnectionLost = false;
                 SetState(ConnectionState.Connected, Profile.IsLayer ? "Layer connected" : "RCON connected");
                 Log("Connection", UiText.Get("Authenticated; local settings compared."));
-                await Plugins.RestoreAsync();
                 if (Profile.Layer.Enabled && layerServer is null)
                 {
                     try { await StartLayerAsync(); }
                     catch (Exception ex) { Log("Layer", UiText.Get("Listener failed: ") + ex.Message); }
                 }
+                await Plugins.RestoreAsync();
                 using var polling = CancellationTokenSource.CreateLinkedTokenSource(token);
                 var monitor = PollAsync(polling.Token);
                 await Task.WhenAny(connection.Completion, monitor);
                 polling.Cancel();
                 try { await monitor; } catch (OperationCanceledException) { }
-                if (!token.IsCancellationRequested) throw new IOException(UiText.Get("Remote connection closed."));
+                if (!token.IsCancellationRequested) throw connection.Failure ?? new IOException(UiText.Get("Remote connection closed."));
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
             catch (Exception ex)
             {
-                LastError = ex.Message;
-                Log("Error", ex.Message);
+                LastFailureStage = Status;
+                LastError = ConnectionFailure.Describe(ex);
+                Log("Error", LastFailureStage + ": " + LastError);
                 if (everConnected)
                 {
                     ConnectionLost = true;
@@ -203,13 +236,13 @@ public sealed class ServerSession : IAsyncDisposable
             if (token.IsCancellationRequested) break;
             if (!Profile.AutoLogin && !everConnected)
             {
-                SetState(ConnectionState.Offline, "Login failed");
+                SetState(ConnectionState.Offline, "Connection failed");
                 return;
             }
             retryRequested = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            RetryAt = DateTimeOffset.Now.AddSeconds(20);
-            SetState(ConnectionState.RetryWaiting, everConnected ? "Connection to the remote server has been lost" : "Login failed; retrying in 20 seconds");
-            try { await retryRequested.Task.WaitAsync(TimeSpan.FromSeconds(20), token); }
+            RetryAt = DateTimeOffset.Now + retryDelay;
+            SetState(ConnectionState.RetryWaiting, everConnected ? "Connection to the remote server has been lost" : "Connection failed; retrying in {0} seconds");
+            try { await retryRequested.Task.WaitAsync(retryDelay, token); }
             catch (TimeoutException) { }
             catch (OperationCanceledException) { break; }
         }
@@ -242,7 +275,7 @@ public sealed class ServerSession : IAsyncDisposable
             foreach (var key in Profile.DesiredSettings.Keys.Where(key => !SettingsCatalog.Supports(key, game)).ToArray()) Profile.DesiredSettings.Remove(key);
             foreach (var key in Profile.DraftSettings.Keys.Where(key => !SettingsCatalog.Supports(key, game)).ToArray()) Profile.DraftSettings.Remove(key);
         }
-        lock (dataGate) { lifeStates.Clear(); lifeQueries.Clear(); remoteSettings.Clear(); }
+        lock (dataGate) { lifeStates.Clear(); lifeQueries.Clear(); adminEchoes.Clear(); remoteSettings.Clear(); }
         store.Save();
     }
     private async Task<string[]> RawAsync(string[] words, CancellationToken token = default)
@@ -251,9 +284,18 @@ public sealed class ServerSession : IAsyncDisposable
         return await active.ExecuteAsync(words, token);
     }
     public async Task<string[]> ExecuteAsync(string[] words, CancellationToken token = default)
+        => await ExecuteAsAsync(words, null, token);
+    internal Task<string[]> ExecutePluginAsync(string[] words, CancellationToken token = default)
+        => ExecuteAsAsync(words, null, token, isPluginMessage: true);
+    internal async Task<string[]> ExecuteAsAsync(string[] words, string? layerActor, CancellationToken token = default, bool isPluginMessage = false)
     {
         if (!IsConnected) throw new IOException(UiText.Get("Server not connected; action not sent."));
         if (words.Length == 0) throw new ArgumentException("Empty command.");
+        if (words[0] == "mapList.endRound")
+        {
+            if (words.Length != 2 || !int.TryParse(words[1], out var team) || team < 1 || team > RoundTeamCount)
+                throw new ArgumentException(UiText.Get("Select a valid winning team."));
+        }
         if (SettingsCatalog.Find(words[0]) is not null && !SettingsCatalog.Supports(words[0], Game))
             throw new ArgumentException(UiText.Format("Setting {0} is not available for {1}.", words[0], Game));
         if (words[0] is "login.hashed" or "login.plainText" or "logout" or "quit" or "admin.eventsEnabled" or "admin.password")
@@ -261,12 +303,40 @@ public sealed class ServerSession : IAsyncDisposable
         await operationGate.WaitAsync(token);
         try
         {
-            var result = await RawAsync(words, token);
+            var adminChat = !Profile.IsLayer && (words[0] is "admin.say" or "admin.yell") && words.Length >= 3;
+            var wireWords = words;
+            var speaker = layerActor ?? "Admin";
+            var originalMessage = adminChat ? words[1] : "";
+            if (adminChat && layerActor is not null)
+            {
+                wireWords = (string[])words.Clone();
+                wireWords[1] = "[" + layerActor + "] " + originalMessage;
+                var limit = words[0] == "admin.yell" ? 256 : 128;
+                if (wireWords[1].Length >= limit)
+                    throw new ArgumentException(UiText.Format("{0} messages must be shorter than {1} characters.", words[0] == "admin.yell" ? "Yell" : "Say", limit));
+            }
+            if (adminChat)
+                lock (dataGate)
+                {
+                    adminEchoes.RemoveAll(item => item.Sent < DateTimeOffset.Now.AddSeconds(-15));
+                    adminEchoes.Add((wireWords[1], DateTimeOffset.Now));
+                }
+            string[] result;
+            try { result = await RawAsync(wireWords, token); }
+            catch
+            {
+                if (adminChat) lock (dataGate) { var index = adminEchoes.FindIndex(item => item.Text == wireWords[1]); if (index >= 0) adminEchoes.RemoveAt(index); }
+                throw;
+            }
             var sensitive = words[0] is "vars.gamePassword";
             Log("RCON", "> " + (sensitive ? words[0] + " [redacted]" : string.Join(" ", words.Select(CommandText.Quote))));
             Log("RCON", sensitive ? "< [redacted]" : "< " + string.Join(" | ", result));
-            if (words[0] == "admin.yell" && !Profile.IsLayer)
-                Journal.Add("Chat", "Admin (Yell)", words.Length > 3 ? string.Join(" ", words.Skip(3)) : "all", words.ElementAtOrDefault(1) ?? "");
+            if (adminChat)
+            {
+                var audienceIndex = words[0] == "admin.yell" ? 3 : 2;
+                Journal.Add("Chat", speaker, string.Join(" ", words.Skip(audienceIndex)), originalMessage, game: Game,
+                    isAdminMessage: true, adminMessageType: words[0] == "admin.yell" ? "Yell" : "Say", isPluginMessage: isPluginMessage);
+            }
             if ((words.Length == 2 || words[0] == "vars.preset" && words.Length == 3) && SettingsCatalog.Find(words[0]) is not null)
             {
                 var value = words[0] == "vars.preset" ? words[1] + " " + (bool.TryParse(words.ElementAtOrDefault(2), out var locked) && locked ? "true" : "false") : words[1];
@@ -285,6 +355,12 @@ public sealed class ServerSession : IAsyncDisposable
         }
         finally { operationGate.Release(); }
     }
+    public async Task EndRoundAsync(int winningTeam, CancellationToken token = default)
+    {
+        LayerAuthorization.Demand(Permissions, LayerPermission.Maps);
+        await ExecuteAsync(["mapList.endRound", winningTeam.ToString(System.Globalization.CultureInfo.InvariantCulture)], token);
+        Log("Round", UiText.Format("Round ended. Winning team: {0}.", winningTeam));
+    }
     public async Task<string[]> ExecuteConsoleAsync(string[] words, CancellationToken token = default)
     {
         if (!Permissions.HasFlag(LayerPermission.Console)) throw new UnauthorizedAccessException(UiText.Get("You do not have console permission."));
@@ -299,14 +375,14 @@ public sealed class ServerSession : IAsyncDisposable
     }
     private async Task ReadSettingsAsync(CancellationToken token)
     {
-        foreach (var definition in SettingsCatalog.For(Game))
+        await Parallel.ForEachAsync(SettingsCatalog.For(Game), new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = token }, async (definition, ct) =>
         {
             bool advertised; lock (dataGate) advertised = commands.Count == 0 || commands.Contains(definition.Command);
-            if (!advertised) { lock (dataGate) unsupported.Add(definition.Command); continue; }
+            if (!advertised) { lock (dataGate) unsupported.Add(definition.Command); return; }
             try
             {
-                var result = await RawAsync([definition.Command], token);
-                if (result.Length < 2) continue;
+                var result = await RawAsync([definition.Command], ct);
+                if (result.Length < 2) return;
                 var value = result[1];
                 if (definition.Command == "vars.preset") value += " " + (bool.TryParse(result.ElementAtOrDefault(2), out var locked) && locked ? "true" : "false");
                 lock (dataGate) remoteSettings[definition.Command] = value;
@@ -319,9 +395,20 @@ public sealed class ServerSession : IAsyncDisposable
                 }
             }
             catch (RconException ex) { lock (dataGate) unsupported.Add(definition.Command); Log("Setting", definition.Command + ": " + ex.Code); }
-        }
+        });
         store.Save();
         Touch();
+    }
+    internal bool TryReadSetting(string[] words, out string[] result)
+    {
+        result = [];
+        if (!IsConnected || words.Length != 1 || SettingsCatalog.Find(words[0]) is null) return false;
+        lock (dataGate)
+        {
+            if (!remoteSettings.TryGetValue(words[0], out var value)) return false;
+            result = words[0] == "vars.preset" ? ["OK", .. value.Split(' ')] : ["OK", value];
+            return true;
+        }
     }
     private async Task ReconcileSettingsAsync(CancellationToken token)
     {
@@ -395,6 +482,7 @@ public sealed class ServerSession : IAsyncDisposable
                 Info = info; Players = players;
             }
             if (!full) { Touch(); return; }
+            if (IsConnected && !Profile.IsLayer) await ReadSettingsAsync(token);
             var previousMaps = MapSnapshot();
             var maps = await ReadMapsAsync(token);
             lock (dataGate) Maps = maps;
@@ -596,7 +684,11 @@ public sealed class ServerSession : IAsyncDisposable
         Journal.SetPersistent(false);
         store.Save(); Touch();
     }
-    public void RefreshLayerAccounts() { layerServer?.RevalidateClients(); store.Save(); Touch(); }
+    private async Task RefreshLayerAccountsAsync()
+    {
+        layerServer?.RevalidateClients(); store.Save(); Touch();
+        await Plugins.RefreshAccountsAsync();
+    }
     public async Task<PublicLayerOptions> GetLayerOptionsAsync(bool upstream)
     {
         if (upstream)
@@ -634,7 +726,7 @@ public sealed class ServerSession : IAsyncDisposable
             if (hash is not null) account.PasswordHash = hash;
             account.Enabled = enabled; account.Permissions = permissions;
         }
-        RefreshLayerAccounts();
+        await RefreshLayerAccountsAsync();
     }
     public async Task DeleteLayerAccountAsync(bool upstream, string username)
     {
@@ -643,7 +735,7 @@ public sealed class ServerSession : IAsyncDisposable
             if (connection is not LayerConnection layer || !IsConnected) throw new IOException(UiText.Get("Connect to the upstream Layer first."));
             await layer.RequestAsync(new() { Type = "layer.account.delete", Username = username });
         }
-        else { lock (Profile.Sync) Profile.Layer.Accounts.RemoveAll(x => string.Equals(x.Username, username, StringComparison.OrdinalIgnoreCase)); RefreshLayerAccounts(); }
+        else { lock (Profile.Sync) Profile.Layer.Accounts.RemoveAll(x => string.Equals(x.Username, username, StringComparison.OrdinalIgnoreCase)); await RefreshLayerAccountsAsync(); }
     }
     public async Task SetGlobalPermissionsAsync(bool upstream, LayerPermission permissions)
     {
@@ -652,7 +744,7 @@ public sealed class ServerSession : IAsyncDisposable
             if (connection is not LayerConnection layer || !IsConnected) throw new IOException(UiText.Get("Connect to the upstream Layer first."));
             await layer.RequestAsync(new() { Type = "layer.global", Permissions = permissions });
         }
-        else { lock (Profile.Sync) Profile.Layer.GlobalPermissions = permissions; RefreshLayerAccounts(); }
+        else { lock (Profile.Sync) Profile.Layer.GlobalPermissions = permissions; await RefreshLayerAccountsAsync(); }
     }
     private void HandleEvent(string[] words)
     {
@@ -677,8 +769,18 @@ public sealed class ServerSession : IAsyncDisposable
             switch (words[0])
             {
                 case "player.onChat" when !Profile.IsLayer:
+                    var adminMessage = W(1) is "Server" or "Admin";
+                    if (adminMessage)
+                    {
+                        lock (dataGate)
+                        {
+                            adminEchoes.RemoveAll(item => item.Sent < DateTimeOffset.Now.AddSeconds(-15));
+                            var index = adminEchoes.FindIndex(item => item.Text == W(2));
+                            if (index >= 0) { adminEchoes.RemoveAt(index); break; }
+                        }
+                    }
                     var player = PlayerSnapshot().FirstOrDefault(x => x.Name == W(1));
-                    Journal.Add("Chat", W(1), player is null ? W(3) : $"Team {player.Team}", W(2), game: Game);
+                    Journal.Add("Chat", W(1), player is null ? W(3) : $"Team {player.Team}", W(2), player?.Team ?? 0, game: Game, isAdminMessage: adminMessage, adminMessageType: adminMessage ? "Say" : "");
                     break;
                 case "player.onJoin" when !Profile.IsLayer:
                     Journal.Add("Join", W(1), "", $"{W(1)} connected to the server"); break;

@@ -8,7 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -26,6 +25,10 @@ internal sealed class ProconPlugin : IAsyncDisposable
     private readonly Channel<FrostbitePacket> outgoing = Channel.CreateBounded<FrostbitePacket>(2048);
     private readonly ConcurrentDictionary<int, TaskCompletionSource<JsonElement>> requests = new();
     private readonly SemaphoreSlim inputGate = new(1);
+    private readonly SemaphoreSlim accountsGate = new(1);
+    private readonly Channel<string[]> events = Channel.CreateBounded<string[]>(2048);
+    private Task? eventPump;
+    private string accountSnapshot = "";
     private readonly TaskCompletionSource ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private Process? process;
     private Task? bridge;
@@ -33,7 +36,9 @@ internal sealed class ProconPlugin : IAsyncDisposable
     private int requestId;
     private volatile bool subscribed;
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
+    private sealed record CacheInput(string SourceHash, string ExternalDllHash, bool Precompiled);
     public bool IsAlive => process is { HasExited: false } && bridge is { IsCompleted: false } && !lifetime.IsCancellationRequested;
+    public Dictionary<string, Exception> StagingErrors { get; } = new(StringComparer.OrdinalIgnoreCase);
     private ProconPlugin(ServerSession session, string root)
     {
         this.session = session; this.root = root;
@@ -63,6 +68,8 @@ internal sealed class ProconPlugin : IAsyncDisposable
         file.Position = 0;
         using var archive = new ZipArchive(file);
         Directory.CreateDirectory(root);
+        accountSnapshot = JsonSerializer.Serialize(ProconAccounts.Snapshot(session));
+        File.WriteAllText(Path.Combine(root, "LightRcon.Accounts.json"), accountSnapshot);
         foreach (var entry in archive.Entries.Where(entry => entry.Name.Length > 0 && !entry.FullName.StartsWith("Plugins/", StringComparison.OrdinalIgnoreCase)))
         {
             var destination = Path.GetFullPath(Path.Combine(root, entry.FullName));
@@ -71,26 +78,54 @@ internal sealed class ProconPlugin : IAsyncDisposable
             if (!File.Exists(destination)) entry.ExtractToFile(destination);
         }
         var folder = Directory.CreateDirectory(Path.Combine(root, "Plugins", session.Game.ToString())).FullName;
-        var entries = new List<XElement>();
+        var cacheInputsPath = Path.Combine(folder, "LightRcon.CacheInputs.json");
+        var cacheInputs = File.Exists(cacheInputsPath)
+            ? JsonSerializer.Deserialize<Dictionary<string, CacheInput>>(File.ReadAllText(cacheInputsPath), Json) ?? [] : [];
+        var precompiled = new List<string>();
+        var invalidate = new List<string>();
+        var pluginNames = paths.Select(path => Path.GetFileNameWithoutExtension(path)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        const string stub = "using PRoCon.Core; using PRoCon.Core.Players; using PRoCon.Core.Plugin;";
         foreach (var path in paths)
         {
             var name = Path.GetFileNameWithoutExtension(path);
             if (!SyntaxFacts.IsValidIdentifier(name)) throw new InvalidDataException(UiText.Get("Procon filenames must match the plugin class name."));
-            Stage(path, folder);
-            if (Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            var binary = Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase);
+            var suppliedDll = Path.ChangeExtension(path, ".dll");
+            var suppliedHash = File.Exists(suppliedDll) && IsManagedAssembly(suppliedDll)
+                ? Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(suppliedDll))) : "";
+            var sourceHash = binary ? "" : SourceHash(path);
+            cacheInputs.TryGetValue(name, out var previous);
+            var usePrecompiled = binary || suppliedHash.Length > 0 && (previous is null
+                || previous.ExternalDllHash != suppliedHash || previous.Precompiled && previous.SourceHash == sourceHash);
+            try { Stage(path, folder, pluginNames, usePrecompiled); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                const string stub = "using PRoCon.Core; using PRoCon.Core.Players; using PRoCon.Core.Plugin;";
+                StagingErrors[path] = error;
+                var failedSource = Path.Combine(folder, name + ".cs");
+                if (File.Exists(failedSource)) File.Delete(failedSource);
+                continue;
+            }
+            var targetDll = Path.Combine(folder, name + ".dll");
+            if (usePrecompiled)
+            {
+                File.Copy(suppliedDll, targetDll, true);
                 var source = Path.Combine(folder, name + ".cs");
                 File.WriteAllText(source, stub);
-                entries.Add(new XElement("PluginCacheEntry", new XElement("ClassName", name), new XElement("Hash", Convert.ToHexStringLower(MD5.HashData(Encoding.ASCII.GetBytes(stub)))), new XElement("SourcePath", source), new XElement("DestinationPath", Path.Combine(folder, name + ".dll")), new XElement("Stamp", DateTime.UtcNow)));
+                precompiled.Add(name);
             }
+            else if (previous is { Precompiled: true } || previous is not null && previous.SourceHash != sourceHash
+                || File.Exists(targetDll) && !IsManagedAssembly(targetDll)) invalidate.Add(name);
+            cacheInputs[name] = new(sourceHash, suppliedHash, usePrecompiled);
         }
-        new XElement("PluginCache", new XElement("Entries", entries)).Save(Path.Combine(folder, "PluginCache.xml"));
+        File.WriteAllText(cacheInputsPath, JsonSerializer.Serialize(cacheInputs, Json));
+        File.WriteAllText(Path.Combine(folder, "LightRcon.CachePolicy.json"), JsonSerializer.Serialize(new { precompiled, invalidate }));
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         var configs = Path.Combine(root, "Configs");
         File.WriteAllLines(Path.Combine(configs, "procon.cfg"), ["procon.private.options.pluginLogging True", "procon.private.options.autoCheckDownloadUpdates False", $"procon.private.servers.add 127.0.0.1 {port} {secret}"]);
-        var start = new ProcessStartInfo(BuildWorker()) { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardError = true, RedirectStandardOutput = true };
+        var start = new ProcessStartInfo(BuildWorker()) { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardInput = true, RedirectStandardError = true, RedirectStandardOutput = true,
+            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = new UTF8Encoding(false), StandardErrorEncoding = new UTF8Encoding(false) };
         start.ArgumentList.Add(session.Profile.Host);
         start.ArgumentList.Add(session.Profile.Port.ToString(System.Globalization.CultureInfo.InvariantCulture));
         process = new Process { StartInfo = start, EnableRaisingEvents = true };
@@ -102,8 +137,27 @@ internal sealed class ProconPlugin : IAsyncDisposable
         try { await ready.Task.WaitAsync(TimeSpan.FromSeconds(50), lifetime.Token); }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { throw; }
         catch (Exception error) { throw new InvalidDataException(UiText.Get("Procon compatibility runtime could not start.") + Environment.NewLine + Logs(), error); }
+        eventPump = PumpEventsAsync();
     }
-    private void Stage(string path, string folder)
+    private string SourceHash(string path)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        var sourceBase = Path.GetDirectoryName(path)!;
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        void Add(string file, int depth)
+        {
+            if (depth > 32 || !visited.Add(file)) return;
+            hash.AppendData(Encoding.UTF8.GetBytes(Path.GetRelativePath(sourceBase, file)));
+            if (!File.Exists(file)) { hash.AppendData(Encoding.UTF8.GetBytes("<missing>")); return; }
+            hash.AppendData(SHA256.HashData(File.ReadAllBytes(file)));
+            foreach (System.Text.RegularExpressions.Match match in CSharpIncludes.Directive.Matches(File.ReadAllText(file)))
+                Add(CSharpIncludes.Resolve(file, match.Groups["file"].Value, sourceBase, session.Game), depth + 1);
+        }
+        Add(path, 0);
+        foreach (var partial in Directory.EnumerateFiles(sourceBase, Path.GetFileNameWithoutExtension(path) + ".*.cs").Order(StringComparer.OrdinalIgnoreCase)) Add(partial, 0);
+        return Convert.ToHexString(hash.GetHashAndReset());
+    }
+    private void Stage(string path, string folder, HashSet<string> pluginNames, bool precompiled)
     {
         File.Copy(path, Path.Combine(folder, Path.GetFileName(path)), true);
         var parent = Path.GetDirectoryName(path)!;
@@ -112,8 +166,11 @@ internal sealed class ProconPlugin : IAsyncDisposable
         {
             var filename = Path.GetFileName(sibling);
             var extension = Path.GetExtension(sibling).ToLowerInvariant();
+            if (filename.Equals("PluginCache.xml", StringComparison.OrdinalIgnoreCase)) continue;
             if (filename == Path.GetFileName(path) || filename == "PRoCon.Core.dll" || filename.StartsWith("LightRcon.", StringComparison.OrdinalIgnoreCase)) continue;
-            if (extension is ".inc" or ".dll" or ".json" or ".xml" || extension == ".cs" && (filename.StartsWith(name + ".", StringComparison.OrdinalIgnoreCase) || IsManagedAssembly(sibling)))
+            // Never overwrite another plugin's newly compiled cache with an older library DLL.
+            if (extension == ".dll" && pluginNames.Contains(Path.GetFileNameWithoutExtension(sibling))) continue;
+            if (extension is ".inc" or ".dll" or ".json" or ".xml" or ".txt" or ".cfg" or ".ini" || extension == ".cs" && (filename.StartsWith(name + ".", StringComparison.OrdinalIgnoreCase) || IsManagedAssembly(sibling)))
                 File.Copy(sibling, Path.Combine(folder, filename), true);
         }
         foreach (var directory in Directory.EnumerateDirectories(parent))
@@ -123,8 +180,12 @@ internal sealed class ProconPlugin : IAsyncDisposable
             if (directoryName.Equals(name, StringComparison.OrdinalIgnoreCase) || directoryName.Equals("Includes", StringComparison.OrdinalIgnoreCase) || directoryName.Equals("Shared", StringComparison.OrdinalIgnoreCase))
                 CopyDirectory(directory, Path.Combine(folder, directoryName));
         }
-        if (Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-            StageIncludes(path, parent, folder, new(StringComparer.OrdinalIgnoreCase), 0);
+        if (!precompiled && Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+        {
+            File.WriteAllText(Path.Combine(folder, Path.GetFileName(path)), CSharpIncludes.Expand(path, session.Game));
+            foreach (var partial in Directory.EnumerateFiles(parent, name + ".*.cs"))
+                if (!IsManagedAssembly(partial)) File.WriteAllText(Path.Combine(folder, Path.GetFileName(partial)), CSharpIncludes.Expand(partial, session.Game));
+        }
     }
     private static bool IsManagedAssembly(string path)
     {
@@ -133,20 +194,6 @@ internal sealed class ProconPlugin : IAsyncDisposable
         stream.Position = 0;
         try { using var image = new PEReader(stream); return image.HasMetadata; }
         catch (BadImageFormatException) { return false; }
-    }
-    private void StageIncludes(string source, string sourceBase, string destinationBase, HashSet<string> visited, int depth)
-    {
-        if (depth > 5 || !visited.Add(source)) return;
-        foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(source), "#include \"(?<file>.*?)\""))
-        {
-            var relative = match.Groups["file"].Value.Replace("%GameType%", session.Game.ToString());
-            var included = Path.GetFullPath(Path.Combine(sourceBase, relative));
-            var target = Path.GetFullPath(Path.Combine(destinationBase, relative));
-            if (!target.StartsWith(Path.Combine(root, "Plugins") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Include escapes plugin directory.");
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            File.Copy(included, target, true);
-            StageIncludes(included, sourceBase, destinationBase, visited, depth + 1);
-        }
     }
     private static void CopyDirectory(string source, string target)
     {
@@ -253,7 +300,32 @@ internal sealed class ProconPlugin : IAsyncDisposable
     public void Handle(string[] words)
     {
         if (process?.HasExited == true || bridge?.IsCompleted == true) throw new IOException(UiText.Get("Procon compatibility runtime stopped."));
-        if (subscribed && !outgoing.Writer.TryWrite(new((uint)Interlocked.Increment(ref sequence), true, false, words))) throw new IOException(UiText.Get("Plugin event queue is full."));
+        if (subscribed && !events.Writer.TryWrite((string[])words.Clone())) throw new IOException(UiText.Get("Plugin event queue is full."));
+    }
+    public async Task SyncAccountsAsync()
+    {
+        await accountsGate.WaitAsync(lifetime.Token);
+        try
+        {
+            var snapshot = JsonSerializer.Serialize(ProconAccounts.Snapshot(session));
+            if (snapshot == accountSnapshot) return;
+            await Request("accounts", value: snapshot);
+            accountSnapshot = snapshot;
+        }
+        finally { accountsGate.Release(); }
+    }
+    private async Task PumpEventsAsync()
+    {
+        try
+        {
+            await foreach (var words in events.Reader.ReadAllAsync(lifetime.Token))
+            {
+                await SyncAccountsAsync();
+                await outgoing.Writer.WriteAsync(new((uint)Interlocked.Increment(ref sequence), true, false, words), lifetime.Token);
+            }
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+        catch (Exception error) { Fail(error); session.Log("Procon", error.Message); }
     }
     private async Task ServeAsync()
     {
@@ -261,6 +333,7 @@ internal sealed class ProconPlugin : IAsyncDisposable
         try
         {
             using var client = await listener.AcceptTcpClientAsync(token);
+            client.NoDelay = true;
             using var stream = client.GetStream();
             var writer = Task.Run(async () => { await foreach (var packet in outgoing.Reader.ReadAllAsync(token)) await stream.WriteAsync(packet.Encode(), token); }, token);
             try
@@ -282,8 +355,8 @@ internal sealed class ProconPlugin : IAsyncDisposable
                     else if (words[0] == "admin.eventsEnabled") { subscribed = words.ElementAtOrDefault(1)?.Equals("true", StringComparison.OrdinalIgnoreCase) == true; response = ["OK"]; }
                     else
                     {
-                        try { response = await session.ExecuteAsync(words, token); }
-                        catch (Exception error) when (!token.IsCancellationRequested) { response = [error is RconException ? error.Message : "InvalidArguments"]; session.Log("Procon", error.Message); }
+                        try { response = await session.ExecutePluginAsync(words, token); }
+                        catch (Exception error) when (!token.IsCancellationRequested) { response = [error is RconException rcon ? rcon.Code : "InvalidArguments"]; session.Log("Procon", error.Message); }
                     }
                     await outgoing.Writer.WriteAsync(new(packet.Sequence, false, true, response), token);
                 }
@@ -301,6 +374,8 @@ internal sealed class ProconPlugin : IAsyncDisposable
                 try { await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5)); } catch (TimeoutException) { }
         }
         lifetime.Cancel(); listener.Stop(); outgoing.Writer.TryComplete();
+        events.Writer.TryComplete();
+        if (eventPump is not null) await eventPump;
         if (process is not null) { if (!process.HasExited) process.Kill(true); await process.WaitForExitAsync(); process.Dispose(); }
         if (bridge is not null) try { await bridge; } catch (OperationCanceledException) { }
         Fail(new ObjectDisposedException(nameof(ProconPlugin)));

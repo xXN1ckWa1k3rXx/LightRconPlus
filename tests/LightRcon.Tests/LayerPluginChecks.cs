@@ -47,9 +47,13 @@ internal static class LayerPluginChecks
         clientProfile.InstalledPlugins.Add(clientOnlyPath); clientProfile.EnabledPlugins.Add(clientOnlyPath);
         clientStore.State.Servers.Add(clientProfile);
         await using var viewer = new ServerSession(clientProfile, clientStore);
+        var settingQueries = mock.Received.Count(words => words.Length == 1 && SettingsCatalog.Find(words[0]) is not null);
         await viewer.StartAsync(); await Wait(() => viewer.IsConnected && viewer.Plugins.Snapshot().Length == 1);
+        check(mock.Received.Count(words => words.Length == 1 && SettingsCatalog.Find(words[0]) is not null) == settingQueries, "Layer login reads the synchronized host setting snapshot without repeating upstream setting queries");
         check(viewer.Plugins.Snapshot().Single().Path == path && viewer.Plugins.Snapshot().Single().Enabled, "Layer lists only upstream plugins and ignores saved client-local plugins");
         check((await viewer.Plugins.GetDetailsAsync(path)).Author == "Main Layer" && (await viewer.Plugins.GetSettingsAsync(path)).Length == 3, "Layer viewer reads upstream plugin metadata and settings");
+        await Wait(() => !viewer.Plugins.IsRestoring);
+        check(viewer.Plugins.GetViewAsync(path).IsCompletedSuccessfully, "Layer plugin initialization caches views for immediate selection");
         await Denied(() => viewer.Plugins.SetSettingAsync(path, "Message|Text", "denied"), "Layer viewer cannot edit upstream plugin settings");
         await Denied(() => viewer.Plugins.DisableAsync(path), "Layer viewer cannot disable upstream plugins");
         await Denied(() => viewer.Plugins.GetDetailsAsync(clientOnlyPath), "Layer cannot load arbitrary host paths through metadata requests");
@@ -59,6 +63,8 @@ internal static class LayerPluginChecks
         await using var editor = new LayerConnection(); await editor.ConnectAsync(Client("editor"), default);
         await editor.RequestAsync(new() { Type = "plugin.set", Words = [path, "Message|Text", "remote edit"] });
         check((await host.Plugins.GetSettingsAsync(path)).Single(item => item.Name == "Message|Text").Value == "remote edit" && new ProfileStore(store.Root).State.Servers.Single().PluginSettings[path]["Message|Text"] == "remote edit", "Layer settings permission edits and persists the main host plugin configuration");
+        await Wait(() => viewer.Plugins.Snapshot().Single().SettingsRevision == host.Plugins.Snapshot().Single().SettingsRevision);
+        check((await viewer.Plugins.GetViewAsync(path)).Settings.Single(item => item.Name == "Message|Text").Value == "remote edit", "Plugin changes from another Layer client invalidate the cached settings view");
         await Denied(() => editor.RequestAsync(new() { Type = "plugin.set", Words = [path, "Message|Count", "bad"] }), "Layer rejects invalid typed plugin settings");
         await Denied(() => editor.RequestAsync(new() { Type = "plugin.set", Words = [path, "Info|Fixed", "bad"] }), "Layer rejects edits of read-only plugin settings");
         await Denied(() => editor.RequestAsync(new() { Type = "plugin.enable", Words = [path] }), "Settings permission alone cannot enable plugins");

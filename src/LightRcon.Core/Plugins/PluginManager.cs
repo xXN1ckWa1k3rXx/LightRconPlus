@@ -51,14 +51,23 @@ public sealed class PluginManager
     private readonly SemaphoreSlim changes = new(1);
     private readonly Dictionary<string, Running> active = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, PluginDetails> details = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, PluginSetting[]> cachedSettings = new(StringComparer.OrdinalIgnoreCase);
+    private long settingsRevision;
     private ProconPlugin? procon;
     private readonly HashSet<string> proconPaths = new(StringComparer.OrdinalIgnoreCase);
     private PluginDetails[] remotePlugins = [];
+    private string? libraryStamp;
+    private readonly HashSet<string> libraryPaths = new(StringComparer.OrdinalIgnoreCase);
     public bool IsRestoring { get; private set; }
     public event Action? Changed;
     internal void AcceptRemoteSnapshot(PluginDetails[] plugins)
     {
-        lock (details) remotePlugins = plugins;
+        lock (details)
+        {
+            foreach (var old in remotePlugins)
+                if (!plugins.Contains(old)) cachedSettings.Remove(old.Path);
+            remotePlugins = plugins;
+        }
         Changed?.Invoke();
     }
     internal PluginManager(ServerSession session, ProfileStore store)
@@ -116,7 +125,7 @@ public sealed class PluginManager
     {
         lock (session.Profile.Sync) return new(session.Profile.PluginSettings.GetValueOrDefault(path) ?? [], StringComparer.Ordinal);
     }
-    private void Publish(PluginDetails value) { lock (details) details[value.Path] = value; }
+    private void Publish(PluginDetails value) { lock (details) details[value.Path] = value with { SettingsRevision = details.GetValueOrDefault(value.Path)?.SettingsRevision ?? 0 }; }
     private void PublishKind(string path, string kind)
     {
         lock (details)
@@ -150,6 +159,7 @@ public sealed class PluginManager
                 foreach (var setting in Saved(path)) await running.Invoke(plugin => { plugin.SetSetting(setting.Key, setting.Value); return true; });
                 lock (active) active.Add(path, running);
                 Publish((await running.Invoke(plugin => plugin.Details)) with { Enabled = running.Enabled });
+                CacheSettings(path, await running.Invoke(plugin => plugin.GetSettings().ToArray()));
             }
             catch { if (running is not null) await running.DisposeAsync(); else await runtime.DisposeAsync(); throw; }
         }
@@ -180,11 +190,13 @@ public sealed class PluginManager
         {
             try
             {
+                if (procon.StagingErrors.TryGetValue(candidate, out var stagingError)) throw stagingError;
                 await procon.Request("load", Path.GetFileNameWithoutExtension(candidate));
                 foreach (var setting in Saved(candidate)) await procon.Request("set", Path.GetFileNameWithoutExtension(candidate), setting.Key, setting.Value);
                 var enabled = Enabled.Contains(candidate, StringComparer.OrdinalIgnoreCase);
                 if (enabled) await procon.Request("enable", Path.GetFileNameWithoutExtension(candidate));
                 Publish((await procon.Details(candidate)) with { Enabled = enabled });
+                CacheSettings(candidate, await procon.Settings(candidate));
                 lock (active) proconPaths.Add(candidate);
             }
             catch (Exception error) { RecordError(candidate, error); if (candidate.Equals(path, StringComparison.OrdinalIgnoreCase)) requestedError = error; }
@@ -202,9 +214,14 @@ public sealed class PluginManager
             Running? running;
             lock (active) active.TryGetValue(path, out running);
             if (running is not null) { if (!running.Enabled) await running.Enable(); }
-            else if (!Snapshot().Any(item => item.Path.Equals(path, StringComparison.OrdinalIgnoreCase) && item.Enabled)) await procon!.Request("enable", Path.GetFileNameWithoutExtension(path));
+            else if (!Snapshot().Any(item => item.Path.Equals(path, StringComparison.OrdinalIgnoreCase) && item.Enabled))
+            {
+                await procon!.SyncAccountsAsync();
+                await procon.Request("enable", Path.GetFileNameWithoutExtension(path));
+            }
             lock (session.Profile.Sync) if (!session.Profile.EnabledPlugins.Contains(path, StringComparer.OrdinalIgnoreCase)) session.Profile.EnabledPlugins.Add(path);
             lock (details) details[path] = details[path] with { Enabled = true, Error = "" };
+            CacheSettings(path, running is not null ? await running.Invoke(plugin => plugin.GetSettings().ToArray()) : await procon!.Settings(path));
             store.Save(); session.Log("Plugin", UiText.Format("Enabled plugin: {0}", Path.GetFileName(path)));
         }
         catch (Exception error) { RecordError(path, error); throw; }
@@ -220,6 +237,7 @@ public sealed class PluginManager
             lock (active) active.Remove(path, out running);
             if (running is not null) await running.DisposeAsync();
             else if (proconPaths.Contains(path)) await procon!.Request("disable", Path.GetFileNameWithoutExtension(path));
+            if (proconPaths.Contains(path)) CacheSettings(path, await procon!.Settings(path));
             lock (session.Profile.Sync) session.Profile.EnabledPlugins.RemoveAll(item => string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
             lock (details) if (details.TryGetValue(path, out var value)) details[path] = value with { Enabled = false };
             store.Save(); session.Log("Plugin", UiText.Format("Disabled plugin: {0}", Path.GetFileName(path)));
@@ -235,7 +253,7 @@ public sealed class PluginManager
         {
             if (!HasRuntime(path))
                 lock (details)
-                    if (details.TryGetValue(path, out var failed) && failed.Error.Length > 0) return failed;
+                    if (details.TryGetValue(path, out var cached) && (cached.Error.Length > 0 || cachedSettings.ContainsKey(path))) return cached;
             await Load(path);
             if (proconPaths.Contains(path))
             {
@@ -255,30 +273,135 @@ public sealed class PluginManager
     public async Task RefreshAsync()
     {
         if (session.Profile.IsLayer) { await session.RequestPluginsAsync("plugin.list"); return; }
+        await ScanLibraryAsync(force: true);
+        var externalProcon = Snapshot().FirstOrDefault(item => item.Kind == "Procon" && !libraryPaths.Contains(item.Path));
+        if (externalProcon is not null && !Snapshot().Any(item => item.Kind == "Procon" && libraryPaths.Contains(item.Path)))
+        {
+            await changes.WaitAsync();
+            try { await RebuildProcon(externalProcon.Path); }
+            finally { changes.Release(); }
+        }
         foreach (var path in Snapshot().Select(item => item.Path))
             try
             {
-                if (!HasRuntime(path) && Snapshot().Any(item => item.Path == path && item.Error.Length > 0)) await ImportAsync(path);
-                else await GetDetailsAsync(path);
+                if (!HasRuntime(path) && !libraryPaths.Contains(path) && Snapshot().Any(item => item.Path == path && item.Error.Length > 0)) await ImportAsync(path);
+                else { await GetDetailsAsync(path); await GetSettingsAsync(path); }
             }
             catch (Exception error) { RecordError(path, error); }
         Changed?.Invoke();
     }
+    public async Task ScanLibraryAsync(bool force = false)
+    {
+        if (session.Profile.IsLayer || !session.IsConnected) return;
+        await changes.WaitAsync(session.LifetimeToken);
+        var scanned = false;
+        try
+        {
+            if (!session.IsConnected) return;
+            var stamp = PluginLibrary.Stamp(session.PluginDirectory, session.Game);
+            if (!force && stamp == libraryStamp) return;
+            var paths = PluginLibrary.Discover(session.PluginDirectory, session.Game);
+            var initialized = libraryStamp is not null;
+            var changed = stamp != libraryStamp;
+            libraryStamp = stamp;
+            scanned = true;
+            libraryPaths.Clear(); libraryPaths.UnionWith(paths);
+            foreach (var path in paths) Register(path);
+            session.Log("Plugin", UiText.Format("Scanning plugin library: {0}", Path.Combine(session.PluginDirectory, PluginLibrary.GameFolder(session.Game))));
+            var proconToLoad = new List<string>();
+            foreach (var path in paths)
+            {
+                session.LifetimeToken.ThrowIfCancellationRequested();
+                try
+                {
+                    var legacy = Path.GetExtension(path).ToLowerInvariant() is ".cs" or ".dll" && !NativePlugin.IsNative(path);
+                    if (legacy)
+                    {
+                        if (!HasRuntime(path) || initialized && (changed || force)) proconToLoad.Add(path);
+                        continue;
+                    }
+                    var enabled = Enabled.Contains(path, StringComparer.OrdinalIgnoreCase);
+                    if (initialized && changed)
+                    {
+                        Running? running; lock (active) active.Remove(path, out running);
+                        if (running is not null) await running.DisposeAsync();
+                    }
+                    await Load(path);
+                    if (enabled)
+                    {
+                        Running running; lock (active) running = active[path];
+                        if (!running.Enabled) await running.Enable();
+                        lock (details) details[path] = details[path] with { Enabled = true, Error = "" };
+                    }
+                }
+                catch (OperationCanceledException) when (session.LifetimeToken.IsCancellationRequested) { throw; }
+                catch (Exception error) { RecordError(path, error); }
+            }
+            if (proconToLoad.Count > 0)
+            {
+                try { await RebuildProcon(proconToLoad[0]); }
+                catch (OperationCanceledException) when (session.LifetimeToken.IsCancellationRequested) { throw; }
+                catch (Exception error)
+                {
+                    foreach (var path in proconToLoad)
+                        if (!HasRuntime(path) && !Snapshot().Any(item => item.Path == path && item.Error.Length > 0)) RecordError(path, error);
+                }
+            }
+            store.Save();
+        }
+        finally { changes.Release(); if (scanned) Changed?.Invoke(); }
+    }
     public async Task<PluginSetting[]> GetSettingsAsync(string path)
     {
-        if (session.Profile.IsLayer) return (await session.RequestPluginsAsync("plugin.settings", path)).PluginSettings;
+        if (session.Profile.IsLayer)
+        {
+            var remote = (await session.RequestPluginsAsync("plugin.settings", path)).PluginSettings;
+            CacheSettings(path, remote);
+            return remote;
+        }
         await changes.WaitAsync();
         try
         {
             if (!HasRuntime(path))
                 lock (details)
                     if (details.TryGetValue(path, out var failed) && failed.Error.Length > 0) return [];
+            if (!HasRuntime(path))
+                lock (details)
+                    if (cachedSettings.TryGetValue(path, out var cached)) return cached.ToArray();
             await Load(path);
-            if (proconPaths.Contains(path)) return await procon!.Settings(path);
-            Running running; lock (active) running = active[path];
-            return await running.Invoke(plugin => plugin.GetSettings().ToArray());
+            PluginSetting[] settings;
+            if (proconPaths.Contains(path)) settings = await procon!.Settings(path);
+            else
+            {
+                Running running; lock (active) running = active[path];
+                settings = await running.Invoke(plugin => plugin.GetSettings().ToArray());
+            }
+            CacheSettings(path, settings);
+            return settings;
         }
         finally { changes.Release(); }
+    }
+    private void CacheSettings(string path, PluginSetting[] settings)
+    {
+        lock (details)
+        {
+            if (!session.Profile.IsLayer && (!cachedSettings.TryGetValue(path, out var previous) || !previous.SequenceEqual(settings)) && details.TryGetValue(path, out var value))
+                details[path] = value with { SettingsRevision = ++settingsRevision };
+            cachedSettings[path] = settings.ToArray();
+        }
+    }
+    public async Task<(PluginDetails Details, PluginSetting[] Settings)> GetViewAsync(string path, bool refresh = false)
+    {
+        lock (details)
+        {
+            var value = session.Profile.IsLayer ? remotePlugins.FirstOrDefault(item => item.Path.Equals(path, StringComparison.OrdinalIgnoreCase)) : details.GetValueOrDefault(path);
+            if (!refresh && value is not null)
+            {
+                if (value.Error.Length > 0) return (value, []);
+                if (cachedSettings.TryGetValue(path, out var settings)) return (value, settings.ToArray());
+            }
+        }
+        return (await GetDetailsAsync(path), await GetSettingsAsync(path));
     }
     public async Task SetSettingAsync(string path, string name, string value)
     {
@@ -293,8 +416,12 @@ public sealed class PluginManager
             var setting = settings.Single(item => item.Name == name);
             if (setting.ReadOnly) throw new InvalidOperationException(UiText.Get("This setting is read-only."));
             Validate(setting, value);
+            // Array encoding can differ while the lines stay identical; reapplying
+            // such values can restart a plugin's timers (for example CSpambot).
+            if (setting.Type.Equals("stringarray", StringComparison.OrdinalIgnoreCase) && setting.MatchesValue(value)) { CacheSettings(path, settings); return; }
             if (running is not null) await running.Invoke(plugin => { plugin.SetSetting(name, value); return true; });
             else await procon!.Request("set", Path.GetFileNameWithoutExtension(path), name, value);
+            CacheSettings(path, running is not null ? await running.Invoke(plugin => plugin.GetSettings().ToArray()) : await procon!.Settings(path));
             lock (session.Profile.Sync)
             {
                 if (!session.Profile.PluginSettings.TryGetValue(path, out var saved)) session.Profile.PluginSettings[path] = saved = [];
@@ -309,6 +436,7 @@ public sealed class PluginManager
         // Ordered push frames are authoritative. A response continuation may run
         // after a newer push has already arrived from another administrator.
         await session.RequestPluginsAsync(operation, arguments);
+        lock (details) if (arguments.Length > 0) cachedSettings.Remove(arguments[0]);
     }
     internal static void Validate(PluginSetting setting, string value)
     {
@@ -328,12 +456,19 @@ public sealed class PluginManager
         {
             // The initial list is pushed before this request can be acknowledged.
             await session.RequestPluginsAsync("plugin.list");
+            foreach (var plugin in Snapshot().Where(item => item.Kind.Length > 0 && item.Error.Length == 0))
+                try { await GetSettingsAsync(plugin.Path); }
+                catch (Exception error) when (error is not OperationCanceledException) { session.Log("Plugin", error.Message); }
             return;
         }
+        try { await ScanLibraryAsync(); }
+        catch (OperationCanceledException) when (session.LifetimeToken.IsCancellationRequested) { throw; }
+        catch (Exception error) { session.Log("Plugin", UiText.Format("Plugin library scan failed: {0}", error.Message)); }
         string[] paths; lock (session.Profile.Sync) paths = session.Profile.InstalledPlugins.ToArray();
         foreach (var path in paths)
         {
             session.LifetimeToken.ThrowIfCancellationRequested();
+            if (libraryPaths.Contains(path) && Snapshot().Any(item => item.Path == path && item.Error.Length > 0)) continue;
             try { if (Enabled.Contains(path, StringComparer.OrdinalIgnoreCase)) await EnableAsync(path); else await ImportAsync(path); }
             catch (OperationCanceledException) when (session.LifetimeToken.IsCancellationRequested) { throw; }
             catch (Exception error) { RecordError(path, error); }
@@ -350,8 +485,14 @@ public sealed class PluginManager
             Running[] plugins; lock (active) { plugins = active.Values.ToArray(); active.Clear(); }
             foreach (var plugin in plugins) try { await plugin.DisposeAsync(); } catch (Exception error) { session.Log("Plugin", error.Message); }
             if (procon is not null) { await procon.DisposeAsync(); procon = null; }
+            libraryStamp = null;
+            libraryPaths.Clear();
             lock (active) proconPaths.Clear();
-            lock (details) foreach (var path in details.Keys.ToArray()) details[path] = details[path] with { Enabled = false };
+            lock (details)
+            {
+                cachedSettings.Clear();
+                foreach (var path in details.Keys.ToArray()) details[path] = details[path] with { Enabled = false };
+            }
         }
         finally { changes.Release(); Changed?.Invoke(); }
     }
@@ -377,6 +518,13 @@ public sealed class PluginManager
     internal async Task<System.Text.Json.JsonElement> ProconCall(string name, string method, object[] arguments)
     {
         if (procon is null) throw new InvalidOperationException(UiText.Get("Load a Procon plugin before using Procon services."));
+        await procon.SyncAccountsAsync();
         return await procon.Request("call", name, method: method, arguments: arguments);
+    }
+    internal async Task RefreshAccountsAsync()
+    {
+        await changes.WaitAsync(session.LifetimeToken);
+        try { if (procon is not null) await procon.SyncAccountsAsync(); }
+        finally { changes.Release(); }
     }
 }

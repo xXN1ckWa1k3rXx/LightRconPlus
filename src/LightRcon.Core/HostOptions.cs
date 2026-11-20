@@ -22,6 +22,9 @@ public sealed class HostOptions
         --server               Run one saved profile; otherwise run all saved profiles.
         --help                 Show this help. Ctrl+C saves and stops running sessions.
 
+        Failed automatic connections retry after 5 seconds. In an interactive console,
+        press F3 to reconnect all running profiles immediately, or Ctrl+C to stop.
+
         BF3 / BF4 / BFHL are detected automatically. Layer account management remains
         available from an authorized desktop Layer connection. Only one desktop/host
         process may use a given data directory. No desktop setup is required.

@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\LightRcon.Core\LightRcon.Core.csproj" />
+    <Compile Include="..\..\src\LightRcon.Host\HostConsole.cs" Link="HostConsole.cs" />
+    <Compile Include="..\..\src\LightRcon.Host\HostStatusReporter.cs" Link="HostStatusReporter.cs" />
   </ItemGroup>
 
   <PropertyGroup>

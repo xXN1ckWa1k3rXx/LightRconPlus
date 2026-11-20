@@ -14,8 +14,10 @@ public sealed class LayerConnection : ICommandConnection
     private long sequence;
     public LayerPermission Permissions { get; private set; }
     public Task Completion { get; private set; } = Task.CompletedTask;
+    public Exception? Failure { get; private set; }
     public event Action<string[]>? EventReceived;
     public event Action<ActivityEntry[]>? HistoryReceived;
+    public event Action<ConsoleEntry[]>? PluginConsoleReceived;
     public event Action<Plugins.PluginDetails[]>? PluginsReceived;
     public async Task ConnectAsync(ServerProfile profile, CancellationToken token)
     {
@@ -42,12 +44,14 @@ public sealed class LayerConnection : ICommandConnection
                 if (frame.Type == "response") { if (pending.TryRemove(frame.Id, out var promise)) promise.TrySetResult(frame); }
                 else if (frame.Type == "event") EventReceived?.Invoke(frame.Words);
                 else if (frame.Type == "history") HistoryReceived?.Invoke(frame.Entries);
+                else if (frame.Type == "plugin.console") PluginConsoleReceived?.Invoke(frame.ConsoleEntries);
                 else if (frame.Type == "plugins") PluginsReceived?.Invoke(frame.Plugins);
             }
         }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or System.Text.Json.JsonException or InvalidDataException) { failure = ex; }
         finally
         {
+            if (!lifetime.IsCancellationRequested) Failure = failure;
             lifetime.Cancel();
             foreach (var item in pending.Values) item.TrySetException(failure);
             client.Close();

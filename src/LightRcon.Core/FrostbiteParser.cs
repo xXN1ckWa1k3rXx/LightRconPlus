@@ -42,10 +42,29 @@ public static class FrostbiteParser
                 Id = i + 1, Name = name, EaGuid = Get("guid"), Team = Number(Get("teamId")), Squad = Number(Get("squadId")),
                 Kills = Number(Get("kills")), Deaths = Number(Get("deaths")), Score = Get("score", "—"), Rank = Get("rank", "—"), Ping = Get("ping", "—"),
                 Tags = Get("clanTag", Get("tag", "—")), Kit = Get("kit", old?.Kit ?? "—"), Type = Get("type", "—"),
-                PbGuid = old?.PbGuid ?? "", Ip = old?.Ip ?? "", PbSlot = old?.PbSlot ?? "", FirstSeen = old?.FirstSeen ?? DateTimeOffset.Now
+                PbGuid = Get("pbGuid", old?.PbGuid ?? ""), Ip = Get("ip", old?.Ip ?? ""), PbSlot = old?.PbSlot ?? "", FirstSeen = old?.FirstSeen ?? DateTimeOffset.Now
             });
         }
         return result;
+    }
+    internal static string[] WithPlayerAddresses(string[] words, IReadOnlyList<PlayerInfo> players)
+    {
+        _ = Players(words); // Validate the block before extending its schema for Layer clients.
+        var fields = Number(words[1]); var count = Number(words[fields + 2]);
+        var headers = words.Skip(2).Take(fields).ToArray();
+        var extras = new[] { "ip", "pbGuid" }.Where(header => !headers.Contains(header)).ToArray();
+        if (extras.Length == 0) return words;
+        var nameIndex = Array.IndexOf(headers, "name");
+        var result = new List<string> { words[0], (fields + extras.Length).ToString(CultureInfo.InvariantCulture) };
+        result.AddRange(headers); result.AddRange(extras); result.Add(count.ToString(CultureInfo.InvariantCulture));
+        for (var i = 0; i < count; i++)
+        {
+            var start = fields + 3 + i * fields;
+            var player = nameIndex < 0 ? null : players.FirstOrDefault(player => player.Name == words[start + nameIndex]);
+            result.AddRange(words.Skip(start).Take(fields));
+            foreach (var extra in extras) result.Add(extra == "ip" ? player?.Ip ?? "" : player?.PbGuid ?? "");
+        }
+        return result.ToArray();
     }
     public static List<MapEntry> Maps(string[] words)
     {

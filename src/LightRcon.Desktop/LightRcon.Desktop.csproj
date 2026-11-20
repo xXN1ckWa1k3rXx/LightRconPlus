@@ -11,7 +11,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.1.0</Version>
     <Product>LightRcon+</Product>
     <Description>Native Frostbite RCON and Layer manager</Description>
   </PropertyGroup>

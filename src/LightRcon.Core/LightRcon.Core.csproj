@@ -13,6 +13,8 @@
     <EmbeddedResource Include="Data\bf*-*.json" />
     <EmbeddedResource Include="Data\translations.json" />
     <EmbeddedResource Include="Plugins\ProconWorker.cs.txt" LogicalName="ProconWorker.cs" WithCulture="false" />
+    <EmbeddedResource Include="Data\GeoIP.dat" LogicalName="GeoIP.dat" />
+    <EmbeddedResource Include="Data\geo-country-codes.json" LogicalName="geo-country-codes.json" />
   </ItemGroup>
 
 </Project>

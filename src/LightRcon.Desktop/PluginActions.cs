@@ -41,7 +41,8 @@ public partial class MainWindow
             EnabledPluginList.SelectedItem = plugins.FirstOrDefault(item => item.Path == path) ?? plugins.FirstOrDefault();
             updatingPlugins = false;
             if (changedSession || path is null || (EnabledPluginList.SelectedItem as PluginDetails)?.Path != path) _ = LoadSelectedPluginAsync();
-            else if (!pluginBusy && previousPlugin != EnabledPluginList.SelectedItem as PluginDetails && EnabledPluginList.SelectedItem is PluginDetails currentPlugin)
+            else if (!pluginBusy && EnabledPluginList.SelectedItem is PluginDetails currentPlugin
+                && (previousPlugin?.Enabled != currentPlugin.Enabled || previousPlugin?.Error != currentPlugin.Error || previousPlugin?.Kind != currentPlugin.Kind))
                 PluginPageStatus.Text = currentPlugin.Kind + " · " + currentPlugin.Status;
         }
         var selectedPlugin = plugins.FirstOrDefault(item => item.Path == (EnabledPluginList.SelectedItem as PluginDetails)?.Path);
@@ -98,9 +99,6 @@ public partial class MainWindow
     private async void RefreshPluginList_Click(object sender, RoutedEventArgs e) => await PluginOperation(async () =>
     {
         if (selected is not { } session) return;
-        if (!session.Profile.IsLayer)
-            foreach (var path in PluginLibrary.Discover(PluginLibrary.DefaultRoot, session.Game))
-                if (!session.Plugins.Snapshot().Any(item => item.Path.Equals(path, StringComparison.OrdinalIgnoreCase))) await session.Plugins.ImportAsync(path);
         await session.Plugins.RefreshAsync(); RefreshPluginList(session);
     });
     private async void EnableSelectedPlugin_Click(object sender, RoutedEventArgs args)
@@ -131,16 +129,16 @@ public partial class MainWindow
             PluginPageStatus.Text = UiText.Get("Select a plugin to view its details and settings."); return;
         }
         PluginNameText.Text = plugin.Name; PluginPathText.Text = plugin.Path;
-        PluginVersionText.Text = PluginAuthorText.Text = PluginWebsiteText.Text = PluginDescriptionText.Text = "";
+        PluginVersionText.Text = plugin.Version; PluginAuthorText.Text = plugin.Author; PluginWebsiteText.Text = plugin.Website;
+        PluginDescriptionText.Text = "";
         PluginErrorText.Text = plugin.Error;
-        PluginPageStatus.Text = UiText.Get("Loading plugin…");
+        PluginPageStatus.Text = plugin.Kind + " · " + plugin.Status;
         RefreshPluginList(session);
         try
         {
             if (retryFailed && !session.Profile.IsLayer && session.Plugins.Snapshot().Any(item => item.Path == plugin.Path && item.Error.Length > 0))
                 await session.Plugins.ImportAsync(plugin.Path);
-            var details = await session.Plugins.GetDetailsAsync(plugin.Path);
-            var settings = await session.Plugins.GetSettingsAsync(plugin.Path);
+            var (details, settings) = await session.Plugins.GetViewAsync(plugin.Path, refresh: retryFailed);
             if (request != pluginRequest || selected != session) return;
             PluginNameText.Text = details.Name;
             PluginVersionText.Text = details.Version;
@@ -227,10 +225,10 @@ public partial class MainWindow
     {
         if (!session.IsConnected || session.Profile.IsLayer && !session.Permissions.HasFlag(LayerPermission.Settings)) return;
         var value = item.Read();
-        if (value == item.Setting.Value) return;
+        if (item.Setting.MatchesValue(value)) return;
         await PluginOperation(async () =>
         {
-            if (value == item.Setting.Value) return;
+            if (item.Setting.MatchesValue(value)) return;
             await session.Plugins.SetSettingAsync(path, item.Setting.Name, value);
             item.Setting = item.Setting with { Value = value };
             if (selected == session && (EnabledPluginList.SelectedItem as PluginDetails)?.Path == path)

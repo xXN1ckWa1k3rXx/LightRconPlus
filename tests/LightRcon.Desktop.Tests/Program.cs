@@ -158,6 +158,13 @@ internal static class Program
             Check(Equals(pluginTab.Foreground, window.FindResource("Accent")), "selected tab titles retain their blue accent while their container is hovered");
             pluginTab.SetValue(hoverKey, false);
             Capture(window, "plugin-details");
+            var pluginConsole = Control<TextBox>(window, "PluginConsoleList");
+            session.Log("Lua info", "desktop plugin console marker"); session.Log("RCON", "desktop non-plugin marker");
+            await Wait(() => pluginConsole.Text.Contains("desktop plugin console marker"));
+            Check(pluginConsole.IsReadOnly && pluginConsole.AcceptsReturn && !pluginConsole.Text.Contains("desktop non-plugin marker"), "Plugin tab has a selectable output editor containing only plugin console messages");
+            pluginConsole.Select(pluginConsole.Text.IndexOf("desktop plugin console marker", StringComparison.Ordinal), "desktop plugin console marker".Length);
+            Check(pluginConsole.SelectedText == "desktop plugin console marker", "plugin console text can be selected and copied");
+            Capture(window, "plugin-console");
             var pluginPages = Control<TabControl>(window, "PluginPages");
             pluginPages.SelectedIndex = 1;
             var pluginFields = Control<StackPanel>(window, "PluginSettingFields");
@@ -205,8 +212,8 @@ internal static class Program
                             public void OnPluginEnable() { }
                             public void OnPluginDisable() { }
                             public List<CPluginVariable> GetPluginVariables() { return new List<CPluginVariable> { new CPluginVariable("Message", typeof(string), text) }; }
-                            public List<CPluginVariable> GetDisplayPluginVariables() { return new List<CPluginVariable> { new CPluginVariable("Messages|Message", typeof(string), text), new CPluginVariable("Messages|Mode", "enum.Mode(One|Two)", "One") }; }
-                            public void SetPluginVariable(string name, string value) { if (name == "Message") text = value; }
+                            public List<CPluginVariable> GetDisplayPluginVariables() { return new List<CPluginVariable> { new CPluginVariable("Messages|Message", typeof(string), text), new CPluginVariable("Messages|Mode", "enum.Mode(One|Two)", "One"), new CPluginVariable("Info|Lines", typeof(string[]), new [] { "Welcome to ZAP server!", "Discord: https://discord.gg/8d8kGGat7Q - type !discord" }) }; }
+                            public void SetPluginVariable(string name, string value) { if (name == "Message") text = value; if (name == "Lines") ExecuteCommand("procon.protected.pluginconsole.write", "unexpected unchanged array setter"); }
                         }
                     }
                     """);
@@ -219,9 +226,19 @@ internal static class Program
                 pluginPages.SelectedIndex = 0;
                 Capture(window, "procon-details");
                 pluginPages.SelectedIndex = 1;
+                var unchangedArray = Control<StackPanel>(window, "PluginSettingFields").Children.OfType<TextBox>().Single(box => box.Tag as string == "Info|Lines");
+                Check(unchangedArray.Text.Split(Environment.NewLine).Length == 2 && unchangedArray.Text.Contains("https://discord.gg/8d8kGGat7Q"), "Procon message arrays display decoded URLs with one message per line");
+                var savedBeforeArrayBlur = session.ConsoleSnapshot().Count(entry => entry.Text == UiText.Get("Plugin settings saved."));
+                unchangedArray.RaiseEvent(new KeyboardFocusChangedEventArgs(Keyboard.PrimaryDevice, Environment.TickCount, unchangedArray, null) { RoutedEvent = Keyboard.LostKeyboardFocusEvent });
+                await Field<Task>(window, "pendingPluginSave");
+                Check(!session.ConsoleSnapshot().Any(entry => entry.Text.Contains("unexpected unchanged array setter"))
+                    && session.ConsoleSnapshot().Count(entry => entry.Text == UiText.Get("Plugin settings saved.")) == savedBeforeArrayBlur,
+                    "Leaving an unchanged Procon message array does not invoke its setter or save when percent-escape case differs");
                 Capture(window, "procon-settings");
                 Check(Control<Border>(window, "ProconBanner").IsVisible && Control<Border>(window, "ProconBanner").TranslatePoint(new Point(), list).X > list.ActualWidth, "Procon warning belongs to the selected plugin content area");
                 list.SelectedItem = list.Items.Cast<LightRcon.Core.Plugins.PluginDetails>().Single(plugin => plugin.Path == pluginPath);
+                Check(Control<TextBlock>(window, "PluginNameText").Text == "Desktop API" && Control<TabControl>(window, "PluginPages").IsEnabled
+                    && Control<TextBlock>(window, "PluginPageStatus").Text != UiText.Get("Loading plugin…"), "selecting an initialized plugin renders its cached page immediately without Loading plugin");
                 await Wait(() => Control<TextBlock>(window, "PluginNameText").Text == "Desktop API" && Control<TabControl>(window, "PluginPages").IsEnabled);
                 Check(!Control<Border>(window, "ProconBanner").IsVisible, "selecting Lua hides warnings for other enabled Procon plugins");
                 list.SelectedItem = list.Items.Cast<LightRcon.Core.Plugins.PluginDetails>().Single(plugin => plugin.Path == legacy);
@@ -283,22 +300,66 @@ internal static class Program
             try { MainWindow.ManualBanSeconds(int.MaxValue.ToString(CultureInfo.InvariantCulture), "months"); throw new Exception("Overflow accepted"); }
             catch (ArgumentException) { Check(true, "manual duration rejects overflow and permanent bans ignore duration drafts"); }
             playersTabs.SelectedIndex = 0;
+            Tab(window, "Players"); window.Width = 1180; window.UpdateLayout();
+            await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render); await Task.Delay(80); window.UpdateLayout();
+            var playerTable = Control<DataGrid>(window, "PlayersGrid");
+            Check(playerTable.Columns[0].Header.ToString() == "ID#" && playerTable.Columns[1].Header.ToString() == "Geo", "Players places the Geo column directly beside ID#");
+            Check(playerTable.Columns.Sum(column => column.ActualWidth) <= playerTable.ActualWidth,
+                $"default player column widths fit the minimum-width viewport (columns={playerTable.Columns.Sum(column => column.ActualWidth):F1}, viewport={playerTable.ActualWidth:F1})");
+            var summary = Control<TextBlock>(window, "ServerSummary"); var actionBar = Control<WrapPanel>(window, "ServerActionBar");
+            Check(summary.TranslatePoint(new Point(0, summary.ActualHeight), window).Y <= actionBar.TranslatePoint(new Point(), window).Y, "server summary and action buttons occupy separate rows at minimum window width");
+            var winnerBox = Control<ComboBox>(window, "WinningTeamBox");
+            Check(winnerBox.Items.Count == 2 && Control<Button>(window, "EndRoundButton").IsEnabled && Control<Button>(window, "EndRoundButton").TranslatePoint(new Point(), window).Y >= playerTable.TranslatePoint(new Point(0, playerTable.ActualHeight), window).Y, "End round offers the two current teams below the Players list");
+            Capture(window, "players-layout-light");
+            winnerBox.SelectedValue = 2;
+            var roundConfirmation = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
+            roundConfirmation.Tick += (_, _) =>
+            {
+                if (Application.Current.Windows.OfType<AppDialog>().FirstOrDefault() is not { } dialog) return;
+                roundConfirmation.Stop(); Visuals<Button>(dialog).Single(button => button.Content as string == UiText.Get("Confirm")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            };
+            roundConfirmation.Start(); Click(window, "EndRoundButton");
+            await Wait(() => mock.Received.Any(words => words.SequenceEqual(new[] { "mapList.endRound", "2" })));
+            Check(true, "End round confirmation sends the selected winning team through RCON");
+            window.Width = 1440;
             Tab(window, "Chat");
+            var showAdmin = Control<CheckBox>(window, "ShowAdminSayYellBox"); var adminChatList = Control<ActivityEditor>(window, "ChatList");
+            Check(showAdmin.IsChecked == false && !session.Profile.Client.ShowAdminSayYell, "Show admin say/yell defaults to off");
+            session.Journal.Add("Chat", "Admin", "all", "hidden-admin-say", isAdminMessage: true, adminMessageType: "Say", isPluginMessage: true);
+            session.Journal.Add("Chat", "Admin", "all", "hidden-admin-yell", isAdminMessage: true, adminMessageType: "Yell", isPluginMessage: true);
+            foreach (var username in new[] { "admin", "Admin", "Server", "Layer Commander" })
+                session.Journal.Add("Chat", username, "all", "manual-chat-" + username, isAdminMessage: true, adminMessageType: "Say");
+            session.Journal.Add("Chat", "OrdinaryPlayer", "all", "visible-player-chat");
+            await Wait(() => adminChatList.Text.Contains("visible-player-chat"));
+            Check(!adminChatList.Text.Contains("hidden-admin-") && new[] { "admin", "Admin", "Server", "Layer Commander" }.All(name => adminChatList.Text.Contains("manual-chat-" + name)), "chat hides only plugin Say/Yell and always shows manual admin and Layer messages regardless of username");
+            showAdmin.IsChecked = true; showAdmin.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));
+            Check(adminChatList.Text.Contains("hidden-admin-say") && adminChatList.Text.Contains("hidden-admin-yell") && new ProfileStore(data).State.Servers[0].Client.ShowAdminSayYell, "checkbox reveals both admin message types from history and persists per connection");
+            showAdmin.IsChecked = false; showAdmin.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));
+            Check(!adminChatList.Text.Contains("hidden-admin-") && session.Journal.Snapshot().Any(entry => entry.Text == "hidden-admin-say"), "disabling admin display preserves original messages and history");
             for (var index = 0; index < 100; index++) session.Journal.Add("Chat", "Scroll test", "all", "Pinned message " + index);
-            var chatList = Control<TextBox>(window, "ChatList");
+            var chatList = Control<ActivityEditor>(window, "ChatList");
             await Wait(() => chatList.Text.Contains("Pinned message 99"));
             window.UpdateLayout();
             var chatScroll = Visuals<ScrollViewer>(chatList).First();
             await Wait(() => chatScroll.ScrollableHeight > 0 && chatScroll.VerticalOffset >= chatScroll.ScrollableHeight - 1);
             chatScroll.ScrollToTop();
             await Wait(() => chatScroll.VerticalOffset == 0);
-            Check(chatList.IsReadOnly && chatList.AcceptsReturn, "chat uses a selectable text editor and permits scrolling to older messages");
+            Check(chatList.IsReadOnly, "chat uses a selectable text editor and permits scrolling to older messages");
             chatList.ScrollToEnd(); await Task.Delay(60);
             session.Journal.Add("Chat", "Scroll test", "all", "Newest pinned message");
             await Wait(() => chatList.Text.EndsWith("Newest pinned message") && chatScroll.VerticalOffset >= chatScroll.ScrollableHeight - 1);
             Tab(window, "Plugin"); Tab(window, "Chat");
             await Wait(() => chatScroll.VerticalOffset >= chatScroll.ScrollableHeight - 1);
             Check(true, "new chat messages and returning to Chat keep the newest entry visible");
+            session.Journal.Add("Chat", "ColoredAlpha", "Team 1", "colored-message-body", 1);
+            session.Journal.Add("Kill", "ColoredKiller", "", "ColoredKiller killed ColoredVictim with U_M416", 1, 2, "ColoredVictim", "U_M416");
+            await Wait(() => chatList.Text.Contains("ColoredVictim"));
+            var coloredRuns = chatList.Document.Blocks.OfType<System.Windows.Documents.Paragraph>().SelectMany(block => block.Inlines.OfType<System.Windows.Documents.Run>()).ToArray();
+            Check(Equals(coloredRuns.Single(run => run.Text == "ColoredAlpha").Foreground, window.FindResource("Team1")) && Equals(coloredRuns.Single(run => run.Text == "ColoredKiller").Foreground, window.FindResource("Team1")) && Equals(coloredRuns.Single(run => run.Text == "ColoredVictim").Foreground, window.FindResource("Team2")), "selectable chat restores team colors for player names, killers and victims");
+            Check(chatList.Text.Contains("M416") && coloredRuns.Any(run => run.ToolTip as string == "U_M416"), "colored chat retains weapon labels and original-ID tooltips");
+            var copiedChat = new System.Windows.Documents.TextRange(chatList.Document.ContentStart, chatList.Document.ContentEnd).Text;
+            Check(copiedChat.Contains("ColoredAlpha") && copiedChat.Contains("colored-message-body") && copiedChat.Contains("ColoredVictim"), "colored chat document contains selectable plain text across multiple messages");
+            Capture(window, "chat-colors-light");
             mainTabs.SelectedIndex = 0;
             Check(serverCard.WelcomeTitle == $"Local test | {session.Info.Name} [{session.Profile.Endpoint}]" && serverCard.SidebarLabel == session.Info.Name, "Welcome includes instance and server names while the sidebar shows only the server name");
             Check(Control<Grid>(window, "WorkspacePage").IsVisible && Application.Current.Windows.Count == 1, "saving instance connects and opens management inline");
@@ -344,6 +405,11 @@ internal static class Program
             Check(!window.IsDarkTheme && ((SolidColorBrush)window.FindResource("Background")).Color.R > 200, "light theme applies immediately");
             theme.SelectedValue = "dark";
             var playersGrid = Control<DataGrid>(window, "PlayersGrid");
+            await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+            var darkRuns = chatList.Document.Blocks.OfType<System.Windows.Documents.Paragraph>().SelectMany(block => block.Inlines.OfType<System.Windows.Documents.Run>()).ToArray();
+            Check(Equals(chatList.Background, window.FindResource("Surface")) && Equals(darkRuns.Single(run => run.Text == "ColoredVictim").Foreground, window.FindResource("Team2")), "existing colored chat runs follow the dark theme without losing selection support");
+            Tab(window, "Chat"); Capture(window, "chat-colors-dark"); mainTabs.SelectedIndex = 0;
+            window.Width = 1180; window.UpdateLayout(); await Task.Delay(80); window.UpdateLayout(); Capture(window, "players-layout-dark"); window.Width = 1440;
             await Wait(() => playersGrid.Items.Count == 3);
             Check(((ListCollectionView)playersGrid.ItemsSource).Groups!.Count == 2 && playersGrid.Items.Count == 3, "team grouping preserves all players");
             Check(playersGrid.Items.Cast<PlayerInfo>().Where(x => x.Team == 1).All(x => x.TeamName == "Russian Army" && x.TeamTickets == 700) && playersGrid.Items.Cast<PlayerInfo>().Where(x => x.Team == 2).All(x => x.TeamName == "US Army" && x.TeamTickets == 650), "player groups receive the current map factions and decimal tickets");
@@ -529,7 +595,7 @@ internal static class Program
             foreach (var language in new[] { "zh", "de", "en" })
             {
                 languages.SelectedValue = language; await Task.Delay(80);
-                Check(playersGrid.Columns[2].Header.ToString() == UiText.Get("Name"), language + " updates XAML bindings including column headers");
+                Check(playersGrid.Columns.Single(column => column.SortMemberPath == "Name").Header.ToString() == UiText.Get("Name") && Control<CheckBox>(window, "ShowAdminSayYellBox").Content.ToString() == UiText.Get("Show admin say/yell"), language + " updates XAML bindings including column headers and admin chat checkbox");
                 Check(Control<TextBox>(window, "ChatInput").Text == "unsent draft 世界" && session.Profile.Client.ChatDisplay == "Yell", language + " preserves drafts and protocol choice codes");
                 Check(Control<StackPanel>(window, "YellTimePanel").Visibility == Visibility.Visible, language + " retains Yell duration controls");
                 Check(weaponEditor.Value == "4" && unlockEditor.Value == "common" && presetEditor.Value == "CLASSIC true", language + " preserves invariant dropdown values across localization");
@@ -578,7 +644,7 @@ internal static class Program
             await session.Plugins.DisableAsync(pluginPath);
             for (var index = 0; index < 520; index++) session.Journal.Add("Chat", "Limit", "all", "limit-row-" + index);
             Tab(window, "Chat");
-            var boundedChat = Control<TextBox>(window, "ChatList");
+            var boundedChat = Control<ActivityEditor>(window, "ChatList");
             await Wait(() => boundedChat.Text.Contains("limit-row-519"));
             Check(boundedChat.Text.Split(Environment.NewLine).Length == 450 && !boundedChat.Text.Contains("limit-row-0\r"), "chat editor defaults to at most 450 logical lines");
             boundedChat.Select(0, 20);
@@ -632,6 +698,7 @@ internal static class Program
             session.Profile.Layer.Port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port; listener.Stop();
             await session.SaveLayerAccountAsync(false, "viewer", "Viewer-test-password", true, LayerPermission.View);
             await session.SaveLayerAccountAsync(false, "admin", "Admin-test-password", true, LayerPermission.All);
+            session.Log("Lua info", "desktop plugin console marker");
             await session.StartLayerAsync();
             await Wait(() => Control<Button>(window, "DisableLayerButton").Visibility == Visibility.Visible);
             Check(Control<Button>(window, "EnableLayerButton").Visibility == Visibility.Collapsed && Equals(Control<Button>(window, "DisableLayerButton").Background, window.FindResource("Accent")) && !Control<TextBox>(window, "LayerPort").IsEnabled, "running listener offers only the blue disable action and locks its endpoint");
@@ -644,7 +711,16 @@ internal static class Program
             var layerSelector = Control<ComboBox>(layerWindow, "ServerSelector"); layerSelector.SelectedIndex = 0;
             Check(layerCards.Items.Cast<ServerCard>().All(x => x.SidebarLabel == "[Layer] " + x.Session.Info.Name && x.WelcomeTitle == $"{x.Name} | [Layer] {x.Session.Info.Name} [{x.Endpoint}]" && x.ConnectionLabel.Contains("[Layer] " + x.Session.Info.Name)), "Layer names use the prefix consistently across Welcome, sidebar and server selector");
             Check(Control<TabItem>(layerWindow, "LayersTab").Visibility == Visibility.Collapsed, "Layer viewer cannot see Layers tab");
+            await Wait(() => Control<TextBox>(layerWindow, "PluginConsoleList").Text.Contains("desktop plugin console marker"));
+            session.Log("Procon", "live Layer plugin console marker");
+            await Wait(() => Control<TextBox>(layerWindow, "PluginConsoleList").Text.Contains("live Layer plugin console marker"));
+            Check(Control<TextBox>(layerWindow, "PluginConsoleList").Text.Split("desktop plugin console marker").Length == 2, "Layer plugin console receives host history and live output without duplicating replayed entries");
+            var consoleViewer = ((ServerCard)layerCards.Items[0]).Session;
+            await consoleViewer.StopAsync(); await consoleViewer.StartAsync();
+            await Wait(() => consoleViewer.IsConnected && Control<TextBox>(layerWindow, "PluginConsoleList").Text.Contains("live Layer plugin console marker"));
+            Check(Control<TextBox>(layerWindow, "PluginConsoleList").Text.Split("live Layer plugin console marker").Length == 2, "Layer reconnect deduplicates plugin-console history using entry IDs");
             Check(!Control<Button>(layerWindow, "LoadMapListButton").IsEnabled, "Layer viewer cannot reload MapList.txt");
+            Check(!Control<Button>(layerWindow, "EndRoundButton").IsEnabled, "Layer viewer cannot force End round");
             Tab(layerWindow, "Plugin");
             await Wait(() => Control<TextBlock>(layerWindow, "PluginAuthorText").Text == "UI author" && Control<TabControl>(layerWindow, "PluginPages").IsEnabled);
             Check(Control<ListBox>(layerWindow, "EnabledPluginList").Items.Count == session.Plugins.Snapshot().Length && Control<Button>(layerWindow, "ImportPluginButton").Visibility == Visibility.Collapsed && !Control<Button>(layerWindow, "EnableSelectedPluginButton").IsEnabled, "Layer plugin page shows the host list without client import or unauthorized activation");
@@ -656,6 +732,7 @@ internal static class Program
             await Wait(() => Control<DataGrid>(layerWindow, "LayerAccountsGrid").Items.Count == 2);
             Check(true, "Layer account management automatically loads upstream accounts");
             var layerAdminSession = ((ServerCard)layerCards.Items[1]).Session;
+            Check(Control<Button>(layerWindow, "EndRoundButton").IsEnabled, "Layer Maps permission enables End round");
             Tab(layerWindow, "Plugin");
             await Wait(() => Control<TextBlock>(layerWindow, "PluginAuthorText").Text == "UI author" && Control<TabControl>(layerWindow, "PluginPages").IsEnabled);
             layerPluginPages.SelectedIndex = 1;

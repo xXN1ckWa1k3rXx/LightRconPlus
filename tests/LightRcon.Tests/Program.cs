@@ -32,9 +32,37 @@ int FreePort() { var listener = new TcpListener(IPAddress.Loopback, 0); listener
 var root = Path.Combine(Path.GetTempPath(), "LightRcon-tests-" + Guid.NewGuid().ToString("N"));
 try
 {
+    if (args.Contains("--spambot"))
+    {
+        await SpambotChecks.Run(root, Check);
+        Console.WriteLine($"{checks} checks passed."); return 0;
+    }
+    if (args.Contains("--administration"))
+    {
+        await AdministrationChecks.Run(root, Check);
+        if (Environment.GetEnvironmentVariable("LIGHTRCON_TEST_PROCON_ZIP") is { } package)
+        {
+            var probeStore = new ProfileStore(root);
+            File.Copy(package, Path.Combine(root, "Procon-v1.5.4.2.zip"));
+            await using var probeMock = new MockFrostbiteServer();
+            var probeProfile = new ServerProfile { Host = "127.0.0.1", Port = probeMock.Port, ProtectedPassword = SecretProtection.Protect(MockFrostbiteServer.Password) };
+            probeStore.State.Servers.Add(probeProfile);
+            await using var probeSession = new ServerSession(probeProfile, probeStore);
+            await probeSession.StartAsync(); await Wait(() => probeSession.IsConnected, "administration test RCON connection");
+            await ProconChecks.Run(probeSession, probeMock, probeStore, root, Check);
+        }
+        Console.WriteLine($"{checks} checks passed."); return 0;
+    }
     await MultiGameChecks.Run(root, Check);
     await LayerPluginChecks.Run(root, Check);
+    await LayerAuthenticationChecks.Run(root, Check);
+    await AdministrationChecks.Run(root, Check);
     await WorkflowChecks.Run(root, Check);
+    await HostConnectionChecks.Run(root, Check);
+    await IncludeAndViewChecks.Run(root, Check);
+    await PluginDiscoveryChecks.Run(root, Check);
+    await ProconCacheChecks.Run(root, Check);
+    await SpambotChecks.Run(root, Check);
     var golden = new FrostbitePacket(0, false, false, ["version"]).Encode();
     Check(Convert.ToHexString(golden) == "0000000018000000010000000700000076657273696F6E00", "golden BF4 command packet uses zero origin bit");
     var unicode = new FrostbitePacket(11, true, false, ["player.onChat", "玩家", "hello 世界", "all"]); var parsed = await FrostbitePacket.ReadAsync(new MemoryStream(unicode.Encode()), default);

@@ -35,3 +35,5 @@ Local modules are cached. A module that returns nil is cached as `true`. Circula
 ## Layer
 
 A Layer client's plugin controls operate on the upstream runtime. View permission allows inspection, Settings permission allows configuration changes, and LayerAdmin permission allows activation changes. A plugin runs with its host session's command access; client account permissions govern remote management.
+
+Successful Layer sign-ins and **Refresh list** check the host's game-specific plugin library for new or changed files. The host also scans when its RCON connection is established. There is no periodic file scan. After a library update, saved settings and enabled states are restored; unchanged files do not trigger a reload on sign-in.

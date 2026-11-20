@@ -74,13 +74,13 @@ public sealed class ActivityJournal
         }
         if (batch.Count > 0) yield return batch.ToArray();
     }
-    public void Add(string kind, string name, string team, string text, int actorTeam = 0, int targetTeam = 0, string targetName = "", string weapon = "", GameId game = GameId.BF4)
+    public void Add(string kind, string name, string team, string text, int actorTeam = 0, int targetTeam = 0, string targetName = "", string weapon = "", GameId game = GameId.BF4, bool isAdminMessage = false, string adminMessageType = "", bool isPluginMessage = false)
     {
         ActivityEntry entry;
         lock (gate)
         {
             entry = new(++sequence, DateTimeOffset.Now, kind, name, team, text)
-            { ActorTeam = actorTeam, TargetTeam = targetTeam, TargetName = targetName, Weapon = weapon, Game = game };
+            { ActorTeam = actorTeam, TargetTeam = targetTeam, TargetName = targetName, Weapon = weapon, Game = game, IsAdminMessage = isAdminMessage, AdminMessageType = adminMessageType, IsPluginMessage = isPluginMessage };
             AppendLocked([entry]);
         }
         Appended?.Invoke([entry]);

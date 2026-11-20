@@ -13,6 +13,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
     public const string Password = "MockRcon123";
     public string GameCode { get; set; } = "BF4";
     public bool AdvertiseAllSettings { get; set; }
+    public bool RejectServerInfo { get; set; }
     public ConcurrentDictionary<string, bool> Alive { get; } = new();
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource stop = new();
@@ -81,7 +82,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
                         }
                         response = words.Length > 1 ? ["OK"] : ["OK", Settings[command]];
                     }
-                    else if (command == "serverInfo") response = ["OK", Settings["vars.serverName"], "3", "64", GameMode, Map, "0", "2", TeamScores.Length.ToString(), .. TeamScores, TargetScore, "InGame", "true", "true", "false", "93784", "150", "127.0.0.1:25200", "v1", "true"];
+                    else if (command == "serverInfo") response = RejectServerInfo ? ["InvalidArguments"] : ["OK", Settings["vars.serverName"], "3", "64", GameMode, Map, "0", "2", TeamScores.Length.ToString(), .. TeamScores, TargetScore, "InGame", "true", "true", "false", "93784", "150", "127.0.0.1:25200", "v1", "true"];
                     else if (command == "admin.listPlayers") response = ["OK", "11", "name", "guid", "teamId", "squadId", "kills", "deaths", "rank", "ping", "clanTag", "type", "kit", "3",
                         "Example_Alpha", "EA_11111111111111111111111111111111", "1", "2", "18", "6", "140", "32", "TEST", "Player", "Assault",
                         "Example_Bravo", "EA_22222222222222222222222222222222", "2", "3", "12", "9", "120", "48", "TEST", "Player", "Engineer",

@@ -10,12 +10,14 @@ public interface ICommandConnection : IAsyncDisposable
     event Action<string[]>? EventReceived;
     event Action<ActivityEntry[]>? HistoryReceived;
     Task Completion { get; }
+    Exception? Failure { get; }
     Task<string[]> ExecuteAsync(string[] words, CancellationToken token = default);
 }
 
-public sealed class RconException(string code) : Exception(code)
+public sealed class RconException(string code, string? command = null) : Exception(command is null ? code : command + ": " + code)
 {
     public string Code { get; } = code;
+    public string? Command { get; } = command;
 }
 
 public sealed class RconConnection : ICommandConnection
@@ -30,13 +32,16 @@ public sealed class RconConnection : ICommandConnection
     // Direct RCON never has replayed history.
     public event Action<ActivityEntry[]>? HistoryReceived { add { } remove { } }
     public Task Completion { get; private set; } = Task.CompletedTask;
+    public Exception? Failure { get; private set; }
     public GameId Game { get; private set; } = GameId.BF4;
 
     public async Task ConnectAsync(string host, int port, string password, CancellationToken token, bool subscribeEvents = true)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
         timeout.CancelAfter(TimeSpan.FromSeconds(12));
-        await client.ConnectAsync(host, port, timeout.Token);
+        try { await client.ConnectAsync(host, port, timeout.Token); }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested)
+        { throw new TimeoutException(UiText.Format("TCP connection to {0}:{1} timed out after 12 seconds.", host, port)); }
         stream = client.GetStream();
         Completion = ReadLoopAsync();
         var version = await ExecuteAsync(["version"], token);
@@ -60,8 +65,10 @@ public sealed class RconConnection : ICommandConnection
         try
         {
             await WriteAsync(new(id, false, false, words), token);
-            var result = await response.Task.WaitAsync(TimeSpan.FromSeconds(12), token);
-            if (result.Length == 0 || result[0] != "OK") throw new RconException(result.FirstOrDefault() ?? "EmptyResponse");
+            string[] result;
+            try { result = await response.Task.WaitAsync(TimeSpan.FromSeconds(12), token); }
+            catch (TimeoutException error) { throw new TimeoutException(UiText.Format("RCON command {0} timed out after 12 seconds.", words[0]), error); }
+            if (result.Length == 0 || result[0] != "OK") throw new RconException(result.FirstOrDefault() ?? "EmptyResponse", words[0]);
             return result;
         }
         finally { pending.TryRemove(id, out _); }
@@ -93,10 +100,12 @@ public sealed class RconConnection : ICommandConnection
                 else throw new InvalidDataException("Unexpected RCON packet origin.");
             }
         }
+        catch (ObjectDisposedException ex) when (lifetime.IsCancellationRequested) { failure = ex; }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or SocketException or InvalidDataException or DecoderFallbackException)
         { failure = ex; }
         finally
         {
+            if (!lifetime.IsCancellationRequested) Failure = failure;
             lifetime.Cancel();
             foreach (var entry in pending.Values) entry.TrySetException(failure);
             client.Close();

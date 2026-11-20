@@ -1,4 +1,64 @@
 {
+  "Layer login rejected for {0} from {1}: {2}.": {
+    "en": "Layer login rejected for {0} from {1}: {2}.",
+    "zh": "Layer 拒绝了 {0} 从 {1} 的登录：{2}。",
+    "de": "Layer-Anmeldung für {0} von {1} abgelehnt: {2}."
+  },
+  "Layer login blocked from {0} until {1}: too many failed attempts.": {
+    "en": "Layer login blocked from {0} until {1}: too many failed attempts.",
+    "zh": "来自 {0} 的 Layer 登录已暂时阻止，直到 {1}：失败次数过多。",
+    "de": "Layer-Anmeldung von {0} bis {1} gesperrt: zu viele fehlgeschlagene Versuche."
+  },
+  "Layer connection from {0} failed: {1}": {
+    "en": "Layer connection from {0} failed: {1}",
+    "zh": "来自 {0} 的 Layer 连接失败：{1}",
+    "de": "Layer-Verbindung von {0} fehlgeschlagen: {1}"
+  },
+  "Scanning plugin library: {0}": {
+    "en": "Scanning plugin library: {0}",
+    "zh": "正在扫描插件目录：{0}",
+    "de": "Plugin-Verzeichnis wird durchsucht: {0}"
+  },
+  "Plugin library scan failed: {0}": {
+    "en": "Plugin library scan failed: {0}",
+    "zh": "插件目录扫描失败：{0}",
+    "de": "Durchsuchen des Plugin-Verzeichnisses fehlgeschlagen: {0}"
+  },
+  "TCP connection to {0}:{1} timed out after 12 seconds.": {
+    "en": "TCP connection to {0}:{1} timed out after 12 seconds.",
+    "zh": "连接到 {0}:{1} 的 TCP 请求在 12 秒后超时。",
+    "de": "Zeitüberschreitung nach 12 Sekunden bei der TCP-Verbindung zu {0}:{1}."
+  },
+  "RCON command {0} timed out after 12 seconds.": {
+    "en": "RCON command {0} timed out after 12 seconds.",
+    "zh": "RCON 命令 {0} 在 12 秒后超时。",
+    "de": "Zeitüberschreitung nach 12 Sekunden bei RCON-Befehl {0}."
+  },
+  "Connection failed; retrying in {0} seconds": {
+    "en": "Connection failed; retrying in {0} seconds",
+    "zh": "连接失败，{0} 秒后重试",
+    "de": "Verbindung fehlgeschlagen; erneuter Versuch in {0} Sekunden"
+  },
+  "Connection failed": {
+    "en": "Connection failed",
+    "zh": "连接失败",
+    "de": "Verbindung fehlgeschlagen"
+  },
+  "RCON authentication failed: the server rejected the password (InvalidPasswordHash).": {
+    "en": "RCON authentication failed: the server rejected the password (InvalidPasswordHash).",
+    "zh": "RCON 身份验证失败：服务器拒绝了密码 (InvalidPasswordHash)。",
+    "de": "RCON-Authentifizierung fehlgeschlagen: Der Server hat das Passwort abgelehnt (InvalidPasswordHash)."
+  },
+  "Connection or authentication timed out.": {
+    "en": "Connection or authentication timed out.",
+    "zh": "连接或身份验证超时。",
+    "de": "Zeitüberschreitung bei Verbindung oder Authentifizierung."
+  },
+  "The server did not respond before the connection or command timeout.": {
+    "en": "The server did not respond before the connection or command timeout.",
+    "zh": "服务器未在连接或命令超时之前响应。",
+    "de": "Der Server hat vor Ablauf des Verbindungs- oder Befehlszeitlimits nicht geantwortet."
+  },
   " · Retry in {0}s": {
     "en": " · Retry in {0}s",
     "zh": " · {0} 秒后重试",
@@ -2728,5 +2788,55 @@
     "en": "Setting {0} is not available for {1}.",
     "zh": "设置 {0} 不适用于 {1}。",
     "de": "Einstellung {0} ist für {1} nicht verfügbar."
+  },
+  "Show admin say/yell": {
+    "en": "Show admin say/yell",
+    "zh": "显示管理员 Say/Yell",
+    "de": "Admin-Say/Yell anzeigen"
+  },
+  "Winning team": {
+    "en": "Winning team",
+    "zh": "获胜队伍",
+    "de": "Siegerteam"
+  },
+  "End round": {
+    "en": "End round",
+    "zh": "结束回合",
+    "de": "Runde beenden"
+  },
+  "Select a valid winning team.": {
+    "en": "Select a valid winning team.",
+    "zh": "请选择有效的获胜队伍。",
+    "de": "Bitte ein gültiges Siegerteam auswählen."
+  },
+  "End this round with {0} as the winning team?": {
+    "en": "End this round with {0} as the winning team?",
+    "zh": "结束本回合并判定 {0} 获胜？",
+    "de": "Diese Runde mit {0} als Siegerteam beenden?"
+  },
+  "Round ended. Winning team: {0}.": {
+    "en": "Round ended. Winning team: {0}.",
+    "zh": "回合已结束。获胜队伍：{0}。",
+    "de": "Runde beendet. Siegerteam: {0}."
+  },
+  "Unknown region": {
+    "en": "Unknown region",
+    "zh": "未知地区",
+    "de": "Unbekannte Region"
+  },
+  "Geo uses historical offline IP data; country assignments may be outdated.": {
+    "en": "Geo uses historical offline IP data; country assignments may be outdated.",
+    "zh": "Geo 使用历史离线 IP 数据，国家或地区归属可能已过时。",
+    "de": "Geo verwendet historische Offline-IP-Daten; Länderzuordnungen können veraltet sein."
+  },
+  "Show Say/Yell sent by plugins. Messages sent from LightRcon+ Chat are always shown.": {
+    "en": "Show Say/Yell sent by plugins. Messages sent from LightRcon+ Chat are always shown.",
+    "zh": "显示插件发送的 Say/Yell。通过 LightRcon+ Chat 手动发送的消息始终显示。",
+    "de": "Say/Yell von Plugins anzeigen. Über LightRcon+ Chat gesendete Nachrichten werden immer angezeigt."
+  },
+  "Plugin console": {
+    "en": "Plugin console",
+    "zh": "插件控制台",
+    "de": "Plugin-Konsole"
   }
 }

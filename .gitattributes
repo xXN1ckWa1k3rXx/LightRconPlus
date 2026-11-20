@@ -8,3 +8,5 @@
 *.md text eol=lf
 *.ps1 text eol=lf
 LICENSE text eol=lf
+*.dat binary
+docs/licenses/MaxMind-GeoLite.txt -whitespace

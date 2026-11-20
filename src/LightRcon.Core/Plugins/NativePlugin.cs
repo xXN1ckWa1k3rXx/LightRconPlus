@@ -18,7 +18,7 @@ public sealed class PluginContext
 {
     private readonly ServerSession session;
     internal PluginContext(ServerSession session) => this.session = session;
-    public Task<string[]> CommandAsync(params string[] words) => session.ExecuteAsync(words);
+    public Task<string[]> CommandAsync(params string[] words) => session.ExecutePluginAsync(words);
     public void Log(string text) => session.Log("Plugin", text);
 }
 
@@ -60,7 +60,7 @@ internal sealed class NativePlugin : IDisposable, IPluginRuntime
         Details = new(path, Path.GetFileNameWithoutExtension(path), "", "", "", "", "C#");
         try
         {
-            using var image = Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase) ? Compile(path) : File.OpenRead(path);
+            using var image = Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase) ? Compile(path, session.Game) : File.OpenRead(path);
             var assembly = loader.LoadFromStream(image);
             var declaration = assembly.GetCustomAttribute<LightRconPlus_onlyAttribute>();
             if (declaration?.ApiVersion != 1) throw new InvalidDataException("Expected [assembly: LightRconPlus_only(1)].");
@@ -75,10 +75,10 @@ internal sealed class NativePlugin : IDisposable, IPluginRuntime
         if (!assembly.TryGetRawMetadata(out var data, out var size)) throw new InvalidDataException(assembly.FullName);
         return AssemblyMetadata.Create(ModuleMetadata.CreateFromMetadata((IntPtr)data, size)).GetReference();
     }
-    private static Stream Compile(string path)
+    private static Stream Compile(string path, GameId game)
     {
         var assemblies = new[] { typeof(object).Assembly, typeof(PluginContext).Assembly, Assembly.Load("System.Runtime"), typeof(Console).Assembly, typeof(Enumerable).Assembly, Assembly.Load("System.Collections"), Assembly.Load("System.Threading.Tasks") };
-        var compilation = CSharpCompilation.Create(Path.GetFileNameWithoutExtension(path), [CSharpSyntaxTree.ParseText(File.ReadAllText(path), path: path)], assemblies.Distinct().Select(Reference), new(OutputKind.DynamicallyLinkedLibrary));
+        var compilation = CSharpCompilation.Create(Path.GetFileNameWithoutExtension(path), [CSharpSyntaxTree.ParseText(CSharpIncludes.Expand(path, game), path: path)], assemblies.Distinct().Select(Reference), new(OutputKind.DynamicallyLinkedLibrary));
         var output = new MemoryStream();
         var result = compilation.Emit(output);
         if (!result.Success) { output.Dispose(); throw new InvalidDataException(string.Join(Environment.NewLine, result.Diagnostics.Where(item => item.Severity == DiagnosticSeverity.Error))); }

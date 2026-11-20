@@ -4,12 +4,16 @@ public sealed record PluginDetails(string Path, string Name, string Version, str
 {
     public bool Enabled { get; init; }
     public string Error { get; init; } = "";
+    public long SettingsRevision { get; init; }
     public string Status => UiText.Get(Error.Length > 0 ? "Plugin failed" : Enabled ? "Enabled" : "Disabled");
     public override string ToString() => Name;
 }
 
 public sealed record PluginSetting(string Name, string Type, string Value, bool ReadOnly = false)
 {
+    public bool MatchesValue(string value) => Type.Equals("stringarray", StringComparison.OrdinalIgnoreCase)
+        ? Value.Split('|').Select(System.Net.WebUtility.UrlDecode).SequenceEqual(value.Split('|').Select(System.Net.WebUtility.UrlDecode))
+        : string.Equals(Value, value, StringComparison.Ordinal);
     public string Group => Name.Contains('|') ? Name[..Name.LastIndexOf('|')] : "";
     public string Label => Name[(Name.LastIndexOf('|') + 1)..];
     public string[] Choices => Type.ToLowerInvariant() switch

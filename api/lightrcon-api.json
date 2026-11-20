@@ -1,6 +1,6 @@
 {
   "api_version": 1,
-  "application_version": "Pre-alpha 1.0",
+  "application_version": "Pre-alpha 1.1",
   "engine": "MoonSharp 2.0.0",
   "entrypoint": "plugin metadata plus event callbacks",
   "reference": "docs/LUA-API.md",

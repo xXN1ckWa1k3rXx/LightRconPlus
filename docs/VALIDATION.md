@@ -1,12 +1,12 @@
 # Validation notes
 
-Date: 2026-11-19 (Asia/Shanghai). Development machine: Windows x64, .NET SDK 10.0.404. Release compilation treats warnings as errors.
+Date: 2026-11-21 (Asia/Shanghai). Development machine: Windows x64, .NET SDK 10.0.404. Release compilation treats warnings as errors.
 
 ## Automated results
 
 - Release solution build: zero warnings/errors.
-- Protocol/host regression harness with Procon integration enabled: **230 checks passed**.
-- WPF regression harness with Procon integration enabled: **168 checks passed**.
+- Protocol/host regression harness with Procon integration enabled: **316 checks passed**.
+- WPF regression harness with Procon integration enabled: **190 checks passed**.
 - Both harnesses exited with code 0.
 - Plugin tests require restoring MoonSharp and Roslyn. Set `LIGHTRCON_TEST_PROCON_ZIP` to a local Procon v1.5.4.2 release archive to include upstream integration checks.
 - Published win-x64 desktop/host single-file packages successfully. Smoke-tested the published host's help, configuration-only bootstrap, profile listing, rejection of a short administrator password without changing saved state, and absence of plaintext passwords in saved profiles.
@@ -21,6 +21,13 @@ Date: 2026-11-19 (Asia/Shanghai). Development machine: Windows x64, .NET SDK 10.
 - Lua metadata and local modules, structured player/kill events, targeted and squad messages, typed settings, validation, lifecycle callbacks, serialized timers, JSON, isolated persistent storage, HTTP request headers and response status/body and instruction limits.
 - WPF Details and Plugin Settings pages use actual runtime metadata and variables. Focus loss changes runtime and persisted configuration; expanded multiline editors save on Apply. Disabled plugins remain selectable. EN/ZH/DE warning bindings and preservation of unsaved plugin settings during language changes are checked.
 - Manual connection buttons are enabled while retrying; a click interrupts the 20-second countdown and reconnects immediately. Enabled Lua/Procon plugins and saved values are restored. Repeated requests do not create another session runner.
+- The console Host uses a five-second retry interval. Checks verify the actual retry timing, F3 handling while waiting and while connected, and ignoring unrelated keys through the keyboard handler's input callback. Redirected console input does not invoke `Console.ReadKey`. Host status includes instance IDs/endpoints; password rejection, refused TCP connections and post-authentication synchronization errors retain their stage and command/socket details. The desktop retains its twenty-second retry interval.
+- Layer authentication checks reload a stored profile and its administrator/user hashes unchanged, authenticate both accounts, distinguish missing/disabled accounts, password mismatch and missing View permission in local diagnostics, preserve generic client errors and reject accounts from another data directory. Console diagnostics are checked for absence of passwords and hashes. An isolated executable upgrade test creates accounts with the previous Host, starts the new Host against the same data while BF4DB compiles, and authenticates those accounts with both current and previous client assemblies.
+- Plugin libraries are discovered at RCON startup, successful Layer sign-in and explicit Refresh list requests. Tests leave new/updated files untouched across RCON polling intervals until a sign-in/refresh occurs. Flat C#/DLL/Lua discovery, source preference, exclusion of binary `.cs`/database/API dependencies, batched Procon compilation, rule-file staging, include-only wrappers, isolated package failures, configuration restoration and Layer broadcasts are checked. No timer or filesystem watcher scans the plugin library. Existing Layer clients continue using the same `plugin.list` operation for Refresh list.
+- Procon cache checks distinguish actual compilation (`Done`) from upstream `Using Cache`. A supplied adjacent DLL is loaded byte-for-byte even when its source includes are missing. Source-only plugins retain generated DLLs and cache entries across reconnect/shared-runtime rebuilds. Source/include/partial changes invalidate individual entries; replaced external DLLs load directly, and older unchanged library DLLs cannot overwrite newly compiled output.
+- Cache invalidation checks include Unicode source/metadata, replacing a supplied DLL, updating its source afterwards, preserving the newly compiled output over the older library DLL and recreating a missing generated DLL. A library `PluginCache.xml` does not replace the per-server runtime cache. Worker stdin/stdout use UTF-8.
+- Four unmodified plugins (BF4DB 2.0.16 and upstream CBasicInGameInfo, CInGameAdmin, CSpambot) were auto-discovered and compiled together against the simulator in 7.42 seconds. BF4DB exposed 11 settings. All remained disabled; the test did not call the external BF4DB API.
+- Chat uses a read-only rich-text editor: player, killer and victim team colors, localized weapon labels and raw-ID tooltips are preserved with selectable text. WPF checks cover live chat colors, dark-theme updates, selection, scrolling, clear and logical line limits. Console remains a plain selectable editor.
 - WPF screenshots of both pages and the enabled Procon banner were rendered and inspected in `artifacts/validation/`.
 - Layer clients list only upstream plugins, read upstream metadata/settings and modify settings on the host with Settings permission. LayerAdmin is required for activation. Tests cover read-only/typed validation, rejection of arbitrary host paths, persisted host values, list/state broadcasts to multiple clients and reconnect without duplicate runtimes.
 - Plugin activation uses one prominent blue action beside the selected plugin name. The compatibility warning appears only in the selected Procon plugin's content area, including disabled and failed plugins. Tab titles retain the blue accent under hover. The listener shows exactly one blue Enable/Disable action and locks its endpoint while listening.
@@ -44,7 +51,7 @@ Tests use isolated temporary profiles and loopback Frostbite simulators. They ne
 - TLS/account authentication, invalid-password rejection, permission checks, blocked upstream password reads, blocked arbitrary/chained PunkBuster execution, account-hash non-disclosure and invalidation after account edits.
 - Headless parser rejects missing, conflicting, unknown and duplicate options. Bootstrap persists DPAPI-protected RCON secrets and a PBKDF2 administrator with all permissions; repeated configuration creates no duplicate endpoint/account.
 - Battlelog game selection and URL escaping; BF4DB applicability/escaping.
-- Failed login retry after 20 seconds, unexpected disconnect persistence, reconnect restoration and client drafts.
+- Desktop failed login retry after 20 seconds, console Host retry after 5 seconds, unexpected disconnect persistence, reconnect restoration and client drafts.
 
 ## WPF coverage
 
@@ -72,14 +79,24 @@ dotnet run --project tests/LightRcon.Desktop.Tests -c Release
 .\tools\publish.ps1
 ```
 
-Local verification output is ignored under `.local/validation/`. Builds and intermediate outputs are centralized under ignored `artifacts/build/`; release packages go to `artifacts/releases/Pre-alpha-1.0/`.
+Local verification output is ignored under `.local/validation/`. Builds and intermediate outputs are centralized under ignored `artifacts/build/`; release packages go to the sibling `<checkout> release` directory, or the supplied `-OutputDirectory`.
 
-To run the optional upstream checks, set `LIGHTRCON_TEST_PROCON_ZIP` to the original `Procon-v1.5.4.2.zip` release archive before running either harness. For the single-file smoke test, run `dotnet run --project tests/LightRcon.Tests -c Release -- --published-host artifacts/releases/Pre-alpha-1.0/host/LightRcon.Host.exe` after publishing. Set `LIGHTRCON_UI_CAPTURE_DIR` to a local output folder to capture the WPF pages.
+To run the optional upstream checks, set `LIGHTRCON_TEST_PROCON_ZIP` to the original `Procon-v1.5.4.2.zip` release archive before running either harness. For the single-file smoke test, run `dotnet run --project tests/LightRcon.Tests -c Release -- --published-host "../LightRcon+ release/LightRconPlus-Host-x86_64_win (with dotnet)/LightRcon.Host.exe"` after publishing. Set `LIGHTRCON_UI_CAPTURE_DIR` to a local output folder to capture the WPF pages.
 
 ## Remaining validation
+
+Administration regression coverage includes Layer Say/Yell attribution in game, persisted history and other clients; duplicate server echo suppression; plugin-only Say/Yell display filtering, always-visible manual host/Layer chat and its saved per-connection preference; IP enrichment in Layer player snapshots; offline Geo lookup with unknown/private address handling; Procon account permission updates, inheritance and revocation; minimum-width Players layout; and the confirmed `mapList.endRound <winner>` action with Maps permission and two/four-team validation. Run `--administration` on the Core harness for the focused checks (set `LIGHTRCON_TEST_PROCON_ZIP` to include Procon).
+
+Procon localization checks exercise the original language callbacks and formatted team matching. The unmodified `CInGameAdmin` plugin accepts `!nuke US Army` and `!nuke Chinese Army` on the local RCON simulator; countdowns use readable names and delayed kill commands target only the matching team. The uploaded `Untitled-1.cs` matches the upstream `Plugins/CInGameAdmin.inc` reference. These checks do not run nuke commands on a real server.
+
+Plugin-console checks cover selectable WPF output, filtering out unrelated RCON logs, recent/live host output delivered to Layer viewers, entry-ID deduplication after reconnect, and published Host stdout from native C#, Lua `print`/`log.info` and Procon plugin-console calls.
+
+Geo uses a historical offline database whose original vintage is unspecified; it does not verify present-day address ownership. This product includes GeoLite data created by MaxMind, available from http://maxmind.com/.
 
 No real BF3, BF4 R63 or BFHL server was contacted. Actual Windows Server 2019 Desktop Experience / Server Core deployment, real PunkBuster behavior, full-server event load, every map/mode/weapon label, multiple-administrator conflicts and all DPI/localization layouts still need testing.
 
 Layer clients currently do not validate the listener certificate's identity. Account permission tests do not constitute an independent security audit or comprehensive rate-limit/load test. Use a trusted network or an authenticated tunnel.
 
 RCON map edits and set-next/run commands are not atomic transactions across independent administrators. Tests verify local serialization and stale-list checks, not global transaction safety.
+
+CSpambot regression checks use seven announcement lines and verify two complete rotations, unchanged array encoding on focus loss, edits to another plugin, and no immediate first-line repeat with a 120-second interval.

@@ -79,7 +79,7 @@ internal sealed class LuaPlugin : IPluginRuntime
     }
     private static void Bind(Table table, string name, Func<CallbackArguments, DynValue> callback) => table[name] = DynValue.NewCallback((_, args) => callback(args));
     private DynValue Array(IEnumerable<DynValue> values) => DynValue.NewTable(new Table(script, values.ToArray()));
-    private DynValue Send(params string[] words) => Array(session.ExecuteAsync(words).GetAwaiter().GetResult().Select(DynValue.NewString));
+    private DynValue Send(params string[] words) => Array(session.ExecutePluginAsync(words).GetAwaiter().GetResult().Select(DynValue.NewString));
     private void RegisterEvents()
     {
         var events = Namespace("event");

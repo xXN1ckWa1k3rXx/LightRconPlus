@@ -44,8 +44,9 @@ public sealed class ActivityLine : TextBlock
         }
         if (entry.Kind == "Chat")
         {
-            var team = int.TryParse(entry.Team.Replace("Team ", "", StringComparison.Ordinal), out var id) ? id : 0;
+            var team = entry.ActorTeam is >= 1 and <= 4 ? entry.ActorTeam : int.TryParse(entry.Team.Replace("Team ", "", StringComparison.Ordinal), out var id) ? id : 0;
             Name(entry.Name, team); Inlines.Add(new Run($" [{(team > 0 ? UiText.Format("Team {0}", team) : entry.Team)}] : "));
+            if (entry.IsAdminMessage && entry.AdminMessageType.Length > 0) Inlines.Add(new Run("[" + UiText.Get(entry.AdminMessageType) + "] "));
             Inlines.Add(new Run(entry.DisplayText) { ToolTip = entry.DisplayText != entry.Text ? entry.Text : null });
         }
         else if (entry.TryGetKillDetails(out var target, out var weapon))

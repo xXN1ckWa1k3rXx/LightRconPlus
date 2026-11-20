@@ -115,6 +115,23 @@ public partial class MainWindow
         }
     }
     private async void Restart_Click(object sender, RoutedEventArgs e) { if (Confirm(UiText.Get("Restart the current round now?"))) await Command(["mapList.restartRound"]); }
+    private sealed record WinningTeam(int Id, string Name);
+    private void UpdateRoundActions(ServerSession session)
+    {
+        EndRoundButton.IsEnabled = WinningTeamBox.IsEnabled = session.IsConnected && session.Permissions.HasFlag(LayerPermission.Maps);
+        var count = session.RoundTeamCount;
+        var choices = Enumerable.Range(1, count).Select(id => new WinningTeam(id, $"{UiText.Format("Team {0}", id)} · {TeamCatalog.Name(session.Info.Map, session.Info.GameMode, id, session.Game)}")).ToArray();
+        if (WinningTeamBox.ItemsSource is WinningTeam[] existing && existing.SequenceEqual(choices)) return;
+        var previous = WinningTeamBox.SelectedValue as int? ?? 1;
+        WinningTeamBox.ItemsSource = choices;
+        WinningTeamBox.SelectedValue = Math.Clamp(previous, 1, count);
+    }
+    private async void EndRound_Click(object sender, RoutedEventArgs e) => await Run(async () =>
+    {
+        var session = RequireSession();
+        if (WinningTeamBox.SelectedItem is not WinningTeam team) throw new ArgumentException(UiText.Get("Select a valid winning team."));
+        if (Confirm(UiText.Format("End this round with {0} as the winning team?", team.Name))) await session.EndRoundAsync(team.Id);
+    });
     private async void NextRound_Click(object sender, RoutedEventArgs e) { if (Confirm(UiText.Get("Switch to the next round now?"))) await Command(["mapList.runNextRound"]); }
     private void BanSearch_TextChanged(object sender, TextChangedEventArgs e) { if (ready) FilterBans(); }
     private void FilterBans()

@@ -20,7 +20,7 @@ Connect to the game server, open **Plugin**, and select **Add plugin…**. Choos
 
 On a Layer client, the plugin list and settings belong to the upstream host. Import files on that host. Connecting another client does not start another copy of a plugin.
 
-The library uses `plugins/BF3/`, `plugins/BF4/` and `plugins/BFH/` beside the executable. Copied packages live in `GAME/PluginName/`. Keep helper modules and dependencies inside the package. **Refresh list** discovers entries for the connected game.
+The library uses `plugins/BF3/`, `plugins/BF4/` and `plugins/BFH/` beside the executable. Copied packages live in `GAME/PluginName/`; flat game directories are supported too. Keep helper modules and dependencies with the plugin. The host scans after connecting to RCON, when a Layer user signs in successfully, and when **Refresh list** is selected. Files are not scanned periodically. A Layer refresh scans the upstream library and pushes the completed list to connected clients. New plugins remain disabled until enabled explicitly.
 
 Settings save when their controls lose focus. **Reload** reads the plugin's current fields and values. Check **Details** and **Console** for loading or callback errors.
 

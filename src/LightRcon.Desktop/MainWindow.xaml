@@ -69,7 +69,7 @@
             <TextBlock Text="{loc:Loc Key='Initially created entirely with AI. Maintained and reviewed by xXN1ckWa1k3rXx.'}" TextWrapping="Wrap" Margin="0,10,0,0" />
             <TextBlock Text="{loc:Loc Key='Licensed under GNU GPL v3.0. Includes data derived from Procon Frostbite; see LICENSE and THIRD-PARTY-NOTICES.md.'}" TextWrapping="Wrap" Margin="0,10,0,0" />
             <TextBlock Text="{loc:Loc Key='Battlefield and related trademarks belong to Electronic Arts and DICE. Not affiliated with or endorsed by EA, DICE or Procon contributors.'}" TextWrapping="Wrap" Margin="0,10,0,0" />
-            <TextBlock Text="Pre-alpha 1.0" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
+            <TextBlock Text="Pre-alpha 1.1" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
             <TextBlock Text="C# · WPF · .NET 10" Margin="0,6,0,0" Foreground="{DynamicResource Muted}" />
           </StackPanel>
         </Grid>
@@ -174,20 +174,21 @@
           <ComboBox x:Name="ServerSelector" DisplayMemberPath="ConnectionLabel" SelectionChanged="ServerSelector_SelectionChanged" />
           <Button Grid.Column="1" Content="＋" FontSize="18" Click="CreateServer_Click" ToolTip="{loc:Loc Key='Create Connection'}" Margin="8,0,0,0" Padding="10,3" />
         </Grid>
-        <DockPanel Grid.Row="1" Margin="0,0,0,10">
-          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <WrapPanel x:Name="ServerActionBar" Grid.Row="1" Margin="0,8,0,0">
             <Button x:Name="ConnectButton" Content="{loc:Loc Key='Connect'}" Click="Connect_Click" />
             <Button Content="{loc:Loc Key='Disconnect'}" Click="Disconnect_Click" />
             <Button Content="{loc:Loc Key='Refresh'}" Click="Refresh_Click" />
             <Button x:Name="RestartButton" ToolTip="{loc:Loc Key='Restart'}" Click="Restart_Click" FontFamily="Segoe MDL2 Assets" Content="" />
             <Button x:Name="NextRoundButton" ToolTip="{loc:Loc Key='Next round'}" Click="NextRound_Click" FontFamily="Segoe MDL2 Assets" Content="" Margin="0" />
-          </StackPanel>
+          </WrapPanel>
           <StackPanel>
             <TextBlock x:Name="ServerTitle" Visibility="Collapsed" />
-            <TextBlock x:Name="ServerSummary" FontSize="13" TextTrimming="CharacterEllipsis" />
+            <TextBlock x:Name="ServerSummary" FontSize="13" TextWrapping="Wrap" />
             <CheckBox x:Name="AutoLoginBox" Content="{loc:Loc Key='Auto login'}" Click="AutoLogin_Click" Visibility="Collapsed" />
           </StackPanel>
-        </DockPanel>
+        </Grid>
         <Border x:Name="ConnectionBanner" Grid.Row="2" Background="{DynamicResource Warning}" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="10" Margin="0,0,0,10">
           <TextBlock x:Name="ConnectionBannerText" Foreground="{DynamicResource WarningText}" TextWrapping="Wrap" />
         </Border>
@@ -200,11 +201,13 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                   </Grid.RowDefinitions>
-                  <DockPanel Margin="0,0,0,10">
+                  <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBlock Text="{loc:Loc Key='Players'}" Foreground="{DynamicResource Muted}" FontSize="12" />
-                    <TextBlock x:Name="PlayerCountText" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" />
-                  </DockPanel>
+                    <TextBlock x:Name="PlayerCountText" Grid.Column="1" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" />
+                  </Grid>
                   <DataGrid Grid.Row="1" x:Name="PlayersGrid" SelectionChanged="PlayersGrid_SelectionChanged" PreviewMouseLeftButtonDown="PlayersGrid_PreviewMouseLeftButtonDown" PreviewMouseRightButtonDown="PlayersGrid_PreviewMouseRightButtonDown" BorderBrush="{DynamicResource Line}" BorderThickness="1" RowHeight="28">
                     <DataGrid.RowStyle>
                       <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -222,6 +225,10 @@
                     </DataGrid.CellStyle>
                     <DataGrid.Columns>
                       <DataGridTextColumn Header="ID#" Binding="{Binding Id}" Width="48" />
+                      <DataGridTemplateColumn Header="Geo" SortMemberPath="Geo" Width="52">
+                        <DataGridTemplateColumn.HeaderStyle><Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}"><Setter Property="ToolTip" Value="{loc:Loc Key='Geo uses historical offline IP data; country assignments may be outdated.'}"/></Style></DataGridTemplateColumn.HeaderStyle>
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Geo}" ToolTip="{Binding GeoDetails}" VerticalAlignment="Center"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
                       <DataGridTextColumn Header="{loc:Loc Key='Tags'}" Binding="{Binding Tags}" Width="55" />
                       <DataGridTextColumn Header="{loc:Loc Key='Name'}" Binding="{Binding Name}" Width="*" MinWidth="150" />
                       <DataGridTextColumn Header="{loc:Loc Key='Squad'}" Binding="{Binding SquadName}" Width="90" />
@@ -248,7 +255,14 @@
                       </GroupStyle>
                     </DataGrid.GroupStyle>
                   </DataGrid>
-                  <Border Grid.Row="2" x:Name="PlayerActionPanel" Style="{StaticResource Panel}" Margin="0,12,0,0" Padding="14" Visibility="Collapsed">
+                  <Border Grid.Row="2" Style="{StaticResource OutlinePanel}" Margin="0,10,0,0" Padding="10">
+                    <WrapPanel>
+                      <TextBlock Text="{loc:Loc Key='Winning team'}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <ComboBox x:Name="WinningTeamBox" DisplayMemberPath="Name" SelectedValuePath="Id" Width="240" Margin="0,0,12,0"/>
+                      <Button x:Name="EndRoundButton" Content="{loc:Loc Key='End round'}" Click="EndRound_Click" Style="{StaticResource DangerButton}" Margin="0"/>
+                    </WrapPanel>
+                  </Border>
+                  <Border Grid.Row="3" x:Name="PlayerActionPanel" Style="{StaticResource Panel}" Margin="0,12,0,0" Padding="14" Visibility="Collapsed">
                     <StackPanel>
                       <DockPanel>
                         <TextBlock x:Name="SelectedPlayerName" FontSize="17" FontWeight="SemiBold" />
@@ -422,7 +436,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
-              <TextBox x:Name="ChatList" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="13" Loaded="LogText_Loaded" />
+              <loc:ActivityEditor x:Name="ChatList" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="13" Loaded="LogText_Loaded" />
               <DockPanel Grid.Row="1" Margin="0,8,0,8">
                 <Button DockPanel.Dock="Right" x:Name="SendChatButton" Content="{loc:Loc Key='Send'}" Style="{StaticResource PrimaryButton}" Click="SendChat_Click" Margin="8,0,0,0" MinWidth="90" />
                 <Button DockPanel.Dock="Right" x:Name="ClearChatButton" Content="{loc:Loc Key='Clear chat'}" Click="ClearChat_Click" Margin="8,0,0,0" />
@@ -444,6 +458,7 @@
                   <TextBlock Text="{loc:Loc Key='Audience'}" Margin="0,0,0,5" />
                   <ComboBox x:Name="AudienceBox" Width="220" />
                 </StackPanel>
+                <CheckBox x:Name="ShowAdminSayYellBox" Content="{loc:Loc Key='Show admin say/yell'}" ToolTip="{loc:Loc Key='Show Say/Yell sent by plugins. Messages sent from LightRcon+ Chat are always shown.'}" Click="ShowAdminSayYell_Click" VerticalAlignment="Bottom" Margin="0,0,16,8" IsChecked="False"/>
                 <TextBlock x:Name="ChatRetentionText" Foreground="{DynamicResource Muted}" VerticalAlignment="Bottom" Margin="0,0,0,8" />
               </WrapPanel>
             </Grid>
@@ -644,6 +659,7 @@
           </TabItem>
           <TabItem Header="{loc:Loc Key='Plugin'}" Tag="Plugin">
             <Grid Margin="0,12,0,0">
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                 <DockPanel>
                   <StackPanel DockPanel.Dock="Top">
@@ -690,6 +706,10 @@
                     </TabItem>
                   </TabControl>
                 </Grid>
+                <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                  <TextBlock DockPanel.Dock="Top" Text="{loc:Loc Key='Plugin console'}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                  <TextBox x:Name="PluginConsoleList" Height="150" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="12" Loaded="LogText_Loaded"/>
+                </DockPanel>
             </Grid>
           </TabItem>
         </TabControl>

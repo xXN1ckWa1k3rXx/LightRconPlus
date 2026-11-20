@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using LightRcon.Core;
+using LightRcon.Host;
 
 if (!OperatingSystem.IsWindows() || Environment.OSVersion.Version.Build < 17763)
 {
@@ -15,6 +16,7 @@ var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(root.ToUppe
 using var mutex = new Mutex(true, "Local\\LightRconPlus-" + key, out var created);
 if (!created) { System.Console.Error.WriteLine("This data directory is already in use by LightRcon+."); return 2; }
 var store = new ProfileStore(root);
+System.Console.WriteLine($"Data directory: {store.Root}");
 if (options.List)
 {
     foreach (var p in store.State.Servers) System.Console.WriteLine($"{p.Id}  {p.DisplayName}  Layer={p.Layer.Enabled}"); return 0;
@@ -33,28 +35,36 @@ if (profiles.Length == 0) { System.Console.Error.WriteLine("No matching profiles
 var stop = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 System.Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.TrySetResult(); };
 List<ServerSession> sessions = [];
+using var keyboardCancellation = new CancellationTokenSource();
+Task keyboard = Task.CompletedTask;
 try
 {
     foreach (var profile in profiles)
     {
-        var session = new ServerSession(profile, store); sessions.Add(session);
-        ConnectionState previous = (ConnectionState)(-1);
-        session.Changed += () =>
+        var session = new ServerSession(profile, store, TimeSpan.FromSeconds(5)); sessions.Add(session);
+        var reporter = new HostStatusReporter(session, System.Console.WriteLine, System.Console.Error.WriteLine);
+        session.Changed += reporter.Report;
+        session.Logged += entry =>
         {
-            if (previous == session.State) return; previous = session.State;
-            System.Console.WriteLine($"[{DateTime.Now:T}] [{profile.Name}] {session.Status}");
+            if (entry.IsPluginConsole || entry.Kind == "Layer") System.Console.WriteLine($"[{entry.Timestamp:T}] [{profile.Name}] [{profile.Id}] [{entry.Kind}] {entry.Text}");
         };
         if (profile.Layer.Enabled)
         {
             await session.StartLayerAsync(); System.Console.WriteLine($"[{profile.Name}] Layer {profile.Layer.BindAddress}:{profile.Layer.Port}");
+            System.Console.WriteLine($"[{profile.Name}] [{profile.Id}] Layer accounts: {profile.Layer.Accounts.Count} total, {profile.Layer.Accounts.Count(account => account.Enabled)} enabled.");
         }
         await session.StartAsync();
     }
-    System.Console.WriteLine("LightRcon+ host is running. Ctrl+C to stop.");
+    keyboard = HostConsole.ReadKeysAsync(sessions, HostConsole.ReadKey, System.Console.WriteLine, keyboardCancellation.Token);
+    System.Console.WriteLine(System.Console.IsInputRedirected
+        ? "LightRcon+ host is running. Automatic retry: 5 seconds. Ctrl+C to stop. F3 requires an interactive console."
+        : "LightRcon+ host is running. Automatic retry: 5 seconds. F3 to reconnect all profiles; Ctrl+C to stop.");
     await stop.Task;
 }
 finally
 {
+    keyboardCancellation.Cancel();
+    await keyboard;
     foreach (var session in sessions) await session.DisposeAsync(); store.Save();
 }
 return 0;

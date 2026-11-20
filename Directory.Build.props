@@ -8,8 +8,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
     <Deterministic>true</Deterministic>
-    <Version>1.0.0-prealpha</Version>
-    <InformationalVersion>Pre-alpha 1.0</InformationalVersion>
+    <Version>1.1.0-prealpha</Version>
+    <InformationalVersion>Pre-alpha 1.1</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>xXN1ckWa1k3rXx</Authors>
     <Copyright>Copyright (C) 2026 xXN1ckWa1k3rXx and contributors</Copyright>

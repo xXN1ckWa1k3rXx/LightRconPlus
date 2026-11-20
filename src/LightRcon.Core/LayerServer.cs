@@ -28,6 +28,8 @@ public sealed class LayerServer : IAsyncDisposable
     private Task? accepting;
     private X509Certificate2? certificate;
     private int peerId;
+    private readonly object libraryScanGate = new();
+    private Task libraryScan = Task.CompletedTask;
     public string Fingerprint { get; private set; } = "";
     public int ClientCount => peers.Count;
     public LayerServer(ServerSession session, ProfileStore store) { this.session = session; this.store = store; }
@@ -56,6 +58,7 @@ public sealed class LayerServer : IAsyncDisposable
         session.Journal.Appended += OnActivity;
         session.RemoteEvent += OnEvent;
         session.Plugins.Changed += OnPluginsChanged;
+        session.Logged += OnPluginConsole;
         accepting = AcceptAsync();
         return Task.CompletedTask;
     }
@@ -90,7 +93,11 @@ public sealed class LayerServer : IAsyncDisposable
         using var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         var token = tokenSource.Token;
         var ip = (client.Client.RemoteEndPoint as IPEndPoint)?.Address.ToString() ?? "unknown";
-        if (failures.TryGetValue(ip, out var blocked) && blocked.Count >= 5 && blocked.Until > DateTimeOffset.Now) return;
+        if (failures.TryGetValue(ip, out var blocked) && blocked.Count >= 5 && blocked.Until > DateTimeOffset.Now)
+        {
+            session.Log("Layer", UiText.Format("Layer login blocked from {0} until {1}: too many failed attempts.", ip, blocked.Until.LocalDateTime));
+            return;
+        }
         using var stream = new SslStream(client.GetStream(), false);
         using var sendGate = new SemaphoreSlim(1);
         Task? sending = null;
@@ -101,25 +108,42 @@ public sealed class LayerServer : IAsyncDisposable
             await stream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions { ServerCertificate = certificate, ClientCertificateRequired = false, EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 }, loginTimeout.Token);
             var login = await LayerWire.ReadAsync(stream, loginTimeout.Token);
             LayerAccount? account;
-            lock (session.Profile.Sync) account = session.Profile.Layer.Accounts.FirstOrDefault(x => x.Enabled && string.Equals(x.Username, login.Username, StringComparison.OrdinalIgnoreCase));
+            bool disabled;
+            lock (session.Profile.Sync)
+            {
+                var found = session.Profile.Layer.Accounts.FirstOrDefault(x => string.Equals(x.Username, login.Username, StringComparison.OrdinalIgnoreCase));
+                disabled = found is { Enabled: false };
+                account = found is { Enabled: true } ? found : null;
+            }
             // Same PBKDF2 workload for unknown accounts, to avoid a fast username oracle.
             var valid = login.Username.Length <= 64 && login.Password.Length <= 1024 && PasswordHash.Verify(login.Password, account?.PasswordHash ?? DummyHash);
             login.Password = "";
-            if (login.Type != "login" || login.Protocol != 1 || account is null || !valid || PermissionsFor(account.Username) is not { } permissions || !permissions.HasFlag(LayerPermission.View))
+            var permissions = account is null ? null : PermissionsFor(account.Username);
+            if (login.Type != "login" || login.Protocol != 1 || account is null || !valid || permissions is null || !permissions.Value.HasFlag(LayerPermission.View))
             {
+                var reason = login.Type != "login" || login.Protocol != 1 ? "InvalidProtocol"
+                    : login.Username.Length > 64 ? "InvalidUsernameLength"
+                    : disabled ? "AccountDisabled"
+                    : account is null ? "AccountNotFound"
+                    : !valid ? "PasswordMismatch"
+                    : "ViewPermissionMissing";
+                var username = string.Concat(login.Username.Take(64).Select(character => char.IsControl(character) ? '_' : character));
+                session.Log("Layer", UiText.Format("Layer login rejected for {0} from {1}: {2}.", username, ip, reason));
                 if (failures.Count > 4096) foreach (var key in failures.Where(x => x.Value.Until < DateTimeOffset.Now).Select(x => x.Key).Take(1024)) failures.TryRemove(key, out _);
                 failures.AddOrUpdate(ip, (1, DateTimeOffset.Now.AddMinutes(1)), (_, old) => (old.Until < DateTimeOffset.Now ? 1 : old.Count + 1, DateTimeOffset.Now.AddMinutes(1)));
                 await LayerWire.WriteAsync(stream, new() { Type = "welcome", Error = UiText.Get("Invalid username, password or login permission.") }, sendGate, loginTimeout.Token);
                 return;
             }
             peer.Username = account.Username;
-            await LayerWire.WriteAsync(stream, new() { Type = "welcome", Permissions = permissions }, sendGate, loginTimeout.Token);
+            await LayerWire.WriteAsync(stream, new() { Type = "welcome", Permissions = permissions.Value }, sendGate, loginTimeout.Token);
             // Subscribe before replay. Duplicate sequence numbers are ignored by clients;
             // replay must complete before live frames are drained to retain ordering.
             lock (publishGate)
             {
                 peers[id] = peer;
                 peer.Send(new() { Type = "plugins", Plugins = session.Plugins.Snapshot() });
+                foreach (var chunk in session.ConsoleSnapshot().Where(entry => entry.IsPluginConsole).TakeLast(300).Chunk(20))
+                    peer.Send(new() { Type = "plugin.console", ConsoleEntries = chunk });
             }
             foreach (var chunk in session.Journal.Replay())
             {
@@ -129,6 +153,7 @@ public sealed class LayerServer : IAsyncDisposable
             }
             sending = SendLoopAsync(peer, stream, sendGate, token);
             session.Log("Layer", UiText.Format("{0} signed in ({1})", peer.Username, ip));
+            RequestLibraryScan();
             // Initial synchronization reads many settings in a short burst. Bound that burst
             // separately from the sustained request rate so normal clients can finish login.
             var lastRequest = System.Diagnostics.Stopwatch.GetTimestamp();
@@ -153,7 +178,10 @@ public sealed class LayerServer : IAsyncDisposable
                         if (frame.Type == "console") LayerAuthorization.Demand(current, LayerPermission.Console);
                         var required = LayerAuthorization.Required(frame.Words);
                         LayerAuthorization.Demand(current, required);
-                        response.Words = await session.ExecuteAsync(frame.Words, token);
+                        response.Words = frame.Type == "command" && session.TryReadSetting(frame.Words, out var cached)
+                            ? cached : await session.ExecuteAsAsync(frame.Words, peer.Username, token);
+                        if (frame.Words[0] == "admin.listPlayers")
+                            response.Words = FrostbiteParser.WithPlayerAddresses(response.Words, session.PlayerSnapshot());
                         session.Log("Layer audit", $"{peer.Username}: {frame.Words[0]}");
                     }
                     else if (frame.Type.StartsWith("plugin.", StringComparison.Ordinal))
@@ -176,6 +204,7 @@ public sealed class LayerServer : IAsyncDisposable
                     {
                         LayerAuthorization.Demand(current, LayerPermission.LayerAdmin);
                         UpdateAccount(frame);
+                        await session.Plugins.RefreshAccountsAsync();
                         response.Words = ["OK"];
                         session.Log("Layer audit", $"{peer.Username}: {frame.Type}");
                     }
@@ -189,7 +218,10 @@ public sealed class LayerServer : IAsyncDisposable
             }
         }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or SocketException or System.Security.Authentication.AuthenticationException or System.Text.Json.JsonException or InvalidDataException)
-        { if (!token.IsCancellationRequested && peer.Username.Length > 0) session.Log("Layer", $"{peer.Username}: {ex.Message}"); }
+        {
+            if (!token.IsCancellationRequested)
+                session.Log("Layer", UiText.Format("Layer connection from {0} failed: {1}", ip, ex.Message));
+        }
         finally
         {
             peers.TryRemove(id, out _);
@@ -212,6 +244,7 @@ public sealed class LayerServer : IAsyncDisposable
         if (frame.Words.Length != count) throw new ArgumentException("Invalid plugin request.");
         if (frame.Type == "plugin.set") LayerAuthorization.Demand(permissions, LayerPermission.Settings);
         if (frame.Type is "plugin.enable" or "plugin.disable") LayerAuthorization.Demand(permissions, LayerPermission.LayerAdmin);
+        if (frame.Type == "plugin.list") RequestLibraryScan();
         if (count > 0)
         {
             // A remote peer can only address installed plugins, never arbitrary host files.
@@ -228,6 +261,21 @@ public sealed class LayerServer : IAsyncDisposable
         }
         response.Plugins = session.Plugins.Snapshot();
         if (frame.Type == "plugin.list") OnPluginsChanged();
+    }
+    private void RequestLibraryScan()
+    {
+        lock (libraryScanGate)
+        {
+            // Sign-in and the client's initial list request describe the same scan.
+            if (libraryScan.IsCompleted) libraryScan = Task.Run(ScanLibraryAsync);
+        }
+    }
+    private async Task ScanLibraryAsync()
+    {
+        if (lifetime.IsCancellationRequested) return;
+        try { await session.Plugins.ScanLibraryAsync(); }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested || session.LifetimeToken.IsCancellationRequested) { }
+        catch (Exception error) { session.Log("Plugin", UiText.Format("Plugin library scan failed: {0}", error.Message)); }
     }
     private void OnPluginsChanged()
     {
@@ -277,6 +325,14 @@ public sealed class LayerServer : IAsyncDisposable
         }
         store.Save();
     }
+    private void OnPluginConsole(ConsoleEntry entry)
+    {
+        if (!entry.IsPluginConsole) return;
+        lock (publishGate)
+            foreach (var peer in peers.Values)
+                if (PermissionsFor(peer.Username)?.HasFlag(LayerPermission.View) == true)
+                    peer.Send(new() { Type = "plugin.console", ConsoleEntries = [entry] });
+    }
     private void OnActivity(ActivityEntry[] entries)
     {
         lock (publishGate)
@@ -300,10 +356,13 @@ public sealed class LayerServer : IAsyncDisposable
         session.Journal.Appended -= OnActivity;
         session.RemoteEvent -= OnEvent;
         session.Plugins.Changed -= OnPluginsChanged;
+        session.Logged -= OnPluginConsole;
         lifetime.Cancel(); listener?.Stop();
         foreach (var peer in peers.Values) peer.Client.Close();
         if (accepting is not null) await accepting;
         try { await Task.WhenAll(workers.Values); } catch (Exception ex) when (ex is OperationCanceledException or IOException or TimeoutException) { }
+        Task scanning; lock (libraryScanGate) scanning = libraryScan;
+        await scanning;
         certificate?.Dispose();
     }
 }

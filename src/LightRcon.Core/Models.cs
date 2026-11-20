@@ -45,6 +45,7 @@ public sealed class ClientPreferences
     public string ChatAudience { get; set; } = "All Players";
     public string ChatDisplay { get; set; } = "Say";
     public int YellSeconds { get; set; } = 10;
+    public bool ShowAdminSayYell { get; set; }
     public string BanSearch { get; set; } = "";
     public string ConsoleDraft { get; set; } = "";
     public Dictionary<string, List<GridColumnPreference>> Grids { get; set; } = [];
@@ -94,6 +95,8 @@ public sealed class PlayerInfo
     public string EaGuid { get; set; } = "";
     public string PbGuid { get; set; } = "";
     public string Ip { get; set; } = "";
+    [JsonIgnore] public string Geo => GeoLocation.CountryCode(Ip) is { Length: > 0 } code ? code : "—";
+    [JsonIgnore] public string GeoDetails => GeoLocation.CountryName(Geo == "—" ? "" : Geo) + (Ip.Length > 0 ? " · " + Ip : "");
     public string PbSlot { get; set; } = "";
     public bool? IsAlive { get; set; }
     public int Team { get; set; }
@@ -139,6 +142,9 @@ public sealed record ActivityEntry(long Sequence, DateTimeOffset Timestamp, stri
     public int TargetTeam { get; init; }
     public string TargetName { get; init; } = "";
     public string Weapon { get; init; } = "";
+    public bool IsAdminMessage { get; init; }
+    public bool IsPluginMessage { get; init; }
+    public string AdminMessageType { get; init; } = "";
     public bool TryGetKillDetails(out string target, out string weapon)
     {
         target = TargetName; weapon = Weapon;
@@ -169,7 +175,9 @@ public sealed record ActivityEntry(long Sequence, DateTimeOffset Timestamp, stri
 
 public sealed record ConsoleEntry(DateTimeOffset Timestamp, string Kind, string Text)
 {
-    public string Formatted => $"[{Timestamp.LocalDateTime:HH:mm:ss}] [{Kind}] {Text}";
+    public Guid Id { get; init; } = Guid.NewGuid();
+    [JsonIgnore] public bool IsPluginConsole => Kind is "Plugin" or "Procon" or "Lua" || Kind.StartsWith("Lua ", StringComparison.Ordinal);
+    [JsonIgnore] public string Formatted => $"[{Timestamp.LocalDateTime:HH:mm:ss}] [{Kind}] {Text}";
 }
 
 public enum ConnectionState { Offline, Connecting, Authenticating, Synchronizing, Connected, RetryWaiting, Disposed }

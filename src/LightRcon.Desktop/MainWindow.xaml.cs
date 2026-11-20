@@ -97,11 +97,12 @@ public partial class MainWindow : Window
         var p = session.Profile; AutoLoginBox.IsChecked = p.AutoLogin;
         ChatInput.Text = p.Client.ChatDraft; BanSearch.Text = p.Client.BanSearch; ConsoleInput.Text = p.Client.ConsoleDraft;
         DisplayBox.SelectedIndex = p.Client.ChatDisplay == "Yell" ? 1 : 0; YellTimeBox.SelectedItem = p.Client.YellSeconds;
+        ShowAdminSayYellBox.IsChecked = p.Client.ShowAdminSayYell;
         UpdateAudience(session.PlayerSnapshot(), p.Client.ChatAudience);
         MainTabs.SelectedItem = MainTabs.Items.Cast<TabItem>().FirstOrDefault(x => (string)x.Tag == p.Client.SelectedTab && (x != LayersTab || !p.IsLayer || session.Permissions.HasFlag(LayerPermission.LayerAdmin))) ?? MainTabs.Items[0];
         PlayersTabs.SelectedIndex = Math.Clamp(p.Client.PlayerTab, 0, 2); LayerBind.Text = p.Layer.BindAddress; LayerPort.Text = p.Layer.Port.ToString();
         RestoreGrid(PlayersGrid, "players"); RestoreGrid(BansGrid, "bans");
-        chatEntries.Clear(); consoleEntries.Clear(); ChatList.Clear(); ConsoleList.Clear(); StartupConfigText.Clear(); PopulateSettings(true);
+        chatEntries.Clear(); consoleEntries.Clear(); ChatList.Clear(); ConsoleList.Clear(); PluginConsoleList.Clear(); StartupConfigText.Clear(); PopulateSettings(true);
         switching = false; shownVersion = -1; dirty = false; UpdateMapGroups(); RefreshView(); _ = LoadLayerAccountsAsync(false);
     }
     private void SidebarServers_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (!switching && SidebarServers.SelectedItem is ServerCard card) SelectServer(card.Session); }
@@ -144,6 +145,7 @@ public partial class MainWindow : Window
             p.Client.SelectedTab = (MainTabs.SelectedItem as TabItem)?.Tag?.ToString() ?? "Players"; p.Client.PlayerTab = PlayersTabs.SelectedIndex;
             p.Client.ChatDraft = ChatInput.Text; p.Client.ChatAudience = AudienceCode;
             p.Client.ChatDisplay = ComboText(DisplayBox); p.Client.YellSeconds = (int?)YellTimeBox.SelectedItem ?? 10;
+            p.Client.ShowAdminSayYell = ShowAdminSayYellBox.IsChecked == true;
             p.Client.BanSearch = BanSearch.Text; p.Client.ConsoleDraft = ConsoleInput.Text;
             p.Client.Grids["players"] = SaveGrid(PlayersGrid); p.Client.Grids["bans"] = SaveGrid(BansGrid);
             foreach (var item in settingEditors) if (item.Value.Tag is true) p.DraftSettings[item.Key] = EditorValue(item.Value);
@@ -182,6 +184,7 @@ public partial class MainWindow : Window
         RefreshPluginList(s);
         ConnectButton.IsEnabled = s.State is ConnectionState.Offline or ConnectionState.RetryWaiting;
         RestartButton.IsEnabled = NextRoundButton.IsEnabled = s.IsConnected && s.Permissions.HasFlag(LayerPermission.Maps); SendChatButton.IsEnabled = s.IsConnected && s.Permissions.HasFlag(LayerPermission.Chat);
+        UpdateRoundActions(s);
         LoadMapListButton.IsEnabled = s.IsConnected && s.Permissions.HasFlag(LayerPermission.Maps);
         AddManualBanButton.IsEnabled = s.IsConnected && s.Permissions.HasFlag(LayerPermission.Bans);
         ChatRetentionText.Text = UiText.Format("Latest {0} lines shown", store.State.ChatLineLimit) + " · " + UiText.Get(s.Profile.IsLayer ? "History from upstream Layer" : "Logs saved locally");
@@ -202,22 +205,34 @@ public partial class MainWindow : Window
         CurrentMapsList.ItemsSource = s.Profile.DesiredMaps?.ToArray() ?? s.MapSnapshot(); if (mapIndex < CurrentMapsList.Items.Count) CurrentMapsList.SelectedIndex = mapIndex;
         var spec = SpectatorList.SelectedItem; SpectatorList.ItemsSource = s.SpectatorSnapshot(); SpectatorList.SelectedItem = spec;
         var reserved = ReservedList.SelectedItem; ReservedList.ItemsSource = s.ReservedSnapshot(); ReservedList.SelectedItem = reserved;
-        UpdateChat(); UpdateConsole(); PopulateSettings(false); UpdateStartupConfig();
+        UpdateChat(); UpdateConsole(); UpdatePluginConsole(); PopulateSettings(false); UpdateStartupConfig();
     }
     private readonly Dictionary<Guid, long> clearedChat = [];
     private void UpdateChat()
     {
         if (selected is null) return;
         var limit = store.State.ChatLineLimit;
-        var snapshot = selected.Journal.Snapshot().Where(entry => entry.Sequence > clearedChat.GetValueOrDefault(selected.Profile.Id)).TakeLast(limit).ToArray();
+        var snapshot = selected.Journal.Snapshot().Where(entry => entry.Sequence > clearedChat.GetValueOrDefault(selected.Profile.Id))
+            .Where(entry => ShowAdminSayYellBox.IsChecked == true || !IsPluginChat(entry)).TakeLast(limit).ToArray();
         chatEntries.Clear(); foreach (var entry in snapshot) chatEntries.Add(entry);
-        UpdateLogText(ChatList, snapshot.Select(entry => entry.Formatted), limit);
+        ChatList.UpdateEntries(snapshot, limit);
+    }
+    private static bool IsPluginChat(ActivityEntry entry) => entry.Kind == "Chat" && entry.IsPluginMessage;
+    private void ShowAdminSayYell_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ready || switching || selected is null) return;
+        SaveClient(); store.Save(); UpdateChat();
     }
     private void ClearChat_Click(object sender, RoutedEventArgs e)
     {
         if (selected is null) return;
         clearedChat[selected.Profile.Id] = selected.Journal.Snapshot().LastOrDefault()?.Sequence ?? 0;
         chatEntries.Clear(); ChatList.Clear();
+    }
+    private void UpdatePluginConsole()
+    {
+        if (selected is null) return;
+        UpdateLogText(PluginConsoleList, selected.ConsoleSnapshot().Where(entry => entry.IsPluginConsole).Select(entry => entry.Formatted), 3000);
     }
     private void UpdateConsole()
     {
@@ -240,7 +255,11 @@ public partial class MainWindow : Window
         box.Select(Math.Min(start, text.Length), Math.Min(length, Math.Max(0, text.Length - start)));
         if (follow) box.ScrollToEnd(); else box.ScrollToVerticalOffset(offset);
     }
-    private void LogText_Loaded(object sender, RoutedEventArgs e) => ((TextBox)sender).ScrollToEnd();
+    private void LogText_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is ActivityEditor chat) chat.ScrollToEnd();
+        else ((TextBox)sender).ScrollToEnd();
+    }
     private void ConsoleFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (ready) UpdateConsole(); }
     private static bool IsAtBottom(DependencyObject control) { var scroll = FindChild<ScrollViewer>(control); return scroll is null || scroll.VerticalOffset >= scroll.ScrollableHeight - 20; }
     private static T? FindChild<T>(DependencyObject parent) where T : DependencyObject

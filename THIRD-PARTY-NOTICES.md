@@ -52,4 +52,12 @@ LightRcon+ is not affiliated with, endorsed by or sponsored by EA, DICE, Viscera
 
 ## Microsoft components
 
-The application uses .NET, WPF, Windows APIs and installed Windows fonts/glyphs. Framework-dependent releases use the separately installed runtime. Self-contained releases include Microsoft runtime files under their applicable licenses/notices; those terms are not replaced by LightRcon+'s GPL. No Procon icon packs, GeoIP databases or MySQL connector are bundled.
+The application uses .NET, WPF, Windows APIs and installed Windows fonts/glyphs. Framework-dependent releases use the separately installed runtime. Self-contained releases include Microsoft runtime files under their applicable licenses/notices; those terms are not replaced by LightRcon+'s GPL. No Procon icon packs or MySQL connector are bundled.
+
+## MaxMind GeoLite Country
+
+This product includes GeoLite data created by MaxMind, available from http://maxmind.com/.
+
+The embedded `GeoIP.dat` is the historical country database distributed in the pinned AdKats Procon v1.5.4.2 archive (SHA-256 `581710190FE8F87311A173A7B5F864461CD944AD0CE4F57FE88C78134E7F2DAB`). Its original data vintage is not identified by the archive; the archive timestamp does not establish database freshness. Country assignments may be outdated. The lookup runs locally, supports IPv4, and does not send player addresses to an external service. Unknown/private addresses and native IPv6 have no country result.
+
+The original Open Data License, copyright, conditions and disclaimer are retained in [docs/licenses/MaxMind-GeoLite.txt](docs/licenses/MaxMind-GeoLite.txt). The country-code table and trie traversal follow MaxMind's `GeoIPCountry.cs` distributed by Procon: Copyright (C) 2008 MaxMind, Inc., GPL-2.0-or-later. The lookup implementation was adapted to embedded resources and .NET 10 in 2026.

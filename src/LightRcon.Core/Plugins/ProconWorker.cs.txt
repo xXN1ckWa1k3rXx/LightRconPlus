@@ -6,6 +6,9 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PRoCon.Core;
+using PRoCon.Core.Plugin;
+using PRoCon.Core.Accounts;
+using PRoCon.Core.Remote;
 
 internal static class Worker
 {
@@ -14,17 +17,39 @@ internal static class Worker
     {
         lock (output) Console.WriteLine("LRP:" + JsonConvert.SerializeObject(value));
     }
+    private static void ApplyAccounts(PRoConApplication application, PRoConClient client, string json)
+    {
+        var accounts = JArray.Parse(json);
+        var names = accounts.Select(account => (string)account["Name"]).ToArray();
+        foreach (var existing in application.AccountsList.ToArray())
+            if (!names.Contains(existing.Name)) application.AccountsList.Remove(existing.Name);
+        foreach (var account in accounts)
+        {
+            var name = (string)account["Name"];
+            if (!application.AccountsList.Contains(name)) application.AccountsList.Add(new Account(name, Guid.NewGuid().ToString("N")));
+            client.ProconProtectedLayerSetPrivileges(application.AccountsList[name], new CPrivileges((uint)account["Privileges"]));
+        }
+    }
     public static int Main(string[] args)
     {
+        Console.InputEncoding = new System.Text.UTF8Encoding(false);
+        Console.OutputEncoding = new System.Text.UTF8Encoding(false);
         var application = new PRoConApplication(true, new string[0]);
         try
         {
+            // Procon skips localization in console mode. Plugin team/map APIs still need it.
+            var languagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization", "au.loc");
+            if (!File.Exists(languagePath)) throw new FileNotFoundException("Procon English localization is missing.", languagePath);
+            application.CurrentLanguage = application.Languages.LoadLocalizationFile(
+                languagePath, "au.loc");
             application.Execute();
             var client = application.Connections[0];
             var compiled = new ManualResetEvent(false);
             client.CompilingPlugins += sender =>
             {
-                client.PluginsManager.PluginOutput += message => Reply(new { log = message });
+                // Procon already routes compiler output to PluginConsole.
+                // One subscription also captures plugin-written messages without duplicates.
+                client.PluginConsole.WriteConsole += (stamp, message) => Reply(new { log = message });
                 foreach (var path in Directory.GetFiles(client.PluginsManager.PluginBaseDirectory, "*.cs"))
                 {
                     using (var input = File.OpenRead(path))
@@ -33,6 +58,25 @@ internal static class Worker
                 }
                 client.GetType().GetProperty("HostName").GetSetMethod(true).Invoke(client, new object[] { args[0] });
                 client.GetType().GetProperty("Port").GetSetMethod(true).Invoke(client, new object[] { UInt16.Parse(args[1]) });
+                ApplyAccounts(application, client, File.ReadAllText("LightRcon.Accounts.json"));
+                var folder = client.PluginsManager.PluginBaseDirectory;
+                var cachePath = Path.Combine(folder, "PluginCache.xml");
+                var cache = File.Exists(cachePath) ? PluginCache.Load(cachePath) : new PluginCache();
+                var policy = JObject.Parse(File.ReadAllText(Path.Combine(folder, "LightRcon.CachePolicy.json")));
+                foreach (var name in policy["invalidate"].ToObject<string[]>())
+                    cache.Entries.RemoveAll(entry => entry.ClassName == name);
+                foreach (var name in policy["precompiled"].ToObject<string[]>())
+                {
+                    var source = Path.Combine(folder, name + ".cs");
+                    cache.Cache(new PluginCacheEntry {
+                        ClassName = name,
+                        Hash = PRoCon.Core.Utils.MD5.String(File.ReadAllText(source)),
+                        SourcePath = source,
+                        DestinationPath = Path.Combine(folder, name + ".dll"),
+                        Stamp = DateTime.UtcNow
+                    });
+                }
+                cache.Save(cachePath);
             };
             client.PluginsCompiled += sender => compiled.Set();
             client.Connect();
@@ -58,6 +102,7 @@ internal static class Worker
                         case "load":
                             if (!manager.Plugins.IsLoaded(name)) throw new InvalidOperationException("Procon could not load " + name);
                             break;
+                        case "accounts": ApplyAccounts(application, client, (string)request["value"]); break;
                         case "enable":
                             manager.EnablePlugin(name);
                             if (!manager.Plugins.IsEnabled(name)) throw new InvalidOperationException("Procon could not enable " + name);
@@ -80,7 +125,7 @@ internal static class Worker
                     }
                     Reply(new { id, result });
                 }
-                catch (Exception error) { Reply(new { id, error = error.GetBaseException().Message }); }
+                catch (Exception error) { Reply(new { id, error = error.ToString() }); }
             }
             foreach (var name in client.PluginsManager.Plugins.EnabledClassNames.ToArray()) client.PluginsManager.DisablePlugin(name);
             return 0;

@@ -48,6 +48,23 @@ internal static class ProconChecks
                     public void SetPluginVariable(string name, string value) { if (name == "Message") message = value; }
                     public override void OnPlayerSpawned(string soldierName, Inventory inventory) { ExecuteCommand("procon.protected.send", "admin.say", "spawn " + soldierName + " " + message, "all"); }
                     public string Echo(string text) { ExecuteCommand("procon.protected.send", "admin.say", "peer " + text, "all"); return "echo " + text; }
+                    public string AccountSummary(string soldierName) {
+                        var privileges = GetAccountPrivileges(soldierName);
+                        return privileges == null ? "none" : privileges.CanKillPlayers + "|" + privileges.CanPermanentlyBanPlayers + "|" + privileges.CanUseMapFunctions + "|" + privileges.CanAlterServerSettings;
+                    }
+                    public void RefreshPlayers() { ExecuteCommand("procon.protected.send", "serverInfo"); ExecuteCommand("procon.protected.send", "admin.listPlayers", "all"); }
+                    public string LocalizedTeams() {
+                        var keys = new[] { "global.conquest.us", "global.conquest.ru", "global.conquest.cn", "global.rush.attackers", "global.rush.defenders", "global.conquest.cop", "global.conquest.crim", "global.Squad4" };
+                        var names = new List<string>();
+                        foreach (var key in keys) names.Add(GetLocalized(key, key));
+                        return string.Join("|", names.ToArray());
+                    }
+                    public string ResolveTeam(string map, string mode, string name) {
+                        foreach (var definition in GetMapDefines())
+                            if (definition.FileName == map && definition.PlayList == mode) { mode = definition.GameMode; break; }
+                        var team = GetTeamNameByFormattedTeamName("{GameMode} {FileName} {TeamName}", mode + " " + map + " " + name);
+                        return team == null ? "none" : team.TeamID.ToString();
+                    }
                 }
             }
             """);
@@ -63,6 +80,39 @@ internal static class ProconChecks
         await mock.EmitAsync("player.onSpawn", "ProconSpawn", "1");
         await Wait(() => mock.Received.Any(words => words.Contains("spawn ProconSpawn persisted")));
         check(true, "Procon event dispatch sees persisted grouped setting");
+        var localizationProbe = Path.Combine(root, "LocalizationProbe.lua");
+        File.WriteAllText(localizationProbe, """
+            event.plugin_enable:set(function()
+                local names = procon.call('SettingsProbe', 'LocalizedTeams')
+                assert(names == 'US Army|Russian Army|Chinese Army|Attackers|Defenders|Cops|Criminals|Delta', names)
+                assert(procon.call('SettingsProbe', 'ResolveTeam', 'MP_Abandoned', 'ConquestLarge0', 'US Army') == '2', 'US team ID')
+                assert(procon.call('SettingsProbe', 'ResolveTeam', 'MP_Damage', 'ConquestLarge0', 'Chinese Army') == '2', 'CN team ID')
+                assert(procon.call('SettingsProbe', 'ResolveTeam', 'MP_Damage', 'RushLarge0', 'Attackers') == '1', 'Rush team ID')
+                assert(procon.call('SettingsProbe', 'ResolveTeam', 'MP_Damage', 'SquadDeathMatch0', 'Delta') == '4', 'Squad team ID')
+            end)
+            """);
+        await session.Plugins.EnableAsync(localizationProbe); await session.Plugins.DisableAsync(localizationProbe);
+        check(true, "headless Procon plugins resolve faction, Rush, squad and Hardline names from the upstream English language file");
+        check(true, "Procon formatted team lookup matches readable names to the correct map/mode team IDs");
+        var permissionProbe = Path.Combine(root, "AccountProbe.lua");
+        async Task AssertAccount(string expected, string label)
+        {
+            File.WriteAllText(permissionProbe, "event.plugin_enable:set(function() assert(procon.call('SettingsProbe', 'AccountSummary', 'Example_Alpha') == '" + expected + "') end)");
+            await session.Plugins.EnableAsync(permissionProbe);
+            await session.Plugins.DisableAsync(permissionProbe);
+            check(true, label);
+        }
+        await session.SaveLayerAccountAsync(false, "Example_Alpha", "Admin-plugin-password", true, LayerPermission.View | LayerPermission.Players);
+        await AssertAccount("True|False|False|False", "Procon GetAccountPrivileges matches a Layer username to the soldier and grants only its Players scope");
+        await session.SaveLayerAccountAsync(false, "Example_Alpha", "", true, LayerPermission.View | LayerPermission.Maps | LayerPermission.Settings | LayerPermission.Bans);
+        await AssertAccount("True|True|True|True", "Procon account permissions update immediately without reloading the plugin");
+        await session.SaveLayerAccountAsync(false, "Example_Alpha", "", false, LayerPermission.All);
+        await AssertAccount("none", "disabled Layer accounts have no Procon in-game administrator privileges");
+        await session.SaveLayerAccountAsync(false, "Example_Alpha", "", true, null);
+        await session.SetGlobalPermissionsAsync(false, LayerPermission.View | LayerPermission.Maps);
+        await AssertAccount("False|False|True|False", "Procon accounts inherit current Layer global permissions");
+        await session.DeleteLayerAccountAsync(false, "Example_Alpha");
+        await AssertAccount("none", "deleted Layer accounts are removed from Procon administrator lookup");
         var peerPath = Path.Combine(root, "PeerProbe.cs");
         var peer = File.ReadAllText(settingsPath).Replace("SettingsProbe", "PeerProbe")
             .Replace("public void OnPluginEnable() { }", "public void OnPluginEnable() { ExecuteCommand(\"procon.protected.plugins.call\", \"SettingsProbe\", \"Echo\", \"Procon peer\"); }");
@@ -124,5 +174,43 @@ internal static class ProconChecks
             check(upstreamDetails.Name.Length > 0 && (await session.Plugins.GetSettingsAsync(upstreamPath)).Length > 0, name + " original Procon plugin compiles with includes and exposes metadata/settings");
         }
         await session.Plugins.EnableAsync(settingsPath);
+        await session.SaveLayerAccountAsync(false, "Example_Alpha", "Admin-plugin-password", true, LayerPermission.View | LayerPermission.Players);
+        var adminPath = Path.Combine(upstream, "CInGameAdmin.cs");
+        await session.Plugins.EnableAsync(adminPath);
+        var refreshPath = Path.Combine(root, "RefreshPlayers.lua");
+        File.WriteAllText(refreshPath, "event.plugin_enable:set(function() procon.call('SettingsProbe', 'RefreshPlayers') end)");
+        var playerReads = mock.Received.Count(words => words[0] == "admin.listPlayers");
+        await session.Plugins.EnableAsync(refreshPath);
+        await Wait(() => mock.Received.Count(words => words[0] == "admin.listPlayers") > playerReads);
+        await Task.Delay(150);
+        var kills = mock.Received.Count(words => words[0] == "admin.killPlayer");
+        await mock.EmitAsync("player.onChat", "Example_Alpha", "!kill Example_Bravo", "all");
+        await Wait(() => mock.Received.Count(words => words[0] == "admin.killPlayer" && words.ElementAtOrDefault(1) == "Example_Bravo") > kills);
+        check(true, "original CInGameAdmin executes an in-game kill for the matching Layer account with Players permission");
+        var originalMap = mock.Map; var originalMode = mock.GameMode;
+        foreach (var (map, teamName) in new[] { ("MP_Abandoned", "US Army"), ("MP_Damage", "Chinese Army") })
+        {
+            mock.Map = map; mock.GameMode = "ConquestLarge0";
+            await session.Plugins.DisableAsync(refreshPath); await session.Plugins.EnableAsync(refreshPath);
+            await Task.Delay(150);
+            var beforeNuke = mock.Received.Count;
+            await mock.EmitAsync("player.onChat", "Example_Alpha", "!nuke " + teamName, "all");
+            await Wait(() => mock.Received.Skip(beforeNuke).Any(words => words.Contains("Nuking " + teamName)));
+            check(true, "original CInGameAdmin accepts !nuke " + teamName + " and uses the readable name in its response");
+            await Wait(() => mock.Received.Skip(beforeNuke).Any(words => words.SequenceEqual(new[] { "admin.killPlayer", "Example_Bravo" })));
+            check(mock.Received.Skip(beforeNuke).Where(words => words[0] == "admin.killPlayer").All(words => words[1] == "Example_Bravo")
+                && !mock.Received.Skip(beforeNuke).Where(words => words[0] is "admin.say" or "admin.yell").Any(words => words[1].Contains("global.conquest.")),
+                "original CInGameAdmin nuke targets only " + teamName + " players and its countdown contains no resource keys");
+        }
+        mock.Map = originalMap; mock.GameMode = originalMode;
+        await session.Plugins.DisableAsync(refreshPath); await session.Plugins.EnableAsync(refreshPath);
+        await session.SaveLayerAccountAsync(false, "Example_Alpha", "", true, LayerPermission.View);
+        kills = mock.Received.Count(words => words[0] == "admin.killPlayer");
+        var beforeDenied = mock.Received.Count;
+        await mock.EmitAsync("player.onChat", "Example_Alpha", "!kill Example_Bravo", "all");
+        await Wait(() => mock.Received.Skip(beforeDenied).Any(words => words[0] == "admin.say" && words.Any(word => word.Contains("not have enough privileges to kill"))));
+        check(mock.Received.Count(words => words[0] == "admin.killPlayer") == kills, "original CInGameAdmin denies the next kill immediately after Layer Players permission is revoked");
+        await session.Plugins.DisableAsync(adminPath); await session.Plugins.DisableAsync(refreshPath);
+        await session.DeleteLayerAccountAsync(false, "Example_Alpha");
     }
 }

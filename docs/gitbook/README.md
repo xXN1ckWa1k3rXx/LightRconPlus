@@ -18,5 +18,5 @@ All notice/warning is written by xXN1ckWa1k3rXx, AI doesn't.
 
 Use [Getting started](getting-started/) to create a plugin, [Events](events.md) for callbacks, and [Variables](variables/) for namespaces and object references.
 
-Application: **Pre-alpha 1.0** · API: **1** · Runtime: **MoonSharp 2.0.0**.
+Application: **Pre-alpha 1.1** · API: **1** · Runtime: **MoonSharp 2.0.0**.
 
