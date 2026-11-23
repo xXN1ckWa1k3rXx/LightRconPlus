@@ -89,7 +89,7 @@ Map changes use server-side RCON `mapList` commands, not a file on the client PC
 
 Layer uses reliable TCP/TLS. Current clients negotiate batch snapshots for game capabilities, settings, players and maps, avoiding per-item RCON queries during login. Requests can complete while ordered chat history continues replaying. Older Layer hosts and clients retain the protocol 1 command interface. Settings edits execute on the host's RCON connection and update its saved configuration. Geo shows bundled country flags alongside the offline IP-country code; this indicates IP location, not citizenship.
 
-Current map rotations are pushed after host/Layer edits; external changes are detected by the host's five-second poll. Updated clients submit complete rotation edits as one checked host transaction. Dragging maps shows the insertion position. Player actions show the IP-country name beside a selectable player name and copyable identity/connection fields. Chat supports a player-name/known GUID filter plus **Only Chat message**; both preferences are saved per connection. Chinese **Second Assault** is displayed as **再次进击**.
+Current map rotations are pushed after host/Layer edits; external changes are detected by the host's five-second poll. Updated clients submit complete rotation edits as one checked host transaction. Dragging maps shows the insertion position. Player actions show the IP-country name beside a selectable player name and copyable identity/connection fields. Chat supports a player-name/known GUID filter plus **Only Chat message**; both preferences are saved per connection.
 
 ## Headless deployment
 
