@@ -6,7 +6,7 @@ namespace LightRcon.Core.Plugins;
 
 internal sealed class LuaPlugin : IPluginRuntime
 {
-    private readonly Script script = new(CoreModules.Preset_HardSandbox);
+    private readonly Script script = new(CoreModules.Preset_HardSandbox | CoreModules.ErrorHandling);
     private readonly ServerSession session;
     private readonly string path;
     private readonly string dataRoot;
@@ -34,18 +34,18 @@ internal sealed class LuaPlugin : IPluginRuntime
     {
         this.path = path; this.session = session; this.dataRoot = dataRoot;
         Directory.CreateDirectory(dataRoot);
-        script.Options.DebugPrint = message => session.Log("Lua", message);
+        script.Options.DebugPrint = message => session.Log("Lua", PluginDiagnostics.Redact(message));
         try
         {
             RegisterEvents();
             RegisterCommands();
             RegisterPlayers();
             RegisterServices();
-            Call(script.LoadString(File.ReadAllText(path), codeFriendlyName: path));
+            Call(script.LoadString(File.ReadAllText(path), codeFriendlyName: Path.GetFileName(path)));
             var version = script.Globals.Get("plugin").Table?.Get("api_version") ?? DynValue.Nil;
             if (!version.IsNil() && (version.Type != DataType.Number || version.Number != 1)) throw new InvalidDataException(UiText.Get("Unsupported Lua API version."));
         }
-        catch { http.Dispose(); throw; }
+        catch (Exception error) { http.Dispose(); throw Diagnostic(error, "load"); }
     }
     public PluginDetails Details
     {
@@ -77,7 +77,12 @@ internal sealed class LuaPlugin : IPluginRuntime
         if (callback.Type is not (DataType.Function or DataType.ClrFunction)) throw new ScriptRuntimeException("Expected a function.");
         return callback;
     }
-    private static void Bind(Table table, string name, Func<CallbackArguments, DynValue> callback) => table[name] = DynValue.NewCallback((_, args) => callback(args));
+    private static void Bind(Table table, string name, Func<CallbackArguments, DynValue> callback) => table[name] = DynValue.NewCallback((_, args) =>
+    {
+        try { return callback(args); }
+        catch (InterpreterException) { throw; }
+        catch (Exception error) { throw new ScriptRuntimeException(PluginDiagnostics.Redact(error.GetBaseException().Message)); }
+    });
     private DynValue Array(IEnumerable<DynValue> values) => DynValue.NewTable(new Table(script, values.ToArray()));
     private DynValue Send(params string[] words) => Array(session.ExecutePluginAsync(words).GetAwaiter().GetResult().Select(DynValue.NewString));
     private void RegisterEvents()
@@ -153,9 +158,12 @@ internal sealed class LuaPlugin : IPluginRuntime
             foreach (var setting in group)
             {
                 var command = setting.Command;
+                if (SettingsCatalog.IsFactionOverride(command)) continue;
                 Bind(table, command[(command.IndexOf('.') + 1)..], args => Send([command, .. Enumerable.Range(0, args.Count).Select(index => Arg(args, index))]));
             }
         }
+        if (session.Game == GameId.BF4)
+            Bind(script.Globals.Get("vars").Table, "teamFactionOverride", args => Send(["vars.teamFactionOverride", .. Enumerable.Range(0, args.Count).Select(index => Arg(args, index))]));
         foreach (var group in new Dictionary<string, string[]> {
             ["mapList"] = ["list", "availableMaps", "getMapIndices", "getRounds", "add", "remove", "clear", "save", "load", "setNextMapIndex", "restartRound", "runNextRound", "endRound"],
             ["banList"] = ["list", "add", "remove", "clear", "save", "load"],
@@ -216,7 +224,7 @@ internal sealed class LuaPlugin : IPluginRuntime
     {
         var plugin = Namespace("plugin"); plugin["api_version"] = 1;
         var log = Namespace("log");
-        foreach (var level in new[] { "info", "warning", "error", "debug" }) Bind(log, level, args => { session.Log("Lua " + level, Arg(args, 0)); return DynValue.Nil; });
+        foreach (var level in new[] { "info", "warning", "error", "debug" }) Bind(log, level, args => { session.Log("Lua " + level, PluginDiagnostics.Redact(Arg(args, 0))); return DynValue.Nil; });
         var settings = Namespace("settings");
         Bind(settings, "define", args => {
             var name = Arg(args, 0);
@@ -276,9 +284,10 @@ internal sealed class LuaPlugin : IPluginRuntime
                         request.Content.Headers.TryAddWithoutValidation(key, value);
                     }
                 }
-            using var response = http.Send(request, HttpCompletionOption.ResponseHeadersRead);
+            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(session.LifetimeToken);
+            cancellation.CancelAfter(TimeSpan.FromSeconds(10));
+            using var response = http.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellation.Token);
             using var stream = response.Content.ReadAsStream();
-            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             using var body = new MemoryStream();
             var buffer = new byte[8192];
             while (true)
@@ -302,7 +311,7 @@ internal sealed class LuaPlugin : IPluginRuntime
             if (!loadingModules.Add(name)) throw new ScriptRuntimeException("Circular module dependency: " + name);
             try
             {
-                module = Call(script.LoadString(File.ReadAllText(source), codeFriendlyName: source));
+                module = Call(script.LoadString(File.ReadAllText(source), codeFriendlyName: Path.GetRelativePath(directory, source).Replace('\\', '/')));
                 if (module.IsNil()) module = DynValue.True;
                 modules[name] = module;
                 return module;
@@ -350,12 +359,33 @@ internal sealed class LuaPlugin : IPluginRuntime
     }
     private DynValue Call(DynValue function, params DynValue[] args)
     {
-        if (function.Type == DataType.ClrFunction) return script.Call(function, args);
-        var coroutine = script.CreateCoroutine(function).Coroutine;
-        coroutine.AutoYieldCounter = 100000;
-        var result = coroutine.Resume(args);
-        if (coroutine.State != CoroutineState.Dead) throw new ScriptRuntimeException("Lua callback exceeded its instruction budget or yielded.");
-        return result;
+        Coroutine? coroutine = null;
+        try
+        {
+            session.LifetimeToken.ThrowIfCancellationRequested();
+            if (function.Type == DataType.ClrFunction) return script.Call(function, args);
+            coroutine = script.CreateCoroutine(function).Coroutine;
+            coroutine.AutoYieldCounter = 100000;
+            var result = coroutine.Resume(args);
+            if (coroutine.State != CoroutineState.Dead)
+                throw Diagnostic(new ScriptRuntimeException("Lua callback exceeded its instruction budget or yielded."), "callback", coroutine);
+            return result;
+        }
+        catch (LuaDiagnosticException) { throw; }
+        catch (Exception error) { throw Diagnostic(error, "callback", coroutine); }
+    }
+    private Exception Diagnostic(Exception error, string operation, Coroutine? coroutine = null)
+    {
+        if (error is LuaDiagnosticException) return error;
+        var interpreter = error as InterpreterException;
+        var message = interpreter?.DecoratedMessage ?? error.GetBaseException().Message;
+        var frames = interpreter?.CallStack ?? coroutine?.GetStackTrace(0, null);
+        var output = new System.Text.StringBuilder($"{Path.GetFileName(path)} [{operation}]: {message}\nstack traceback:");
+        if (frames is not null)
+            foreach (var frame in frames.Take(32))
+                output.Append("\n  at ").Append(frame.Name).Append(" (").Append(frame.Location?.FormatLocation(script, false) ?? "native").Append(')');
+        if (frames is null || frames.Count == 0) output.Append("\n  at ").Append(Path.GetFileName(path));
+        return new LuaDiagnosticException(PluginDiagnostics.Redact(output.ToString()));
     }
     private void Emit(string name, DynValue data) { if (handlers.TryGetValue(name, out var callback)) Call(callback, data); }
     public void Enable()
@@ -371,7 +401,8 @@ internal sealed class LuaPlugin : IPluginRuntime
         if (!variables.TryGetValue(name, out var variable)) throw new InvalidDataException(UiText.Get("Unknown plugin setting."));
         PluginManager.Validate(variable, value);
         variables[name] = variable with { Value = value };
-        if (enabled) Emit("setting_changed", ObjectTable(new Dictionary<string, object?> { ["name"] = name, ["value"] = value }));
+        try { if (enabled) Emit("setting_changed", ObjectTable(new Dictionary<string, object?> { ["name"] = name, ["value"] = value })); }
+        catch { variables[name] = variable; throw; }
     }
     public void Tick()
     {

@@ -39,11 +39,13 @@ public sealed class ProfileStore
     {
         lock (gate)
         {
-            List<ServerProfile> copies = [];
+            List<JsonElement> copies = [];
             foreach (var server in State.Servers.ToArray())
                 lock (server.Sync)
-                    copies.Add(JsonSerializer.Deserialize<ServerProfile>(JsonSerializer.Serialize(server, Json), Json)!);
-            var snapshot = new AppState { Language = State.Language, Theme = State.Theme, Servers = copies, SelectedServer = State.SelectedServer, WindowWidth = State.WindowWidth, WindowHeight = State.WindowHeight, ChatLineLimit = State.ChatLineLimit, PluginImportPreference = State.PluginImportPreference };
+                    copies.Add(JsonSerializer.SerializeToElement(server, Json));
+            // Capture each profile under its lock without allocating a second complete
+            // object graph and intermediate UTF-16 JSON string on every poll/save.
+            var snapshot = new { State.Language, State.Theme, Servers = copies, State.SelectedServer, State.WindowWidth, State.WindowHeight, State.ChatLineLimit, State.PluginImportPreference };
             AtomicWrite(Path.Combine(Root, "profiles.json"), JsonSerializer.Serialize(snapshot, Json));
         }
     }

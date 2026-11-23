@@ -57,6 +57,7 @@ internal static class Program
     }
     private static async Task RailPointer(MainWindow window, bool enter, int? wait = null)
     {
+        if (enter) { window.Activate(); await Wait(() => window.IsActive); }
         Control<Border>(window, "SideRail").RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
         { RoutedEvent = enter ? Mouse.MouseEnterEvent : Mouse.MouseLeaveEvent });
         await Task.Delay(wait ?? (enter ? 1250 : 200));
@@ -158,10 +159,25 @@ internal static class Program
             Check(Equals(pluginTab.Foreground, window.FindResource("Accent")), "selected tab titles retain their blue accent while their container is hovered");
             pluginTab.SetValue(hoverKey, false);
             Capture(window, "plugin-details");
-            var pluginConsole = Control<TextBox>(window, "PluginConsoleList");
+            var pluginConsole = Control<PluginConsoleEditor>(window, "PluginConsoleList");
             session.Log("Lua info", "desktop plugin console marker"); session.Log("RCON", "desktop non-plugin marker");
             await Wait(() => pluginConsole.Text.Contains("desktop plugin console marker"));
-            Check(pluginConsole.IsReadOnly && pluginConsole.AcceptsReturn && !pluginConsole.Text.Contains("desktop non-plugin marker"), "Plugin tab has a selectable output editor containing only plugin console messages");
+            Check(pluginConsole.IsReadOnly && !pluginConsole.Text.Contains("desktop non-plugin marker"), "Plugin tab has a selectable output editor containing only plugin console messages");
+            session.Log("Procon", "^1error ^2green ^bBold^iItalic^nNormal ^^1literal ^xunknown^");
+            await Wait(() => pluginConsole.Text.Contains("error green BoldItalicNormal ^1literal ^xunknown^"));
+            var consoleRuns = pluginConsole.Document.Blocks.OfType<System.Windows.Documents.Paragraph>().SelectMany(paragraph => paragraph.Inlines.OfType<System.Windows.Documents.Run>()).ToArray();
+            Check(consoleRuns.Any(run => run.Text == "error " && Equals(run.Foreground, Brushes.Maroon))
+                && consoleRuns.Any(run => run.Text == "green " && Equals(run.Foreground, Brushes.MediumSeaGreen))
+                && consoleRuns.Any(run => run.Text == "Bold" && run.FontWeight == FontWeights.Bold)
+                && consoleRuns.Any(run => run.Text == "Italic" && run.FontStyle == FontStyles.Italic)
+                && consoleRuns.Any(run => run.Text.StartsWith("Normal") && run.FontStyle == FontStyles.Normal && run.FontWeight == FontWeights.Normal),
+                "plugin console renders PRoCon colors/styles while preserving escaped and unknown caret sequences");
+            var flags = new CountryFlagConverter();
+            Check(flags.Convert("US", typeof(ImageSource), null!, CultureInfo.InvariantCulture) is BitmapSource { PixelWidth: 16, PixelHeight: 12 }
+                && flags.Convert("CN", typeof(ImageSource), null!, CultureInfo.InvariantCulture) is BitmapSource
+                && flags.Convert("—", typeof(ImageSource), null!, CultureInfo.InvariantCulture) is null
+                && flags.Convert("ZZ", typeof(ImageSource), null!, CultureInfo.InvariantCulture) is null, "Geo flags load from embedded offline images and unknown countries retain their text fallback");
+            Check(Control<StackPanel>(window, "PluginPathPanel").Visibility == Visibility.Visible && Control<TextBlock>(window, "PluginPathText").Text == pluginPath, "direct RCON plugin details retain their file path");
             pluginConsole.Select(pluginConsole.Text.IndexOf("desktop plugin console marker", StringComparison.Ordinal), "desktop plugin console marker".Length);
             Check(pluginConsole.SelectedText == "desktop plugin console marker", "plugin console text can be selected and copied");
             Capture(window, "plugin-console");
@@ -303,11 +319,39 @@ internal static class Program
             Tab(window, "Players"); window.Width = 1180; window.UpdateLayout();
             await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render); await Task.Delay(80); window.UpdateLayout();
             var playerTable = Control<DataGrid>(window, "PlayersGrid");
+            mock.PbPlayerAddress = "8.8.8.8";
+            await session.ExecuteAsync(["punkBuster.pb_sv_command", "pb_sv_plist"]);
+            await Wait(() => Visuals<Image>(playerTable).Any(image => image.Source is not null && image.DataContext is PlayerInfo { Geo: "US" }));
+            Check(true, "Players Geo renders the offline flag alongside the country code after IP enrichment");
+            playerTable.SelectedItem = playerTable.Items.Cast<PlayerInfo>().Single(player => player.Name == "Example_Alpha");
+            var playerHeading = Control<TextBox>(window, "SelectedPlayerName");
+            var identity = Control<TextBox>(window, "PlayerIdentity");
+            var connectionDetails = Control<TextBox>(window, "PlayerConnectionDetails");
+            Check(playerHeading.IsReadOnly && playerHeading.Text == "Example_Alpha (" + GeoLocation.CountryName("US") + ")"
+                && identity.IsReadOnly && identity.Text.Contains("EA GUID") && identity.Text.Contains("PB GUID")
+                && connectionDetails.IsReadOnly && connectionDetails.Text.Contains("8.8.8.8"), "player action header includes the country name and uses aligned selectable identity/connection fields");
+            playerHeading.SelectAll(); identity.SelectAll(); connectionDetails.SelectAll();
+            Check(playerHeading.SelectedText == playerHeading.Text && identity.SelectedText == identity.Text && connectionDetails.SelectedText == connectionDetails.Text, "player name, country, GUIDs and connection details can all be selected for copying");
+            Check(Equals(playerHeading.Foreground, window.FindResource("Accent")), "player action name and country use the theme's blue accent");
+            foreach (var (language, country) in new[] { ("en", "United States"), ("zh", "美国"), ("de", "Vereinigte Staaten") })
+            {
+                Control<ComboBox>(window, "LanguageSelector").SelectedValue = language;
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.DataBind);
+                playerTable.SelectedItem = playerTable.Items.Cast<PlayerInfo>().Single(player => player.Name == "Example_Alpha");
+                Check(playerHeading.Text == "Example_Alpha (" + country + ")" && GeoLocation.CountryName("CN") == (language == "en" ? "China" : language == "zh" ? "中国" : "China"),
+                    language + " player action country follows the selected application language immediately");
+            }
+            Control<ComboBox>(window, "LanguageSelector").SelectedValue = "en";
+            playerTable.SelectedItem = playerTable.Items.Cast<PlayerInfo>().Single(player => player.Name == "Example_Alpha");
+            Capture(window, "player-action-country");
+            playerTable.UnselectAll();
             Check(playerTable.Columns[0].Header.ToString() == "ID#" && playerTable.Columns[1].Header.ToString() == "Geo", "Players places the Geo column directly beside ID#");
             Check(playerTable.Columns.Sum(column => column.ActualWidth) <= playerTable.ActualWidth,
                 $"default player column widths fit the minimum-width viewport (columns={playerTable.Columns.Sum(column => column.ActualWidth):F1}, viewport={playerTable.ActualWidth:F1})");
-            var summary = Control<TextBlock>(window, "ServerSummary"); var actionBar = Control<WrapPanel>(window, "ServerActionBar");
-            Check(summary.TranslatePoint(new Point(0, summary.ActualHeight), window).Y <= actionBar.TranslatePoint(new Point(), window).Y, "server summary and action buttons occupy separate rows at minimum window width");
+            var summary = Control<TextBlock>(window, "ServerSummary"); var actionBar = Control<StackPanel>(window, "ServerActionBar");
+            Check(summary.TranslatePoint(new Point(summary.ActualWidth, 0), window).X <= actionBar.TranslatePoint(new Point(), window).X
+                && Math.Abs(summary.TranslatePoint(new Point(0, summary.ActualHeight / 2), window).Y - actionBar.TranslatePoint(new Point(0, actionBar.ActualHeight / 2), window).Y) < 2,
+                "server actions align to the right of server information on the same row at minimum width");
             var winnerBox = Control<ComboBox>(window, "WinningTeamBox");
             Check(winnerBox.Items.Count == 2 && Control<Button>(window, "EndRoundButton").IsEnabled && Control<Button>(window, "EndRoundButton").TranslatePoint(new Point(), window).Y >= playerTable.TranslatePoint(new Point(0, playerTable.ActualHeight), window).Y, "End round offers the two current teams below the Players list");
             Capture(window, "players-layout-light");
@@ -324,6 +368,22 @@ internal static class Program
             window.Width = 1440;
             Tab(window, "Chat");
             var showAdmin = Control<CheckBox>(window, "ShowAdminSayYellBox"); var adminChatList = Control<ActivityEditor>(window, "ChatList");
+            session.Journal.Add("Chat", "Example_Alpha", "all", "filter-own-chat");
+            session.Journal.Add("Chat", "AnotherPlayer", "all", "mentions Example_Alpha only");
+            session.Journal.Add("Join", "Example_Alpha", "", "filter-own-join");
+            session.Journal.Add("Kill", "AnotherPlayer", "", "filter-victim-kill", targetName: "Example_Alpha", weapon: "U_M416");
+            var chatFilter = Control<TextBox>(window, "ChatPlayerFilter");
+            var onlyChat = Control<CheckBox>(window, "OnlyChatMessagesBox");
+            chatFilter.Text = "example_alpha";
+            await Wait(() => adminChatList.Text.Contains("Example_Alpha connected to the server"));
+            Check(adminChatList.Text.Contains("filter-own-chat") && adminChatList.Text.Contains("AnotherPlayer killed Example_Alpha") && !adminChatList.Text.Contains("mentions Example_Alpha only"),
+                "player filter includes the player's chat/events and victim events without matching mentions in unrelated chat text");
+            onlyChat.IsChecked = true; onlyChat.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));
+            Check(adminChatList.Text.Contains("filter-own-chat") && !adminChatList.Text.Contains("Example_Alpha connected to the server") && !adminChatList.Text.Contains("killed Example_Alpha"), "Only Chat message combines with the player filter");
+            chatFilter.Text = session.PlayerSnapshot().Single(player => player.Name == "Example_Alpha").EaGuid;
+            Check(adminChatList.Text.Contains("filter-own-chat") && session.Profile.Client.OnlyChatMessages && session.Profile.Client.ChatPlayerFilter == chatFilter.Text, "EA GUID filtering resolves to the player name and saves both filter preferences");
+            Capture(window, "chat-player-filter");
+            chatFilter.Clear(); onlyChat.IsChecked = false; onlyChat.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));
             Check(showAdmin.IsChecked == false && !session.Profile.Client.ShowAdminSayYell, "Show admin say/yell defaults to off");
             session.Journal.Add("Chat", "Admin", "all", "hidden-admin-say", isAdminMessage: true, adminMessageType: "Say", isPluginMessage: true);
             session.Journal.Add("Chat", "Admin", "all", "hidden-admin-yell", isAdminMessage: true, adminMessageType: "Yell", isPluginMessage: true);
@@ -344,6 +404,10 @@ internal static class Program
             await Wait(() => chatScroll.ScrollableHeight > 0 && chatScroll.VerticalOffset >= chatScroll.ScrollableHeight - 1);
             chatScroll.ScrollToTop();
             await Wait(() => chatScroll.VerticalOffset == 0);
+            session.Journal.Add("Chat", "Scroll test", "all", "Message while reading history");
+            await Wait(() => chatList.Text.Contains("Message while reading history"));
+            await Task.Delay(150);
+            Check(chatScroll.VerticalOffset == 0, "incoming chat preserves the scroll position while reading history");
             Check(chatList.IsReadOnly, "chat uses a selectable text editor and permits scrolling to older messages");
             chatList.ScrollToEnd(); await Task.Delay(60);
             session.Journal.Add("Chat", "Scroll test", "all", "Newest pinned message");
@@ -351,6 +415,15 @@ internal static class Program
             Tab(window, "Plugin"); Tab(window, "Chat");
             await Wait(() => chatScroll.VerticalOffset >= chatScroll.ScrollableHeight - 1);
             Check(true, "new chat messages and returning to Chat keep the newest entry visible");
+            for (var index = 0; index < 8; index++)
+            {
+                session.Journal.Add("Chat", "Resize", "all", "resize-tail-" + index);
+                window.Height = index % 2 == 0 ? 780 : 920;
+                await Wait(() => chatList.Text.Contains("resize-tail-" + index));
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                await Wait(() => chatScroll.VerticalOffset >= chatScroll.ScrollableHeight - 1);
+            }
+            Check(true, "chat follows the newest line after repeated appends and viewport resizing");
             session.Journal.Add("Chat", "ColoredAlpha", "Team 1", "colored-message-body", 1);
             session.Journal.Add("Kill", "ColoredKiller", "", "ColoredKiller killed ColoredVictim with U_M416", 1, 2, "ColoredVictim", "U_M416");
             await Wait(() => chatList.Text.Contains("ColoredVictim"));
@@ -490,6 +563,14 @@ internal static class Program
             Check(SettingsCatalog.For(session.Game).Where(x => x.Kind == "bool").All(x => editors[x.Command] is CheckBox), "all boolean server settings use checkboxes");
             Check(SettingsCatalog.For(session.Game).Where(x => x.Kind == "number" && x.Command != "vars.gameModeCounter").All(x => editors[x.Command] is NumberInput), "numeric server settings use number inputs with step controls");
             var applyButtons = Field<Dictionary<string, Button>>(window, "settingApplyButtons");
+            Check(Enumerable.Range(1, 4).All(team => editors["vars.teamFactionOverride " + team] is SettingChoiceBox { Value: "default", Items.Count: 4 }), "BF4 exposes four faction selectors with Default, US, Russia and China choices");
+            var factionEditor = (SettingChoiceBox)editors["vars.teamFactionOverride 2"];
+            factionEditor.Value = "2"; applyButtons["vars.teamFactionOverride 2"].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Wait(() => mock.Factions[1] == 2 && factionEditor.Tag is false);
+            Check(SettingsCatalog.StartupConfig(session.Profile).Contains("vars.teamFactionOverride"), "explicit faction selector applies through RCON and appears in Startup.txt");
+            factionEditor.Value = "default"; applyButtons["vars.teamFactionOverride 2"].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Wait(() => factionEditor.Tag is false);
+            Check(!SettingsCatalog.StartupConfig(session.Profile).Contains("vars.teamFactionOverride"), "Default faction selector removes the override from Startup.txt generation");
             Check(SettingsCatalog.All.Where(x => x.Kind == "bool").All(x => !applyButtons.ContainsKey(x.Command)), "standalone boolean settings have no Apply button");
             Check(!editors.ContainsKey("vars.hacker") && editors.ContainsKey("vars.commander") && !editors.ContainsKey("vars.ctfRoundTimeModifier"), "BF4 settings omit BF3 and Hardline controls entirely");
             Check(!mock.Received.Any(x => x.Length > 1 && SettingsCatalog.Find(x[0])?.Kind == "bool"), "populating checkbox values does not send setting changes");
@@ -578,6 +659,20 @@ internal static class Program
             var currentMaps = Control<ListBox>(window, "CurrentMapsList");
             await Wait(() => currentMaps.Items.Count == 4); window.UpdateLayout();
             var currentRow = (ListBoxItem)currentMaps.ItemContainerGenerator.ContainerFromIndex(1);
+            Check(MainWindow.MapInsertionIndex(1, 4, 60, 4) == 1 && MainWindow.MapInsertionIndex(1, 56, 60, 4) == 2
+                && MainWindow.MapInsertionIndex(-1, 0, 0, 4) == 4, "map insertion preview chooses before/after the hovered row and supports appending");
+            var rowTop = currentRow.TranslatePoint(new Point(), currentMaps).Y;
+            Check(window.MapDropIndex(new(10, rowTop + 2)) == 1 && window.MapDropIndex(new(10, rowTop + currentRow.ActualHeight - 2)) == 2,
+                "drop calculation uses the same row midpoint as the insertion preview");
+            var mapDragData = new DataObject("LightRcon.NewMap", modeOne.Entry);
+            var mapDrag = (DragEventArgs)Activator.CreateInstance(typeof(DragEventArgs), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null,
+                [mapDragData, DragDropKeyStates.None, DragDropEffects.Copy, currentMaps, currentMaps.PointToScreen(new(12, rowTop + 3))], null)!;
+            mapDrag.RoutedEvent = DragDrop.DragOverEvent; currentMaps.RaiseEvent(mapDrag);
+            Check(mapDrag.Effects == DragDropEffects.Copy && System.Windows.Documents.AdornerLayer.GetAdornerLayer(currentMaps).GetAdorners(currentMaps)?.Length > 0,
+                "dragging a new map displays a visible insertion adorner without committing a change");
+            Capture(window, "map-insertion-preview");
+            mapDrag.Handled = false; mapDrag.RoutedEvent = DragDrop.DragLeaveEvent; currentMaps.RaiseEvent(mapDrag);
+            Check(System.Windows.Documents.AdornerLayer.GetAdornerLayer(currentMaps).GetAdorners(currentMaps)?.Length is null or 0, "leaving the map drop target removes its insertion preview");
             var runsBeforeDoubleClick = mock.Received.Count(x => x[0] == "mapList.runNextRound");
             currentMaps.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = System.Windows.Controls.Control.MouseDoubleClickEvent });
             currentMaps.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right) { RoutedEvent = System.Windows.Controls.Control.MouseDoubleClickEvent, Source = currentRow });
@@ -711,18 +806,19 @@ internal static class Program
             var layerSelector = Control<ComboBox>(layerWindow, "ServerSelector"); layerSelector.SelectedIndex = 0;
             Check(layerCards.Items.Cast<ServerCard>().All(x => x.SidebarLabel == "[Layer] " + x.Session.Info.Name && x.WelcomeTitle == $"{x.Name} | [Layer] {x.Session.Info.Name} [{x.Endpoint}]" && x.ConnectionLabel.Contains("[Layer] " + x.Session.Info.Name)), "Layer names use the prefix consistently across Welcome, sidebar and server selector");
             Check(Control<TabItem>(layerWindow, "LayersTab").Visibility == Visibility.Collapsed, "Layer viewer cannot see Layers tab");
-            await Wait(() => Control<TextBox>(layerWindow, "PluginConsoleList").Text.Contains("desktop plugin console marker"));
+            await Wait(() => Control<PluginConsoleEditor>(layerWindow, "PluginConsoleList").Text.Contains("desktop plugin console marker"));
             session.Log("Procon", "live Layer plugin console marker");
-            await Wait(() => Control<TextBox>(layerWindow, "PluginConsoleList").Text.Contains("live Layer plugin console marker"));
-            Check(Control<TextBox>(layerWindow, "PluginConsoleList").Text.Split("desktop plugin console marker").Length == 2, "Layer plugin console receives host history and live output without duplicating replayed entries");
+            await Wait(() => Control<PluginConsoleEditor>(layerWindow, "PluginConsoleList").Text.Contains("live Layer plugin console marker"));
+            Check(Control<PluginConsoleEditor>(layerWindow, "PluginConsoleList").Text.Split("desktop plugin console marker").Length == 2, "Layer plugin console receives host history and live output without duplicating replayed entries");
             var consoleViewer = ((ServerCard)layerCards.Items[0]).Session;
             await consoleViewer.StopAsync(); await consoleViewer.StartAsync();
-            await Wait(() => consoleViewer.IsConnected && Control<TextBox>(layerWindow, "PluginConsoleList").Text.Contains("live Layer plugin console marker"));
-            Check(Control<TextBox>(layerWindow, "PluginConsoleList").Text.Split("live Layer plugin console marker").Length == 2, "Layer reconnect deduplicates plugin-console history using entry IDs");
+            await Wait(() => consoleViewer.IsConnected && Control<PluginConsoleEditor>(layerWindow, "PluginConsoleList").Text.Contains("live Layer plugin console marker"));
+            Check(Control<PluginConsoleEditor>(layerWindow, "PluginConsoleList").Text.Split("live Layer plugin console marker").Length == 2, "Layer reconnect deduplicates plugin-console history using entry IDs");
             Check(!Control<Button>(layerWindow, "LoadMapListButton").IsEnabled, "Layer viewer cannot reload MapList.txt");
             Check(!Control<Button>(layerWindow, "EndRoundButton").IsEnabled, "Layer viewer cannot force End round");
             Tab(layerWindow, "Plugin");
             await Wait(() => Control<TextBlock>(layerWindow, "PluginAuthorText").Text == "UI author" && Control<TabControl>(layerWindow, "PluginPages").IsEnabled);
+            Check(Control<StackPanel>(layerWindow, "PluginPathPanel").Visibility == Visibility.Collapsed && Control<TextBlock>(layerWindow, "PluginPathText").Text.Length == 0, "Layer plugin details hide both the File label and host path");
             Check(Control<ListBox>(layerWindow, "EnabledPluginList").Items.Count == session.Plugins.Snapshot().Length && Control<Button>(layerWindow, "ImportPluginButton").Visibility == Visibility.Collapsed && !Control<Button>(layerWindow, "EnableSelectedPluginButton").IsEnabled, "Layer plugin page shows the host list without client import or unauthorized activation");
             var layerPluginPages = Control<TabControl>(layerWindow, "PluginPages"); layerPluginPages.SelectedIndex = 1;
             Check(Control<StackPanel>(layerWindow, "PluginSettingFields").Children.OfType<TextBox>().All(editor => !editor.IsEnabled), "Layer viewer can inspect plugin settings but cannot edit them");

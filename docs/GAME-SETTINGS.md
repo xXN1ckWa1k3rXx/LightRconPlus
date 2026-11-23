@@ -1,5 +1,7 @@
 # Game-specific server settings
 
+BF4 exposes four **Team faction override** selectors in Slots & Teams. Each offers Default, US Army (`0`), Russian Army (`1`) and Chinese Army (`2`). Default is a local startup-export preference: it omits that team's override and does not reset an override already active on the server. Explicit choices send `vars.teamFactionOverride <team 1–4> <faction 0–2>` and generate the same three separate command arguments in Startup.txt. A new profile starts with Default for all teams. The read command returns all four live faction values without a team argument.
+
 The desktop, setting validation, startup export and Lua variable registration share the game masks in `SettingsCatalog`. BFH is reported as `BFHL` by RCON. A server build may expose fewer commands; `admin.help` and command responses further restrict availability.
 
 | Setting | BF3 | BF4 | BFH |
@@ -15,6 +17,7 @@ The desktop, setting validation, startup export and Lua variable registration sh
 | `vars.hacker` | — | — | Yes |
 | `vars.alwaysAllowSpectators` | — | Yes | Yes |
 | `vars.autoBalance` | Yes | Yes | Yes |
+| `vars.teamFactionOverride <team> <faction>` | — | Yes | — |
 | `reservedSlotsList.aggressiveJoin` | Yes | Yes | Yes |
 | `vars.preset` | — | Yes | Yes |
 | `vars.friendlyFire` | Yes | Yes | Yes |

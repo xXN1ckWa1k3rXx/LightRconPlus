@@ -27,6 +27,8 @@ public sealed class ServerSession : IAsyncDisposable
     private readonly SessionLogWriter textLogs;
     private bool everConnected;
     private long version;
+    private long mapsRevision;
+    public event Action<LayerMapUpdate>? MapsChanged;
     public ServerProfile Profile { get; }
     public ActivityJournal Journal { get; }
     public ConnectionState State { get; private set; } = ConnectionState.Offline;
@@ -146,6 +148,8 @@ public sealed class ServerSession : IAsyncDisposable
                 LastError = ""; LastFailureStage = ""; RetryAt = null;
                 SetState(ConnectionState.Connecting, "Connecting…");
                 Permissions = LayerPermission.All;
+                if (Profile.IsLayer) mapsRevision = 0;
+                LayerSnapshot? initialSnapshot = null;
                 if (Profile.IsLayer)
                 {
                     var layer = new LayerConnection();
@@ -154,12 +158,18 @@ public sealed class ServerSession : IAsyncDisposable
                     layer.HistoryReceived += Journal.Import;
                     layer.PluginConsoleReceived += ImportPluginConsole;
                     layer.PluginsReceived += Plugins.AcceptRemoteSnapshot;
+                    layer.MapsReceived += AcceptRemoteMaps;
                     SetState(ConnectionState.Authenticating, "Authenticating with Layer…");
                     await layer.ConnectAsync(Profile, token);
                     Permissions = layer.Permissions;
-                    var version = await RawAsync(["version"], token);
-                    if (version.Length < 2) throw new RconException("Missing game identifier in version response.");
-                    SetGame(GameCatalog.Parse(version[1]));
+                    initialSnapshot = await ReadLayerSnapshotAsync(true, token);
+                    if (initialSnapshot is not null) SetGame(initialSnapshot.Game);
+                    else
+                    {
+                        var version = await RawAsync(["version"], token);
+                        if (version.Length < 2) throw new RconException("Missing game identifier in version response.");
+                        SetGame(GameCatalog.Parse(version[1]));
+                    }
                 }
                 else
                 {
@@ -184,9 +194,13 @@ public sealed class ServerSession : IAsyncDisposable
                     }
                 }
                 lock (dataGate) { unsupported.Clear(); commands.Clear(); }
-                try { var help = await RawAsync(["admin.help"], token); lock (dataGate) commands.UnionWith(help.Skip(1)); }
-                catch (RconException) { }
-                await ReadSettingsAsync(token);
+                if (initialSnapshot is not null) { lock (dataGate) commands.UnionWith(initialSnapshot.Commands); }
+                else
+                {
+                    try { var help = await RawAsync(["admin.help"], token); lock (dataGate) commands.UnionWith(help.Skip(1)); }
+                    catch (RconException) { }
+                }
+                await ReadSettingsAsync(token, initialSnapshot);
                 await ReconcileSettingsAsync(token);
                 await RefreshAsync(true, token);
                 if (Profile.DesiredMaps is not null && Permissions.HasFlag(LayerPermission.Maps))
@@ -296,7 +310,14 @@ public sealed class ServerSession : IAsyncDisposable
             if (words.Length != 2 || !int.TryParse(words[1], out var team) || team < 1 || team > RoundTeamCount)
                 throw new ArgumentException(UiText.Get("Select a valid winning team."));
         }
-        if (SettingsCatalog.Find(words[0]) is not null && !SettingsCatalog.Supports(words[0], Game))
+        var settingKey = SettingsCatalog.SettingKey(words);
+        if (words[0] == "vars.teamFactionOverride")
+        {
+            if (Game != GameId.BF4 || words.Length != 1 && (words.Length != 3 || !SettingsCatalog.IsFactionOverride(settingKey)))
+                throw new ArgumentException("Invalid faction override command for this game.");
+            if (words.Length == 3) SettingsCatalog.Validate(settingKey, words[2], Game);
+        }
+        if (SettingsCatalog.Find(settingKey) is not null && !SettingsCatalog.Supports(settingKey, Game))
             throw new ArgumentException(UiText.Format("Setting {0} is not available for {1}.", words[0], Game));
         if (words[0] is "login.hashed" or "login.plainText" or "logout" or "quit" or "admin.eventsEnabled" or "admin.password")
             throw new UnauthorizedAccessException(UiText.Get("Login, subscriptions and the RCON password are managed by the connection manager and cannot be changed through the console."));
@@ -337,19 +358,18 @@ public sealed class ServerSession : IAsyncDisposable
                 Journal.Add("Chat", speaker, string.Join(" ", words.Skip(audienceIndex)), originalMessage, game: Game,
                     isAdminMessage: true, adminMessageType: words[0] == "admin.yell" ? "Yell" : "Say", isPluginMessage: isPluginMessage);
             }
-            if ((words.Length == 2 || words[0] == "vars.preset" && words.Length == 3) && SettingsCatalog.Find(words[0]) is not null)
+            if ((words.Length == 2 || words[0] == "vars.preset" && words.Length == 3 || SettingsCatalog.IsFactionOverride(settingKey) && words.Length == 3) && SettingsCatalog.Find(settingKey) is not null)
             {
-                var value = words[0] == "vars.preset" ? words[1] + " " + (bool.TryParse(words.ElementAtOrDefault(2), out var locked) && locked ? "true" : "false") : words[1];
-                lock (Profile.Sync) Profile.DesiredSettings[words[0]] = value;
-                lock (dataGate) remoteSettings[words[0]] = value;
+                var value = words[0] == "vars.preset" ? words[1] + " " + (bool.TryParse(words.ElementAtOrDefault(2), out var locked) && locked ? "true" : "false") : words[^1];
+                lock (Profile.Sync) Profile.DesiredSettings[settingKey] = value;
+                lock (dataGate) remoteSettings[settingKey] = value;
                 store.Save();
+                if (!Profile.IsLayer && words[0] is "vars.preset" or "vars.serverType") await ReadSettingsAsync(token);
             }
             if (words[0] is "mapList.add" or "mapList.remove" or "mapList.clear" or "mapList.load")
             {
                 var maps = await ReadMapsAsync(token);
-                lock (dataGate) Maps = maps;
-                lock (Profile.Sync) Profile.DesiredMaps = maps.ToList();
-                store.Save(); Touch();
+                AdoptMaps(maps);
             }
             return result;
         }
@@ -373,9 +393,63 @@ public sealed class ServerSession : IAsyncDisposable
         }
         return await ExecuteAsync(words, token);
     }
-    private async Task ReadSettingsAsync(CancellationToken token)
+    internal LayerSnapshot CreateLayerSnapshot(bool settingsOnly)
     {
-        await Parallel.ForEachAsync(SettingsCatalog.For(Game), new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = token }, async (definition, ct) =>
+        if (!IsConnected) throw new IOException(UiText.Get("Server not connected; action not sent."));
+        lock (dataGate) return new()
+        {
+            Game = Game, Info = Info,
+            // Players have mutable event/PunkBuster fields: detach them from the live list.
+            Players = settingsOnly ? [] : Players.Select(player => player.Copy()).ToArray(),
+            Maps = settingsOnly ? [] : Maps.ToArray(),
+            MapsRevision = mapsRevision,
+            Settings = new(remoteSettings), Unsupported = unsupported.ToArray(), Commands = commands.ToArray()
+        };
+    }
+    private async Task<LayerSnapshot?> ReadLayerSnapshotAsync(bool settingsOnly, CancellationToken token)
+    {
+        if (connection is not LayerConnection { SupportsSnapshots: true } layer) return null;
+        var snapshot = (await layer.RequestAsync(new() { Type = "session.snapshot", Words = [settingsOnly ? "settings" : "state"] }, token)).Snapshot;
+        // Oversized snapshots fall back to the existing paged commands. Older hosts never advertise this operation.
+        if (snapshot is null) layer.SupportsSnapshots = false;
+        return snapshot;
+    }
+    private void RememberSetting(string command, string value)
+    {
+        lock (dataGate) remoteSettings[command] = value;
+        lock (Profile.Sync)
+        {
+            Profile.DesiredSettings.TryAdd(command, SettingsCatalog.IsFactionOverride(command) ? "default" : value);
+            if (command == "vars.preset" && !Profile.DesiredSettings[command].Contains(' '))
+                Profile.DesiredSettings[command] += " " + (SettingsCatalog.ParsePreset(value).Locked ? "true" : "false");
+        }
+    }
+    private async Task ReadSettingsAsync(CancellationToken token, LayerSnapshot? snapshot = null)
+    {
+        snapshot ??= await ReadLayerSnapshotAsync(true, token);
+        if (snapshot is not null)
+        {
+            lock (dataGate)
+            {
+                unsupported.Clear(); unsupported.UnionWith(snapshot.Unsupported);
+                commands.Clear(); commands.UnionWith(snapshot.Commands);
+                remoteSettings.Clear();
+            }
+            foreach (var item in snapshot.Settings.Where(item => SettingsCatalog.Supports(item.Key, Game) && SettingsCatalog.Find(item.Key) is not null))
+                RememberSetting(item.Key, item.Value);
+            store.Save(); Touch(); return;
+        }
+        if (Game == GameId.BF4)
+        {
+            try
+            {
+                var factions = await RawAsync(["vars.teamFactionOverride"], token);
+                if (factions.Length != 5) throw new RconException("Invalid faction override response.");
+                for (var team = 1; team <= 4; team++) RememberSetting("vars.teamFactionOverride " + team, factions[team]);
+            }
+            catch (RconException) { lock (dataGate) foreach (var team in Enumerable.Range(1, 4)) unsupported.Add("vars.teamFactionOverride " + team); }
+        }
+        await Parallel.ForEachAsync(SettingsCatalog.For(Game).Where(definition => !SettingsCatalog.IsFactionOverride(definition.Command)), new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = token }, async (definition, ct) =>
         {
             bool advertised; lock (dataGate) advertised = commands.Count == 0 || commands.Contains(definition.Command);
             if (!advertised) { lock (dataGate) unsupported.Add(definition.Command); return; }
@@ -385,14 +459,7 @@ public sealed class ServerSession : IAsyncDisposable
                 if (result.Length < 2) return;
                 var value = result[1];
                 if (definition.Command == "vars.preset") value += " " + (bool.TryParse(result.ElementAtOrDefault(2), out var locked) && locked ? "true" : "false");
-                lock (dataGate) remoteSettings[definition.Command] = value;
-                lock (Profile.Sync)
-                {
-                    Profile.DesiredSettings.TryAdd(definition.Command, value);
-                    // Older profiles stored only the name. Preserve the remote lock during migration.
-                    if (definition.Command == "vars.preset" && !Profile.DesiredSettings[definition.Command].Contains(' '))
-                        Profile.DesiredSettings[definition.Command] += " " + (SettingsCatalog.ParsePreset(value).Locked ? "true" : "false");
-                }
+                RememberSetting(definition.Command, value);
             }
             catch (RconException ex) { lock (dataGate) unsupported.Add(definition.Command); Log("Setting", definition.Command + ": " + ex.Code); }
         });
@@ -402,9 +469,11 @@ public sealed class ServerSession : IAsyncDisposable
     internal bool TryReadSetting(string[] words, out string[] result)
     {
         result = [];
-        if (!IsConnected || words.Length != 1 || SettingsCatalog.Find(words[0]) is null) return false;
+        if (!IsConnected || words.Length != 1 || SettingsCatalog.Find(words[0]) is null && words[0] != "vars.teamFactionOverride") return false;
         lock (dataGate)
         {
+            if (words[0] == "vars.teamFactionOverride" && Enumerable.Range(1, 4).All(team => remoteSettings.ContainsKey("vars.teamFactionOverride " + team)))
+            { result = ["OK", .. Enumerable.Range(1, 4).Select(team => remoteSettings["vars.teamFactionOverride " + team])]; return true; }
             if (!remoteSettings.TryGetValue(words[0], out var value)) return false;
             result = words[0] == "vars.preset" ? ["OK", .. value.Split(' ')] : ["OK", value];
             return true;
@@ -419,6 +488,7 @@ public sealed class ServerSession : IAsyncDisposable
         // Preset first: applying it can reset individual gameplay values.
         foreach (var item in desired.OrderBy(x => x.Key == "vars.serverType" ? 0 : x.Key == "vars.preset" ? 1 : 2))
         {
+            if (SettingsCatalog.IsFactionOverride(item.Key) && item.Value == "default") continue;
             if (!IsSupported(item.Key) || !actual.TryGetValue(item.Key, out var remote) || SettingsCatalog.Equal(remote, item.Value)) continue;
             try
             {
@@ -460,11 +530,12 @@ public sealed class ServerSession : IAsyncDisposable
         {
             await operationGate.WaitAsync(token);
             acquired = true;
-            var info = FrostbiteParser.Server(await RawAsync(["serverInfo"], token)) with { Game = Game };
-            var players = FrostbiteParser.Players(await RawAsync(["admin.listPlayers", "all"], token), PlayerSnapshot());
+            var snapshot = await ReadLayerSnapshotAsync(false, token);
+            var info = snapshot?.Info ?? FrostbiteParser.Server(await RawAsync(["serverInfo"], token)) with { Game = Game };
+            var players = snapshot?.Players.ToList() ?? FrostbiteParser.Players(await RawAsync(["admin.listPlayers", "all"], token), PlayerSnapshot());
             // Seed once per observed player; thereafter spawn/kill events maintain life state.
             // Bound concurrency so a full server does not create an unbounded request burst.
-            await Parallel.ForEachAsync(players, new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = token }, async (player, ct) =>
+            if (snapshot is null) await Parallel.ForEachAsync(players, new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = token }, async (player, ct) =>
             {
                 bool query;
                 lock (dataGate) query = !lifeStates.ContainsKey(player.Name) && lifeQueries.Add(player.Name) && (commands.Count == 0 || commands.Contains("player.isAlive"));
@@ -478,22 +549,17 @@ public sealed class ServerSession : IAsyncDisposable
             });
             lock (dataGate)
             {
-                foreach (var player in players) player.IsAlive = lifeStates.TryGetValue(player.Name, out var alive) ? alive : null;
+                foreach (var player in players)
+                    if (lifeStates.TryGetValue(player.Name, out var alive)) player.IsAlive = alive;
                 Info = info; Players = players;
             }
+            // Keep rotations current on the five-second poll too, including changes made
+            // outside LightRcon. Layer pushes cover host/client edits immediately.
+            if (snapshot is not null) AcceptRemoteMaps(new(snapshot.MapsRevision, snapshot.Maps));
+            else ObserveMaps(await ReadMapsAsync(token));
             if (!full) { Touch(); return; }
+            if (snapshot is not null) await ReadSettingsAsync(token, snapshot);
             if (IsConnected && !Profile.IsLayer) await ReadSettingsAsync(token);
-            var previousMaps = MapSnapshot();
-            var maps = await ReadMapsAsync(token);
-            lock (dataGate) Maps = maps;
-            var mapsChanged = false;
-            lock (Profile.Sync)
-                if (Profile.DesiredMaps is null || State == ConnectionState.Connected && Profile.DesiredMaps.SequenceEqual(previousMaps))
-                {
-                    mapsChanged = Profile.DesiredMaps is null || !Profile.DesiredMaps.SequenceEqual(maps);
-                    Profile.DesiredMaps = maps.ToList();
-                }
-            if (mapsChanged) store.Save();
             await OptionalRefreshAsync(async () =>
             {
                 List<BanEntry> bans = [];
@@ -547,9 +613,35 @@ public sealed class ServerSession : IAsyncDisposable
     }
     private void AdoptMaps(List<MapEntry> maps)
     {
-        lock (dataGate) Maps = maps.ToList();
         lock (Profile.Sync) Profile.DesiredMaps = maps.ToList();
+        ObserveMaps(maps);
         store.Save(); Touch();
+    }
+    private void ObserveMaps(List<MapEntry> maps)
+    {
+        MapEntry[] previous;
+        LayerMapUpdate? update = null;
+        lock (dataGate)
+        {
+            previous = Maps.ToArray();
+            if (!Maps.SequenceEqual(maps)) { Maps = maps.ToList(); update = new(++mapsRevision, Maps.ToArray()); }
+        }
+        lock (Profile.Sync)
+            if (Profile.DesiredMaps is null || IsConnected && Profile.DesiredMaps.SequenceEqual(previous)) Profile.DesiredMaps = maps.ToList();
+        if (update is not null) { MapsChanged?.Invoke(update); Touch(); }
+    }
+    private void AcceptRemoteMaps(LayerMapUpdate update)
+    {
+        MapEntry[] previous;
+        lock (dataGate)
+        {
+            if (connection is LayerConnection { SupportsMapUpdates: true } && update.Revision < mapsRevision) return;
+            previous = Maps.ToArray(); mapsRevision = update.Revision; Maps = update.Entries.ToList();
+        }
+        lock (Profile.Sync)
+            if (Profile.DesiredMaps is null || IsConnected && Profile.DesiredMaps.SequenceEqual(previous)) Profile.DesiredMaps = update.Entries.ToList();
+        if (!previous.SequenceEqual(update.Entries)) store.Save();
+        Touch();
     }
     public async Task RefreshMapsAsync(CancellationToken token = default)
     {
@@ -614,7 +706,7 @@ public sealed class ServerSession : IAsyncDisposable
     }
     public async Task ReplaceMapsAsync(List<MapEntry> maps, CancellationToken token = default)
         => await MutateMapsAsync(_ => maps.ToList(), token);
-    public async Task MutateMapsAsync(Func<List<MapEntry>, List<MapEntry>> mutation, CancellationToken token = default)
+    public async Task MutateMapsAsync(Func<List<MapEntry>, List<MapEntry>> mutation, CancellationToken token = default, IReadOnlyList<MapEntry>? expectedCurrent = null)
     {
         if (!Permissions.HasFlag(LayerPermission.Maps)) throw new UnauthorizedAccessException(UiText.Get("No map management permission."));
         await operationGate.WaitAsync(token);
@@ -622,29 +714,46 @@ public sealed class ServerSession : IAsyncDisposable
         {
             List<MapEntry> current;
             lock (Profile.Sync) current = Profile.DesiredMaps?.ToList() ?? MapSnapshot().ToList();
+            if (expectedCurrent is not null)
+            {
+                var actual = await ReadMapsAsync(token);
+                if (!actual.SequenceEqual(expectedCurrent)) { AdoptMaps(actual); throw new ArgumentException(UiText.Get("The map list changed. Select the map again.")); }
+                current = actual;
+            }
             var maps = mutation(current.ToList());
             if (maps.Count > 1000 || maps.Any(x => x.Rounds is < 1 or > 100 || string.IsNullOrWhiteSpace(x.FileName) || string.IsNullOrWhiteSpace(x.GameMode)))
                 throw new ArgumentException(UiText.Get("Invalid map or round count."));
             lock (Profile.Sync) Profile.DesiredMaps = maps.ToList();
             store.Save();
             if (!IsConnected) { lock (dataGate) Maps = maps.ToList(); Touch(); return; }
-            try { await ReplaceMapsCoreAsync(maps, token); }
+            try { await ReplaceMapsCoreAsync(maps, token, current); }
             catch (RconException)
             {
                 // A rejected map must not poison every later addition and reconnect attempt.
-                lock (Profile.Sync) Profile.DesiredMaps = current;
+                lock (Profile.Sync) Profile.DesiredMaps = connection is LayerConnection { SupportsMapUpdates: true } ? MapSnapshot().ToList() : current;
                 store.Save(); Touch(); throw;
             }
         }
         finally { operationGate.Release(); }
     }
-    private async Task ReplaceMapsCoreAsync(List<MapEntry> desired, CancellationToken token)
+    private async Task ReplaceMapsCoreAsync(List<MapEntry> desired, CancellationToken token, IReadOnlyList<MapEntry>? expected = null)
     {
+        if (connection is LayerConnection { SupportsMapUpdates: true } layer)
+        {
+            // The host owns the transaction and rollback. A rejected stale edit must
+            // never trigger a second client-side rewrite over another administrator.
+            await layer.RequestAsync(new() { Type = "maps.replace", Maps = new(0, desired.ToArray()), ExpectedMaps = expected?.ToArray() ?? MapSnapshot() }, token);
+            // Ordered pushes remain authoritative if another administrator edits
+            // again before this request's continuation runs on the client.
+            lock (Profile.Sync) Profile.DesiredMaps = MapSnapshot().ToList();
+            store.Save(); Touch();
+            return;
+        }
         var original = await ReadMapsAsync(token);
         try
         {
             await WriteMapsAsync(desired, token);
-            lock (dataGate) Maps = desired.ToList();
+            AdoptMaps(desired);
             Log("Map List", UiText.Format("Synchronized and saved {0} maps.", desired.Count));
             Touch();
         }

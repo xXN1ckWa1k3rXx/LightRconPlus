@@ -56,6 +56,10 @@ The application uses .NET, WPF, Windows APIs and installed Windows fonts/glyphs.
 
 ## MaxMind GeoLite Country
 
+Localized country and territory names in `country-names.json` are selected from [Unicode CLDR JSON](https://github.com/unicode-org/cldr-json/tree/main/cldr-json/cldr-localenames-full/main) (English, Simplified Chinese and German), with supplemental labels for historical GeoIP categories. Copyright © 2015–2024 Unicode, Inc. Distributed under the [Unicode License V3](docs/licenses/Unicode-CLDR.txt), retained in runtime packages. Country names follow the selected application language without online requests or dependence on the Windows display language.
+
+The desktop Geo column embeds 16×12 country flags from [FlagCDN / Flagpedia](https://flagpedia.net/download/icons), downloaded from https://flagcdn.com/16x12.zip (SHA-256 `83F2393F603B1D0721CF3F6C707C36744749E307453598E4F07CA9341FE3CDB3`). Flagpedia provides these flag images for free use without attribution requirements. They are bundled for offline display; the application makes no flag-image network requests. Flags indicate the IP database's country assignment, not a player's citizenship.
+
 This product includes GeoLite data created by MaxMind, available from http://maxmind.com/.
 
 The embedded `GeoIP.dat` is the historical country database distributed in the pinned AdKats Procon v1.5.4.2 archive (SHA-256 `581710190FE8F87311A173A7B5F864461CD944AD0CE4F57FE88C78134E7F2DAB`). Its original data vintage is not identified by the archive; the archive timestamp does not establish database freshness. Country assignments may be outdated. The lookup runs locally, supports IPv4, and does not send player addresses to an external service. Unknown/private addresses and native IPv6 have no country result.

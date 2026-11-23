@@ -46,6 +46,8 @@ public sealed class ClientPreferences
     public string ChatDisplay { get; set; } = "Say";
     public int YellSeconds { get; set; } = 10;
     public bool ShowAdminSayYell { get; set; }
+    public string ChatPlayerFilter { get; set; } = "";
+    public bool OnlyChatMessages { get; set; }
     public string BanSearch { get; set; } = "";
     public string ConsoleDraft { get; set; } = "";
     public Dictionary<string, List<GridColumnPreference>> Grids { get; set; } = [];
@@ -89,6 +91,7 @@ public sealed record MapEntry(string FileName, string GameMode, int Rounds)
 
 public sealed class PlayerInfo
 {
+    internal PlayerInfo Copy() => (PlayerInfo)MemberwiseClone();
     public int Id { get; set; }
     public string Tags { get; set; } = "—";
     public string Name { get; set; } = "";

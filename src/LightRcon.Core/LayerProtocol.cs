@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Buffers;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -22,6 +23,32 @@ public sealed class LayerFrame
     public Plugins.PluginDetails[] Plugins { get; set; } = [];
     public Plugins.PluginDetails? Plugin { get; set; }
     public Plugins.PluginSetting[] PluginSettings { get; set; } = [];
+    public bool SupportsSnapshots { get; set; }
+    public LayerSnapshot? Snapshot { get; set; }
+    public bool SupportsMapUpdates { get; set; }
+    public LayerMapUpdate? Maps { get; set; }
+    public MapEntry[]? ExpectedMaps { get; set; }
+}
+
+public sealed record LayerMapUpdate(long Revision, MapEntry[] Entries);
+
+// Read-only state owned by the host; mutations always go through its RCON connection.
+public sealed class LayerSnapshot
+{
+    public GameId Game { get; set; }
+    public ServerInfo Info { get; set; } = ServerInfo.Empty;
+    public PlayerInfo[] Players { get; set; } = [];
+    public MapEntry[] Maps { get; set; } = [];
+    public long MapsRevision { get; set; }
+    public Dictionary<string, string> Settings { get; set; } = [];
+    public string[] Unsupported { get; set; } = [];
+    public string[] Commands { get; set; } = [];
+    internal bool IsValid => Enum.IsDefined(Game) && Info is not null && Info.TeamScores is not null &&
+        Players is not null && Players.Length <= 512 && Players.All(x => x is not null && x.Name is not null && x.Ip is not null) &&
+        Maps is not null && Maps.Length <= 10000 && Maps.All(x => x is not null && x.FileName is not null && x.GameMode is not null) &&
+        Settings is not null && Settings.Count <= 512 && Settings.All(x => x.Value is not null) &&
+        Unsupported is not null && Unsupported.Length <= 512 && Unsupported.All(x => x is not null) &&
+        Commands is not null && Commands.Length <= 4096 && Commands.All(x => x is not null);
 }
 
 public sealed record PublicLayerAccount(string Username, bool Enabled, LayerPermission? Permissions);
@@ -45,19 +72,46 @@ public static class LayerWire
             frame.PluginSettings.Any(x => x is null || x.Name is null || x.Type is null || x.Value is null) ||
             frame.Words.Length > 4096 || frame.Words.Any(x => x is null || x.Contains('\0')) || frame.Entries.Length > 5000 ||
             frame.Entries.Any(x => x is null || x.Kind is null || x.Name is null || x.Team is null || x.Text is null) ||
+            (frame.Snapshot is not null && !frame.Snapshot.IsValid) ||
+            (frame.Maps is not null && !ValidMaps(frame.Maps.Entries)) ||
+            (frame.ExpectedMaps is not null && !ValidMaps(frame.ExpectedMaps)) ||
             (frame.Layer is not null && (frame.Layer.Accounts is null || frame.Layer.Accounts.Any(x => x is null || x.Username is null))))
             throw new InvalidDataException("Malformed Layer frame fields.");
         return frame;
     }
+    private static bool ValidMaps(MapEntry[] maps) => maps is not null && maps.Length <= 1000 &&
+        maps.All(map => map is not null && map.FileName is not null && map.GameMode is not null && map.Rounds is >= 1 and <= 100);
     public static async Task WriteAsync(Stream stream, LayerFrame frame, SemaphoreSlim gate, CancellationToken token)
     {
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(frame);
-        if (bytes.Length > MaxFrameBytes) throw new InvalidDataException("Layer frame exceeds limit.");
-        var prefix = new byte[4];
-        BinaryPrimitives.WriteInt32LittleEndian(prefix, bytes.Length);
+        using var packet = new FrameBuffer();
+        using (var writer = new Utf8JsonWriter(packet)) JsonSerializer.Serialize(writer, frame);
+        var length = packet.Length - 4;
+        if (length > MaxFrameBytes) throw new InvalidDataException("Layer frame exceeds limit.");
+        packet.SetLengthPrefix(length);
         await gate.WaitAsync(token);
-        try { await stream.WriteAsync(prefix, token); await stream.WriteAsync(bytes, token); }
+        try { await stream.WriteAsync(packet.WrittenMemory, token); }
         finally { gate.Release(); }
+    }
+    // One pooled UTF-8 packet replaces two large byte[] allocations per Layer
+    // frame. Clear returned storage because frames may contain login passwords.
+    private sealed class FrameBuffer : IBufferWriter<byte>, IDisposable
+    {
+        private byte[] buffer = ArrayPool<byte>.Shared.Rent(4096);
+        public int Length { get; private set; } = 4;
+        public ReadOnlyMemory<byte> WrittenMemory => buffer.AsMemory(0, Length);
+        public void SetLengthPrefix(int length) => BinaryPrimitives.WriteInt32LittleEndian(buffer, length);
+        public void Advance(int count) => Length += count;
+        public Memory<byte> GetMemory(int sizeHint = 0) { Ensure(sizeHint); return buffer.AsMemory(Length); }
+        public Span<byte> GetSpan(int sizeHint = 0) { Ensure(sizeHint); return buffer.AsSpan(Length); }
+        private void Ensure(int size)
+        {
+            size = Math.Max(1, size);
+            if (buffer.Length - Length >= size) return;
+            var next = ArrayPool<byte>.Shared.Rent(Math.Max(checked(Length + size), buffer.Length * 2));
+            buffer.AsSpan(0, Length).CopyTo(next);
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true); buffer = next;
+        }
+        public void Dispose() => ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
     }
     public static string Fingerprint(X509Certificate certificate) => Convert.ToHexString(SHA256.HashData(certificate.GetRawCertData()));
     public static string NormalizePin(string pin) => pin.Replace(":", "").Replace(" ", "").ToUpperInvariant();
@@ -69,6 +123,13 @@ public static class LayerAuthorization
     {
         if (words.Length == 0) throw new UnauthorizedAccessException("Empty command.");
         var command = words[0];
+        if (command == "vars.teamFactionOverride")
+        {
+            if (words.Length == 1) return LayerPermission.View;
+            if (words.Length != 3 || !SettingsCatalog.IsFactionOverride(SettingsCatalog.SettingKey(words))) throw new UnauthorizedAccessException("Invalid faction override command.");
+            SettingsCatalog.Validate(SettingsCatalog.SettingKey(words), words[2]);
+            return LayerPermission.Settings;
+        }
         // Explicit allowlist. Console permission never bypasses passwords or account boundaries.
         if (command is "serverInfo" or "version" or "currentLevel" or "admin.help" or "admin.listPlayers" or "listPlayers" or
             "mapList.list" or "mapList.availableMaps" or "mapList.getMapIndices" or "mapList.getRounds" or

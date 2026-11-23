@@ -14,6 +14,8 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
     public string GameCode { get; set; } = "BF4";
     public bool AdvertiseAllSettings { get; set; }
     public bool RejectServerInfo { get; set; }
+    public string PbPlayerAddress { get; set; } = "127.0.0.1";
+    public Func<string[], bool>? IgnoreResponse { get; set; }
     public ConcurrentDictionary<string, bool> Alive { get; } = new();
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource stop = new();
@@ -26,6 +28,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
     public ConcurrentQueue<string[]> Received { get; } = new();
     public ConcurrentDictionary<string, string> Settings { get; } = new(SettingsCatalog.All.ToDictionary(x => x.Command, x => x.Kind == "bool" ? "true" : x.Kind == "number" ? "100" : x.Command == "vars.serverName" ? "LightRcon+ · BF4 Local Test" : x.Command == "vars.serverType" ? "RANKED" : x.Command == "vars.preset" ? "CUSTOM" : x.Command == "vars.unlockMode" ? "stats" : x.Command == "vars.gunMasterWeaponsPreset" ? "1" : "Mock value"));
     public bool PresetLocked { get; set; }
+    public int[] Factions { get; } = [0, 1, 0, 1];
     public string GameMode { get; set; } = "ConquestLarge0";
     public string Map { get; set; } = "MP_Abandoned";
     public string[] TeamScores { get; set; } = ["700.000000", "650.000000"];
@@ -58,6 +61,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
                     if (packet.IsResponse && packet.OriginServer) { Interlocked.Increment(ref EventAcknowledgments); continue; }
                     if (packet.IsResponse || packet.OriginServer) throw new InvalidDataException("Client command origin flag must be ZERO (BF4/Procon actual wire format).");
                     var words = packet.Words; Received.Enqueue(words); var command = words[0]; string[] response;
+                    if (IgnoreResponse?.Invoke(words) == true) continue;
                     if (command == "version") response = ["OK", GameCode, "mock"];
                     else if (command == "login.hashed" && words.Length == 1) { LoginAttempts.Enqueue(DateTimeOffset.Now); response = ["OK", salt]; }
                     else if (command == "login.hashed")
@@ -72,6 +76,13 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
                         if (words.Length == 1) response = ["OK", Settings[command], PresetLocked ? "true" : "false"];
                         else if (words.Length != 3 || !bool.TryParse(words[2], out var locked) || !new[] { "NORMAL", "CLASSIC", "HARDCORE", "INFANTRY", "CUSTOM" }.Contains(words[1])) response = ["InvalidArguments"];
                         else { Settings[command] = words[1]; PresetLocked = locked; Settings["vars.friendlyFire"] = "false"; response = ["OK"]; }
+                    }
+                    else if (command == "vars.teamFactionOverride" && GameCode == "BF4")
+                    {
+                        if (words.Length == 1) response = ["OK", .. Factions.Select(value => value.ToString())];
+                        else if (words.Length == 3 && int.TryParse(words[1], out var team) && team is >= 1 and <= 4 && int.TryParse(words[2], out var faction) && faction is >= 0 and <= 2)
+                        { Factions[team - 1] = faction; response = ["OK"]; }
+                        else response = ["InvalidArguments"];
                     }
                     else if (Settings.ContainsKey(command))
                     {
@@ -138,7 +149,7 @@ public sealed class MockFrostbiteServer : IAsyncDisposable
                         await Send(stream, 83, true, false, ["player.onChat", "Example_Bravo", "ID_CHAT_ATTACK/DEFEND", "team", "2"], gate);
                         await Send(stream, 82, true, false, ["player.onKill", "Example_Alpha", "Example_Bravo", "U_AEK971", "false"], gate);
                     }
-                    if (command == "punkBuster.pb_sv_command") await Send(stream, 79, true, false, ["punkBuster.onMessage", "PunkBuster Server: 1 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(VALID) 127.0.0.1:3659 OK 1 3.0 0 (W) \"Example_Alpha\""], gate);
+                    if (command == "punkBuster.pb_sv_command") await Send(stream, 79, true, false, ["punkBuster.onMessage", $"PunkBuster Server: 1 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(VALID) {PbPlayerAddress}:3659 OK 1 3.0 0 (W) \"Example_Alpha\""], gate);
                     if (command == "admin.say") await Send(stream, 80, true, false, ["player.onChat", "Server", words[1], "all"], gate);
                 }
             }

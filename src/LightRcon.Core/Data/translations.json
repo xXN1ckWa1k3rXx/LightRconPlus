@@ -1061,7 +1061,7 @@
   },
   "Second Assault": {
     "en": "Second Assault",
-    "zh": "二次突袭",
+    "zh": "再次进击",
     "de": "Second Assault"
   },
   "Naval Strike": {
@@ -2838,5 +2838,34 @@
     "en": "Plugin console",
     "zh": "插件控制台",
     "de": "Plugin-Konsole"
+  },
+  "Player ID filter": {
+    "en": "Player ID filter", "zh": "玩家 ID 筛选", "de": "Spieler-ID-Filter"
+  },
+  "Filter by player name, EA GUID or PB GUID": {
+    "en": "Filter by player name, EA GUID or PB GUID", "zh": "按玩家名称、EA GUID 或 PB GUID 筛选", "de": "Nach Spielername, EA-GUID oder PB-GUID filtern"
+  },
+  "Only Chat message": {
+    "en": "Only Chat message", "zh": "仅显示聊天消息", "de": "Nur Chatnachrichten"
+  },
+  "Default": {
+    "en": "Default", "zh": "Default（默认）", "de": "Default (Standard)"
+  },
+  "Team 1 faction override": {
+    "en": "Team 1 faction override", "zh": "队伍 1 阵营覆盖", "de": "Fraktion für Team 1 überschreiben"
+  },
+  "Team 2 faction override": {
+    "en": "Team 2 faction override", "zh": "队伍 2 阵营覆盖", "de": "Fraktion für Team 2 überschreiben"
+  },
+  "Team 3 faction override": {
+    "en": "Team 3 faction override", "zh": "队伍 3 阵营覆盖", "de": "Fraktion für Team 3 überschreiben"
+  },
+  "Team 4 faction override": {
+    "en": "Team 4 faction override", "zh": "队伍 4 阵营覆盖", "de": "Fraktion für Team 4 überschreiben"
+  },
+  "Default omits this override from Startup.txt; it does not reset a live override.": {
+    "en": "Default omits this override from Startup.txt; it does not reset a live override.",
+    "zh": "Default 不在 Startup.txt 中生成此覆盖项；不会重置服务器当前生效的覆盖值。",
+    "de": "Default lässt diese Überschreibung in Startup.txt weg; eine aktive Überschreibung wird dadurch nicht zurückgesetzt."
   }
 }

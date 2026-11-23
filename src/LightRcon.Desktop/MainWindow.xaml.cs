@@ -98,6 +98,8 @@ public partial class MainWindow : Window
         ChatInput.Text = p.Client.ChatDraft; BanSearch.Text = p.Client.BanSearch; ConsoleInput.Text = p.Client.ConsoleDraft;
         DisplayBox.SelectedIndex = p.Client.ChatDisplay == "Yell" ? 1 : 0; YellTimeBox.SelectedItem = p.Client.YellSeconds;
         ShowAdminSayYellBox.IsChecked = p.Client.ShowAdminSayYell;
+        ChatPlayerFilter.Text = p.Client.ChatPlayerFilter;
+        OnlyChatMessagesBox.IsChecked = p.Client.OnlyChatMessages;
         UpdateAudience(session.PlayerSnapshot(), p.Client.ChatAudience);
         MainTabs.SelectedItem = MainTabs.Items.Cast<TabItem>().FirstOrDefault(x => (string)x.Tag == p.Client.SelectedTab && (x != LayersTab || !p.IsLayer || session.Permissions.HasFlag(LayerPermission.LayerAdmin))) ?? MainTabs.Items[0];
         PlayersTabs.SelectedIndex = Math.Clamp(p.Client.PlayerTab, 0, 2); LayerBind.Text = p.Layer.BindAddress; LayerPort.Text = p.Layer.Port.ToString();
@@ -146,6 +148,8 @@ public partial class MainWindow : Window
             p.Client.ChatDraft = ChatInput.Text; p.Client.ChatAudience = AudienceCode;
             p.Client.ChatDisplay = ComboText(DisplayBox); p.Client.YellSeconds = (int?)YellTimeBox.SelectedItem ?? 10;
             p.Client.ShowAdminSayYell = ShowAdminSayYellBox.IsChecked == true;
+            p.Client.ChatPlayerFilter = ChatPlayerFilter.Text;
+            p.Client.OnlyChatMessages = OnlyChatMessagesBox.IsChecked == true;
             p.Client.BanSearch = BanSearch.Text; p.Client.ConsoleDraft = ConsoleInput.Text;
             p.Client.Grids["players"] = SaveGrid(PlayersGrid); p.Client.Grids["bans"] = SaveGrid(BansGrid);
             foreach (var item in settingEditors) if (item.Value.Tag is true) p.DraftSettings[item.Key] = EditorValue(item.Value);
@@ -199,10 +203,13 @@ public partial class MainWindow : Window
         var view = new ListCollectionView(players); view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PlayerInfo.Team)));
         view.SortDescriptions.Add(new SortDescription(nameof(PlayerInfo.Team), ListSortDirection.Ascending));
         PlayersGrid.ItemsSource = view; PlayersGrid.SelectedItem = players.FirstOrDefault(x => x.Name == playerName);
+        UpdateSelectedPlayer();
         PlayerCountText.Text = UiText.Format("{0} players · Play time measured during this client session", players.Length);
         UpdateAudience(players, AudienceCode);
         FilterBans(); var mapIndex = CurrentMapsList.SelectedIndex;
-        CurrentMapsList.ItemsSource = s.Profile.DesiredMaps?.ToArray() ?? s.MapSnapshot(); if (mapIndex < CurrentMapsList.Items.Count) CurrentMapsList.SelectedIndex = mapIndex;
+        var maps = s.Profile.DesiredMaps?.ToArray() ?? s.MapSnapshot();
+        if (!CurrentMapsList.Items.Cast<MapEntry>().SequenceEqual(maps))
+        { CurrentMapsList.ItemsSource = maps; if (mapIndex < CurrentMapsList.Items.Count) CurrentMapsList.SelectedIndex = mapIndex; }
         var spec = SpectatorList.SelectedItem; SpectatorList.ItemsSource = s.SpectatorSnapshot(); SpectatorList.SelectedItem = spec;
         var reserved = ReservedList.SelectedItem; ReservedList.ItemsSource = s.ReservedSnapshot(); ReservedList.SelectedItem = reserved;
         UpdateChat(); UpdateConsole(); UpdatePluginConsole(); PopulateSettings(false); UpdateStartupConfig();
@@ -212,8 +219,11 @@ public partial class MainWindow : Window
     {
         if (selected is null) return;
         var limit = store.State.ChatLineLimit;
+        var matchesPlayer = ChatActivityFilter.Create(ChatPlayerFilter.Text, selected.PlayerSnapshot());
         var snapshot = selected.Journal.Snapshot().Where(entry => entry.Sequence > clearedChat.GetValueOrDefault(selected.Profile.Id))
-            .Where(entry => ShowAdminSayYellBox.IsChecked == true || !IsPluginChat(entry)).TakeLast(limit).ToArray();
+            .Where(entry => ShowAdminSayYellBox.IsChecked == true || !IsPluginChat(entry))
+            .Where(entry => OnlyChatMessagesBox.IsChecked != true || entry.Kind == "Chat")
+            .Where(matchesPlayer).TakeLast(limit).ToArray();
         chatEntries.Clear(); foreach (var entry in snapshot) chatEntries.Add(entry);
         ChatList.UpdateEntries(snapshot, limit);
     }
@@ -232,7 +242,7 @@ public partial class MainWindow : Window
     private void UpdatePluginConsole()
     {
         if (selected is null) return;
-        UpdateLogText(PluginConsoleList, selected.ConsoleSnapshot().Where(entry => entry.IsPluginConsole).Select(entry => entry.Formatted), 3000);
+        PluginConsoleList.UpdateEntries(selected.ConsoleSnapshot().Where(entry => entry.IsPluginConsole).TakeLast(3000).ToArray());
     }
     private void UpdateConsole()
     {
@@ -257,7 +267,7 @@ public partial class MainWindow : Window
     }
     private void LogText_Loaded(object sender, RoutedEventArgs e)
     {
-        if (sender is ActivityEditor chat) chat.ScrollToEnd();
+        if (sender is LogEditor chat) chat.ScrollToEnd();
         else ((TextBox)sender).ScrollToEnd();
     }
     private void ConsoleFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (ready) UpdateConsole(); }

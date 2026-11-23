@@ -53,9 +53,11 @@ public partial class MainWindow
     private void UpdateSelectedPlayer()
     {
         if (PlayersGrid.SelectedItem is not PlayerInfo p) { PlayerActionPanel.Visibility = Visibility.Collapsed; return; }
-        PlayerActionPanel.Visibility = Visibility.Visible; SelectedPlayerName.Text = p.Name;
+        PlayerActionPanel.Visibility = Visibility.Visible;
+        SelectedPlayerName.Text = p.Name + " (" + GeoLocation.CountryName(p.Geo == "—" ? "" : p.Geo) + ")";
         string Known(string x) => string.IsNullOrEmpty(x) ? UiText.Get("Not available") : x;
-        PlayerIdentity.Text = $"EA GUID  {Known(p.EaGuid)}\nPB GUID  {Known(p.PbGuid)}    IP  {Known(p.Ip)}    {UiText.Format("Team {0}", p.Team)}";
+        PlayerIdentity.Text = $"EA GUID  {Known(p.EaGuid)}\nPB GUID  {Known(p.PbGuid)}";
+        PlayerConnectionDetails.Text = $"IP  {Known(p.Ip)}\n{UiText.Get("Team")}  {p.TeamName} · {UiText.Get("Squad")}  {p.SquadName}";
     }
     private PlayerInfo RequirePlayer() => PlayersGrid.SelectedItem as PlayerInfo ?? throw new ArgumentException(UiText.Get("Select a player first."));
     private static string SafePb(string text)

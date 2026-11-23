@@ -18,7 +18,7 @@ $staging = Join-Path $projectRoot ('artifacts\package-staging\' + [Guid]::NewGui
 $null = New-Item -ItemType Directory -Path $staging -Force
 $noticeRoot = Join-Path $staging '.documents'
 $null = New-Item -ItemType Directory -Path $noticeRoot
-$notices = @('README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'CONTRIBUTING.md', 'PRoCon-COMPATIBILITY.md')
+$notices = @('LICENSE', 'THIRD-PARTY-NOTICES.md')
 foreach ($notice in $notices) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $notice) -Destination $noticeRoot
 }
@@ -51,17 +51,25 @@ foreach ($includeRuntime in $variants) {
         foreach ($notice in $notices) {
             Copy-Item -LiteralPath (Join-Path $noticeRoot $notice) -Destination (Join-Path $destination $notice)
         }
+        $runtimeReadme = @"
+LightRcon+ Pre-alpha 1.2 — $target (Windows x64)
+
+Run LightRcon.$target.exe. Packages marked (with dotnet) include .NET 10.
+Other packages require the .NET 10 $(if ($target -eq 'Desktop') { 'Windows Desktop Runtime' } else { 'Runtime' }).
+
+Existing profiles, credentials, plugin settings and logs are stored separately.
+Update both Layer host and clients to enable the current synchronization features.
+Host users can run start-existing-data.ps1 -DataDirectory <existing-data-folder>.
+
+Place plugin packages in plugins/BF3, plugins/BF4 or plugins/BFH.
+The original PRoCon compatibility runtime is downloaded and checksum-verified when needed.
+Source code, API references and examples: https://github.com/xXN1ckWa1k3rXx/LightRconPlus
+"@
+        [IO.File]::WriteAllText((Join-Path $destination 'README.txt'), $runtimeReadme, [Text.UTF8Encoding]::new($false))
         $packageDocs = Join-Path $destination 'docs'
         $null = New-Item -ItemType Directory -Path $packageDocs -Force
-        foreach ($document in @('VALIDATION.md', 'PLUGINS.md', 'LUA-API.md', 'GAME-SETTINGS.md')) {
-            Copy-Item -LiteralPath (Join-Path $projectRoot "docs\$document") -Destination $packageDocs
-        }
-        foreach ($folder in @('licenses', 'gitbook')) {
-            Copy-PackageTree (Join-Path $projectRoot "docs\$folder") (Join-Path $packageDocs $folder)
-        }
-        foreach ($folder in @('api', 'examples', 'plugins', 'Pictures')) {
-            Copy-PackageTree (Join-Path $projectRoot $folder) (Join-Path $destination $folder)
-        }
+        # Retain required third-party licenses; development assets/docs stay in the repository.
+        Copy-PackageTree (Join-Path $projectRoot 'docs\licenses') (Join-Path $packageDocs 'licenses')
         # These three GPL-3.0-or-later plugins and their Battlelog helper are
         # intentionally excluded from releases; keep the original bundle intact.
         Copy-PackageTree $pluginRoot (Join-Path $destination 'plugins') @('CBasicInGameInfo', 'CInGameAdmin', 'CSpambot', 'CBattlelogCache')
@@ -69,9 +77,6 @@ foreach ($includeRuntime in $variants) {
         foreach ($game in @('BF3', 'BF4', 'BFH')) {
             $null = New-Item -ItemType Directory -Path (Join-Path $destination "plugins\$game") -Force
         }
-        $referenceDirectory = Join-Path $destination 'api\csharp'
-        $null = New-Item -ItemType Directory -Path $referenceDirectory -Force
-        Copy-Item -LiteralPath (Join-Path $buildArtifacts 'bin\LightRcon.Core\release\LightRcon.Core.dll') -Destination $referenceDirectory -Force
         if ($target -eq 'Host') {
             Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'start-existing-data.ps1') -Destination $destination
         }

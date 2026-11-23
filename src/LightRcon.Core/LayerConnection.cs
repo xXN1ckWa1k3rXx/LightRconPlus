@@ -13,6 +13,9 @@ public sealed class LayerConnection : ICommandConnection
     private SslStream? stream;
     private long sequence;
     public LayerPermission Permissions { get; private set; }
+    public bool SupportsSnapshots { get; internal set; }
+    public bool SupportsMapUpdates { get; private set; }
+    public event Action<LayerMapUpdate>? MapsReceived;
     public Task Completion { get; private set; } = Task.CompletedTask;
     public Exception? Failure { get; private set; }
     public event Action<string[]>? EventReceived;
@@ -31,6 +34,8 @@ public sealed class LayerConnection : ICommandConnection
         var welcome = await LayerWire.ReadAsync(stream, timeout.Token);
         if (welcome.Type != "welcome" || welcome.Protocol != 1 || welcome.Error is not null) throw new UnauthorizedAccessException(welcome.Error ?? "Layer login failed.");
         Permissions = welcome.Permissions;
+        SupportsSnapshots = welcome.SupportsSnapshots;
+        SupportsMapUpdates = welcome.SupportsMapUpdates;
         Completion = ReadLoopAsync();
     }
     private async Task ReadLoopAsync()
@@ -46,6 +51,7 @@ public sealed class LayerConnection : ICommandConnection
                 else if (frame.Type == "history") HistoryReceived?.Invoke(frame.Entries);
                 else if (frame.Type == "plugin.console") PluginConsoleReceived?.Invoke(frame.ConsoleEntries);
                 else if (frame.Type == "plugins") PluginsReceived?.Invoke(frame.Plugins);
+                else if (frame.Type == "maps" && frame.Maps is not null) MapsReceived?.Invoke(frame.Maps);
             }
         }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or System.Text.Json.JsonException or InvalidDataException) { failure = ex; }

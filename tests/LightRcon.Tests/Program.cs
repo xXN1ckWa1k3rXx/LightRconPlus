@@ -32,6 +32,16 @@ int FreePort() { var listener = new TcpListener(IPAddress.Loopback, 0); listener
 var root = Path.Combine(Path.GetTempPath(), "LightRcon-tests-" + Guid.NewGuid().ToString("N"));
 try
 {
+    if (args.Contains("--followup"))
+    {
+        await FollowupChecks.Run(root, Check);
+        Console.WriteLine($"{checks} checks passed."); return 0;
+    }
+    if (args.Contains("--procon-bridge"))
+    {
+        await ProconBridgeChecks.Run(root, Check);
+        Console.WriteLine($"{checks} checks passed."); return 0;
+    }
     if (args.Contains("--spambot"))
     {
         await SpambotChecks.Run(root, Check);
@@ -54,7 +64,10 @@ try
         Console.WriteLine($"{checks} checks passed."); return 0;
     }
     await MultiGameChecks.Run(root, Check);
+    await LayerBufferChecks.Run(Check);
     await LayerPluginChecks.Run(root, Check);
+    await LayerSyncChecks.Run(root, Check);
+    await FollowupChecks.Run(root, Check);
     await LayerAuthenticationChecks.Run(root, Check);
     await AdministrationChecks.Run(root, Check);
     await WorkflowChecks.Run(root, Check);
@@ -62,6 +75,7 @@ try
     await IncludeAndViewChecks.Run(root, Check);
     await PluginDiscoveryChecks.Run(root, Check);
     await ProconCacheChecks.Run(root, Check);
+    await ProconBridgeChecks.Run(root, Check);
     await SpambotChecks.Run(root, Check);
     var golden = new FrostbitePacket(0, false, false, ["version"]).Encode();
     Check(Convert.ToHexString(golden) == "0000000018000000010000000700000076657273696F6E00", "golden BF4 command packet uses zero origin bit");

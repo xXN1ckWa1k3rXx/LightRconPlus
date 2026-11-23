@@ -39,14 +39,22 @@ internal sealed class NativePlugin : IDisposable, IPluginRuntime
     {
         if (Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
         {
-            var root = CSharpSyntaxTree.ParseText(File.ReadAllText(path)).GetCompilationUnitRoot();
-            return root.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "assembly")
-                .SelectMany(list => list.Attributes).Any(attr => attr.Name.ToString().Split('.').Last() is "LightRconPlus_only" or "LightRconPlus_onlyAttribute");
+            var source = File.ReadAllText(path);
+            // Legacy PRoCon source never needs a Roslyn syntax tree just to check
+            // whether it declares our native-only assembly marker.
+            return source.Contains("LightRconPlus_only", StringComparison.Ordinal) && HasNativeDeclaration(source);
         }
         using var input = File.OpenRead(path);
         using var reader = new PEReader(input);
         var metadata = reader.GetMetadataReader();
         return metadata.AssemblyReferences.Any(handle => metadata.GetString(metadata.GetAssemblyReference(handle).Name) == "LightRcon.Core");
+    }
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static bool HasNativeDeclaration(string source)
+    {
+        var root = CSharpSyntaxTree.ParseText(source).GetCompilationUnitRoot();
+        return root.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "assembly")
+            .SelectMany(list => list.Attributes).Any(attr => attr.Name.ToString().Split('.').Last() is "LightRconPlus_only" or "LightRconPlus_onlyAttribute");
     }
     public NativePlugin(string path, ServerSession session)
     {

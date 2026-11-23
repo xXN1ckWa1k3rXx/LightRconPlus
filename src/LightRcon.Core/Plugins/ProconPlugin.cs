@@ -347,16 +347,22 @@ internal sealed class ProconPlugin : IAsyncDisposable
                     if (packet.IsResponse || packet.Words.Length == 0) continue;
                     var words = packet.Words;
                     string[] response;
-                    if (words.Length == 1 && words[0] is "version" or "serverInfo") response = await session.ExecuteAsync(words, token);
-                    else if (words[0] == "login.hashed" && words.Length == 1) response = ["OK", Convert.ToHexString(salt)];
-                    else if (words[0] == "login.hashed") { authenticated = words.Length == 2 && string.Equals(expected, words[1], StringComparison.OrdinalIgnoreCase); response = [authenticated ? "OK" : "InvalidPasswordHash"]; }
-                    else if (words[0] == "procon.version") response = ["UnknownCommand"];
-                    else if (!authenticated) response = ["LoginRequired"];
-                    else if (words[0] == "admin.eventsEnabled") { subscribed = words.ElementAtOrDefault(1)?.Equals("true", StringComparison.OrdinalIgnoreCase) == true; response = ["OK"]; }
-                    else
+                    try
                     {
-                        try { response = await session.ExecutePluginAsync(words, token); }
-                        catch (Exception error) when (!token.IsCancellationRequested) { response = [error is RconException rcon ? rcon.Code : "InvalidArguments"]; session.Log("Procon", error.Message); }
+                        // Handshake queries also run after startup. A remote timeout must
+                        // fail only this command, not tear down the shared plugin bridge.
+                        if (words.Length == 1 && words[0] is "version" or "serverInfo") response = await session.ExecuteAsync(words, token);
+                        else if (words[0] == "login.hashed" && words.Length == 1) response = ["OK", Convert.ToHexString(salt)];
+                        else if (words[0] == "login.hashed") { authenticated = words.Length == 2 && string.Equals(expected, words[1], StringComparison.OrdinalIgnoreCase); response = [authenticated ? "OK" : "InvalidPasswordHash"]; }
+                        else if (words[0] == "procon.version") response = ["UnknownCommand"];
+                        else if (!authenticated) response = ["LoginRequired"];
+                        else if (words[0] == "admin.eventsEnabled") { subscribed = words.ElementAtOrDefault(1)?.Equals("true", StringComparison.OrdinalIgnoreCase) == true; response = ["OK"]; }
+                        else response = await session.ExecutePluginAsync(words, token);
+                    }
+                    catch (Exception error) when (!token.IsCancellationRequested)
+                    {
+                        response = [error is RconException rcon ? rcon.Code : error is TimeoutException ? "Timeout" : "InvalidArguments"];
+                        session.Log("Procon", error.Message);
                     }
                     await outgoing.Writer.WriteAsync(new(packet.Sequence, false, true, response), token);
                 }

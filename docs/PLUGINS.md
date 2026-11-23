@@ -1,4 +1,4 @@
-# Plugins in Pre-alpha 1.1
+# Plugins in Pre-alpha 1.2
 
 Connect to a server, open **Plugin**, click **Add plugin…**, and select a local `.cs`, `.dll` or `.lua` file. Adding a plugin loads its metadata and settings without enabling it. Select **Enable** to start it, or **Disable** to stop it. Disabled plugins remain in the list. You can also drop files on the list. Imports ask whether to keep the original location or copy the package into `plugins/BF3`, `plugins/BF4` or `plugins/BFH`; change the default in Settings. Refresh list discovers new library entries for the selected game.
 
@@ -52,9 +52,15 @@ Opening a failed plugin's details or settings returns the recorded error without
 
 Load failures include a recent log excerpt. The adapter reads active Procon logs with file sharing and completes failed worker requests even if diagnostic processing fails, so an error response cannot turn into a 50-second request timeout.
 
+A rejected or timed-out RCON query, including `serverInfo` and `version`, returns a command error to Procon while keeping the shared bridge and enabled plugins running. If the worker or bridge actually stops, each affected plugin reports the failure once and its disabled state is pushed to Layer clients. Use Enable or Refresh list to rebuild the runtime after an actual failure.
+
 Disconnecting or closing during restoration cancels pending startup and stops restoring additional plugins.
 
 ## Plugins through Layer
+
+Plugin console output is selectable rich text. PRoCon `^0`–`^9` color codes and `^b`, `^i`, `^n` font styles are rendered; `^^` displays a literal caret. Each entry starts with the theme's default text color, and `^0` restores that default so output remains readable in dark mode. Raw codes are retained in host logs and Layer transport.
+
+The File label and local file path are hidden in Layer client plugin details. Direct RCON connections continue to show the file path.
 
 A Layer client displays only the plugins installed on the upstream host. Plugin code runs once on that host; connecting clients do not load local plugin files or create additional runtimes. Add source files and DLLs on the host. Installed-list and activation changes are pushed to connected clients; Details and Reload retrieve current metadata and settings from the host.
 
@@ -66,7 +72,7 @@ Integration coverage includes unmodified upstream **CSpambot** and **CInGameAdmi
 
 Select a standalone source file, or build a .NET 10 class library referencing `LightRcon.Core.dll`. Declare the API version at assembly scope. Unsupported versions fail activation. Export one concrete plugin class.
 
-Published packages include the reference assembly in `api/csharp/LightRcon.Core.dll` and a source example in `examples/plugins/JoinLogger.cs`.
+The API source and examples are available in the repository. Build `src/LightRcon.Core` to obtain a reference assembly; see `examples/plugins/JoinLogger.cs`. Runtime release packages omit development API assemblies and examples.
 
 ```csharp
 using LightRcon.Core.Plugins;

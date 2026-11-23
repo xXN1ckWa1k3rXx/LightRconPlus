@@ -1,6 +1,6 @@
 {
   "api_version": 1,
-  "application_version": "Pre-alpha 1.1",
+  "application_version": "Pre-alpha 1.2",
   "engine": "MoonSharp 2.0.0",
   "entrypoint": "plugin metadata plus event callbacks",
   "reference": "docs/LUA-API.md",
@@ -282,6 +282,7 @@
   "protocol_index_base": 0,
   "module_loading": "Built-in namespace modules or local dotted module paths under the plugin directory.",
   "server_setting_games": {
+    "vars.teamFactionOverride": ["BF4"],
     "vars.serverName": [
       "BF3",
       "BF4",

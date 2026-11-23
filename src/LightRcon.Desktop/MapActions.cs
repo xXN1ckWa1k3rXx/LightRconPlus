@@ -1,12 +1,69 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Documents;
+using System.Windows.Media;
 using LightRcon.Core;
 
 namespace LightRcon.Desktop;
 
 public partial class MainWindow
 {
+    private MapInsertionAdorner? mapInsertion;
+    private void ClearMapInsertion()
+    {
+        if (mapInsertion is null) return;
+        AdornerLayer.GetAdornerLayer(CurrentMapsList)?.Remove(mapInsertion);
+        mapInsertion = null;
+    }
+    internal static int MapInsertionIndex(int rowIndex, double position, double rowHeight, int count)
+        => rowIndex < 0 ? count : Math.Clamp(rowIndex + (position >= rowHeight / 2 ? 1 : 0), 0, count);
+    internal int MapDropIndex(Point point)
+    {
+        for (var index = 0; index < CurrentMapsList.Items.Count; index++)
+            if (CurrentMapsList.ItemContainerGenerator.ContainerFromIndex(index) is ListBoxItem row)
+            {
+                var top = row.TranslatePoint(new Point(), CurrentMapsList).Y;
+                if (point.Y <= top + row.ActualHeight) return MapInsertionIndex(index, point.Y - top, row.ActualHeight, CurrentMapsList.Items.Count);
+            }
+        return CurrentMapsList.Items.Count;
+    }
+    private void CurrentMaps_DragOver(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        var canDrop = selected is { IsConnected: true } session && session.Permissions.HasFlag(LayerPermission.Maps);
+        e.Effects = !canDrop ? DragDropEffects.None : e.Data.GetDataPresent("LightRcon.NewMap") ? DragDropEffects.Copy
+            : e.Data.GetData("LightRcon.MapIndex") is int from && from >= 0 && from < CurrentMapsList.Items.Count ? DragDropEffects.Move : DragDropEffects.None;
+        if (e.Effects == DragDropEffects.None) { ClearMapInsertion(); return; }
+        var point = e.GetPosition(CurrentMapsList);
+        var scroll = FindChild<ScrollViewer>(CurrentMapsList);
+        if (point.Y < 22) scroll?.LineUp();
+        else if (point.Y > CurrentMapsList.ActualHeight - 22) scroll?.LineDown();
+        var target = MapDropIndex(point);
+        var y = 4d;
+        if (CurrentMapsList.Items.Count > 0)
+        {
+            var index = Math.Min(target, CurrentMapsList.Items.Count - 1);
+            if (CurrentMapsList.ItemContainerGenerator.ContainerFromIndex(index) is ListBoxItem row)
+                y = row.TranslatePoint(new Point(0, target == CurrentMapsList.Items.Count ? row.ActualHeight : 0), CurrentMapsList).Y;
+        }
+        if (mapInsertion is null && AdornerLayer.GetAdornerLayer(CurrentMapsList) is { } layer)
+        {
+            mapInsertion = new(CurrentMapsList) { IsHitTestVisible = false }; layer.Add(mapInsertion);
+        }
+        if (mapInsertion is not null) { mapInsertion.Position = Math.Clamp(y, 2, Math.Max(2, CurrentMapsList.ActualHeight - 2)); mapInsertion.InvalidateVisual(); }
+    }
+    private void CurrentMaps_DragLeave(object sender, DragEventArgs e) => ClearMapInsertion();
+    private sealed class MapInsertionAdorner(UIElement element) : Adorner(element)
+    {
+        public double Position { get; set; }
+        protected override void OnRender(DrawingContext context)
+        {
+            var brush = (Brush)((FrameworkElement)AdornedElement).FindResource("Accent");
+            context.DrawLine(new Pen(brush, 3), new(3, Position), new(Math.Max(3, AdornedElement.RenderSize.Width - 3), Position));
+            context.DrawEllipse(brush, null, new(5, Position), 4, 4);
+        }
+    }
     private void MapSearch_TextChanged(object sender, TextChangedEventArgs e) { if (ready) UpdateMapGroups(); }
     private async void AddMap_Click(object sender, RoutedEventArgs e)
     {
@@ -62,16 +119,18 @@ public partial class MainWindow
         dragItem = sender == CurrentMapsList ? Ancestor<ListBoxItem>(element)?.DataContext : Ancestor<ContentPresenter>(element)?.DataContext;
         if (sender == CurrentMapsList && Ancestor<ListBoxItem>(element) is { } row) CurrentMapsList.SelectedItem = row.DataContext;
     }
-    private void AvailableMaps_MouseMove(object sender, MouseEventArgs e) { if (dragItem is ModeChoice mode && ShouldDrag(e)) { dragItem = null; DragDrop.DoDragDrop(AvailableMapsList, new DataObject("LightRcon.NewMap", mode.Entry), DragDropEffects.Copy); } }
-    private void CurrentMaps_MouseMove(object sender, MouseEventArgs e) { if (dragItem is MapEntry && ShouldDrag(e)) { var index = CurrentMapsList.SelectedIndex; dragItem = null; if (index >= 0) DragDrop.DoDragDrop(CurrentMapsList, new DataObject("LightRcon.MapIndex", index), DragDropEffects.Move); } }
+    private void AvailableMaps_MouseMove(object sender, MouseEventArgs e) { if (dragItem is ModeChoice mode && ShouldDrag(e)) { dragItem = null; try { DragDrop.DoDragDrop(AvailableMapsList, new DataObject("LightRcon.NewMap", mode.Entry), DragDropEffects.Copy); } finally { ClearMapInsertion(); } } }
+    private void CurrentMaps_MouseMove(object sender, MouseEventArgs e) { if (dragItem is MapEntry && ShouldDrag(e)) { var index = CurrentMapsList.SelectedIndex; dragItem = null; try { if (index >= 0) DragDrop.DoDragDrop(CurrentMapsList, new DataObject("LightRcon.MapIndex", index), DragDropEffects.Move); } finally { ClearMapInsertion(); } } }
     private bool ShouldDrag(MouseEventArgs e) => e.LeftButton == MouseButtonState.Pressed && (e.GetPosition(this) - dragStart).Length > 8;
     private async void CurrentMaps_Drop(object sender, DragEventArgs e)
     {
+        ClearMapInsertion();
         var s = selected; if (s is null) return;
         var snapshot = s.Profile.DesiredMaps?.ToArray() ?? s.MapSnapshot();
-        var item = Ancestor<ListBoxItem>(e.OriginalSource as DependencyObject); var target = item is null ? CurrentMapsList.Items.Count : CurrentMapsList.ItemContainerGenerator.IndexFromContainer(item);
+        var target = MapDropIndex(e.GetPosition(CurrentMapsList));
         var entry = e.Data.GetData("LightRcon.NewMap") as MapEntry; var index = e.Data.GetData("LightRcon.MapIndex") as int?;
         e.Handled = true;
+        if (entry is null && index is null) return;
         await Run(async () =>
         {
             await s.MutateMapsAsync(maps =>

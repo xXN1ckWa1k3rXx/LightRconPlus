@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LightRcon.Core\LightRcon.Core.csproj" />
+    <Resource Include="Assets\Flags\*.png" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,9 +11,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Product>LightRcon+</Product>
     <Description>Native Frostbite RCON and Layer manager</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="9" />
+  </ItemGroup>
 
 </Project>

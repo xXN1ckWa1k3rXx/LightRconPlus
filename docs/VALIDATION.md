@@ -1,18 +1,26 @@
 # Validation notes
 
-Date: 2026-11-21 (Asia/Shanghai). Development machine: Windows x64, .NET SDK 10.0.404. Release compilation treats warnings as errors.
+Date: 2026-11-23 (Asia/Shanghai). Development machine: Windows x64, .NET SDK 10.0.404. Release compilation treats warnings as errors.
 
 ## Automated results
 
 - Release solution build: zero warnings/errors.
-- Protocol/host regression harness with Procon integration enabled: **316 checks passed**.
-- WPF regression harness with Procon integration enabled: **190 checks passed**.
+- Protocol/host regression harness with Procon integration enabled: **351 checks passed**.
+- WPF regression harness with Procon integration enabled: **213 checks passed**.
 - Both harnesses exited with code 0.
 - Plugin tests require restoring MoonSharp and Roslyn. Set `LIGHTRCON_TEST_PROCON_ZIP` to a local Procon v1.5.4.2 release archive to include upstream integration checks.
 - Published win-x64 desktop/host single-file packages successfully. Smoke-tested the published host's help, configuration-only bootstrap, profile listing, rejection of a short administrator password without changing saved state, and absence of plaintext passwords in saved profiles.
-- Published single-file host also loaded native C# source, Lua and Procon source plugins and delivered their commands to the simulator. API references, the native reference assembly, examples and dependency licenses are included in each package.
+- Published single-file host also loaded native C# source, Lua and Procon source plugins and delivered their commands to the simulator. Dependency licenses are included in each package; API references/assemblies, examples, screenshots and development documents remain in the repository.
 
 ## Plugin and reconnection coverage
+
+- Pre-alpha 1.2 uses lower-allocation profile snapshots and pooled UTF-8 Layer writes. Concurrent large Unicode frames and cancellation followed by buffer reuse have regression coverage. Native plugins omit empty timer work; Lua timer behavior and native lifecycle callbacks remain covered by the integration suite. Both runtime configs select workstation/concurrent GC with ConserveMemory=9. Two fresh-process memory comparisons and their limits are recorded in [MEMORY.md](MEMORY.md).
+
+- Follow-up coverage verifies immediate host/Layer rotation pushes, five-second external-rotation discovery, atomic map writes, stale/live-rotation conflict checks and Maps permissions. WPF verifies before/after insertion positions, preview drawing/cleanup, copyable player/country/identity fields, the server action row, player-name/GUID filtering and chat-only filtering. BF4 tests cover all four faction overrides, Default export omission, separate RCON arguments and Layer permissions. Chinese Second Assault is 再次进击.
+- Lua error tests exercise nested callback tracebacks with caller names/line locations, syntax errors, native API failures caught by `pcall`, independent failing/healthy timers, absolute-path redaction in print/log/errors, a runaway loop inside `pcall` and later event/RCON recovery. This provides failure isolation and diagnostics, not interactive breakpoint debugging.
+
+- Layer batch state/settings snapshots avoid upstream version/help/player/life-state/map queries during client login. Setting edits still reach the host RCON connection and update the host's desired configuration. A 6,000-entry archive with 1,500-character messages verifies responses arrive before replay completes, while every historical sequence remains ordered. Snapshot support is negotiated through an additive protocol 1 welcome field, with legacy paged commands retained as fallback.
+- PRoCon console colors (`^0`–`^9`), bold/italic/normal font codes, literal carets, unknown sequences, selection/copy and Layer console history are checked. Layer details hide both the File label and path. Country flags load from bundled images with unknown-code fallback; the Players template is checked after IP enrichment. Chat tests cover reading older messages, new arrivals, tab changes and repeated viewport resizing.
 
 - Shared Procon v1.5.4.2 runtime: source compilation, DLL loading, parent/nested includes, original upstream CSpambot and CInGameAdmin, real instance identity in `OnPluginLoaded`, metadata, variable groups/types/read-only/string arrays, inter-plugin calls, Lua calls and configuration restoration after connection loss.
 - A generated .NET Framework dependency renamed to `.cs` is staged byte-for-byte and loaded by a plugin constructor, while upstream source compilation skips the binary. Invalid Procon source returns its actual failure while logs remain open; subsequent metadata/settings reads return cached failure state without rebuilding. Disabled and failed Procon plugins retain the localized warning. Cancellation stops plugin restoration and permits closing during startup.
@@ -27,7 +35,7 @@ Date: 2026-11-21 (Asia/Shanghai). Development machine: Windows x64, .NET SDK 10.
 - Procon cache checks distinguish actual compilation (`Done`) from upstream `Using Cache`. A supplied adjacent DLL is loaded byte-for-byte even when its source includes are missing. Source-only plugins retain generated DLLs and cache entries across reconnect/shared-runtime rebuilds. Source/include/partial changes invalidate individual entries; replaced external DLLs load directly, and older unchanged library DLLs cannot overwrite newly compiled output.
 - Cache invalidation checks include Unicode source/metadata, replacing a supplied DLL, updating its source afterwards, preserving the newly compiled output over the older library DLL and recreating a missing generated DLL. A library `PluginCache.xml` does not replace the per-server runtime cache. Worker stdin/stdout use UTF-8.
 - Four unmodified plugins (BF4DB 2.0.16 and upstream CBasicInGameInfo, CInGameAdmin, CSpambot) were auto-discovered and compiled together against the simulator in 7.42 seconds. BF4DB exposed 11 settings. All remained disabled; the test did not call the external BF4DB API.
-- Chat uses a read-only rich-text editor: player, killer and victim team colors, localized weapon labels and raw-ID tooltips are preserved with selectable text. WPF checks cover live chat colors, dark-theme updates, selection, scrolling, clear and logical line limits. Console remains a plain selectable editor.
+- Chat uses a read-only rich-text editor: player, killer and victim team colors, localized weapon labels and raw-ID tooltips are preserved with selectable text. WPF checks cover live chat colors, dark-theme updates, selection, scrolling, clear and logical line limits. RCON Console remains a plain selectable editor; Plugin console renders PRoCon colors and font styles.
 - WPF screenshots of both pages and the enabled Procon banner were rendered and inspected in `artifacts/validation/`.
 - Layer clients list only upstream plugins, read upstream metadata/settings and modify settings on the host with Settings permission. LayerAdmin is required for activation. Tests cover read-only/typed validation, rejection of arbitrary host paths, persisted host values, list/state broadcasts to multiple clients and reconnect without duplicate runtimes.
 - Plugin activation uses one prominent blue action beside the selected plugin name. The compatibility warning appears only in the selected Procon plugin's content area, including disabled and failed plugins. Tab titles retain the blue accent under hover. The listener shows exactly one blue Enable/Disable action and locks its endpoint while listening.

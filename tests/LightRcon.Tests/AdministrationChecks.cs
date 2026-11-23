@@ -15,6 +15,19 @@ internal static class AdministrationChecks
             while (!predicate()) await Task.Delay(25, timeout.Token);
         }
         check(GeoLocation.CountryCode("8.8.8.8") == "US" && GeoLocation.CountryCode("::ffff:8.8.8.8") == "US", "offline Geo database resolves public IPv4 and mapped IPv6");
+        var originalLanguage = UiText.Language;
+        var originalUiCulture = System.Globalization.CultureInfo.CurrentUICulture;
+        try
+        {
+            foreach (var (language, name) in new[] { ("en", "United States"), ("zh", "美国"), ("de", "Vereinigte Staaten") })
+            {
+                UiText.SetLanguage(language);
+                System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(language == "en" ? "zh-CN" : "en-US");
+                check(GeoLocation.CountryName("us") == name && GeoLocation.CountryName("") == UiText.Get("Unknown region"),
+                    language + " country names use application localization even with a different OS UI culture");
+            }
+        }
+        finally { UiText.SetLanguage(originalLanguage); System.Globalization.CultureInfo.CurrentUICulture = originalUiCulture; }
         check(new[] { "", "bad-ip", "127.0.0.1", "192.168.1.1", "10.1.2.3", "172.16.0.1", "100.64.0.1", "::1", "2001:4860:4860::8888" }.All(ip => GeoLocation.CountryCode(ip) == ""), "unknown, local and unsupported IPv6 addresses do not invent a Geo location");
         await using var mock = new MockFrostbiteServer();
         var store = new ProfileStore(Path.Combine(root, "administration"));

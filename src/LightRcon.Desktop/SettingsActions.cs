@@ -69,7 +69,7 @@ public partial class MainWindow
                     text.TextChanged += (_, _) => SettingChanged(text); editor = text;
                 }
                 LocExtension.Bind(editor, System.Windows.Automation.AutomationProperties.NameProperty, definition.Label);
-                editor.ToolTip = definition.Hint.Length > 0 ? definition.Hint : definition.Command;
+                editor.ToolTip = definition.Hint.Length > 0 ? UiText.Get(definition.Hint) : definition.Command;
                 settingEditors[definition.Command] = editor; Grid.SetColumn(editor, 1); row.Children.Add(editor);
                 if (definition.Kind != "bool")
                 {
@@ -93,7 +93,7 @@ public partial class MainWindow
             foreach (var item in settingEditors)
             {
                 if (!reset && item.Value.Tag is true) continue;
-                var value = profile.DraftSettings.GetValueOrDefault(item.Key, profile.DesiredSettings.GetValueOrDefault(item.Key, ""));
+                var value = profile.DraftSettings.GetValueOrDefault(item.Key, profile.DesiredSettings.GetValueOrDefault(item.Key, SettingsCatalog.IsFactionOverride(item.Key) ? "default" : ""));
                 switch (item.Value)
                 {
                     case TextBox text: text.Text = value; break;

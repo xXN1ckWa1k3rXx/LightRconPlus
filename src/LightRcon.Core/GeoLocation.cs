@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -10,6 +9,11 @@ namespace LightRcon.Core;
 // Database license and provenance: docs/licenses/MaxMind-GeoLite.txt and THIRD-PARTY-NOTICES.md.
 public static class GeoLocation
 {
+    private static readonly Lazy<Dictionary<string, Dictionary<string, string>>> CountryNames = new(() =>
+    {
+        using var stream = typeof(GeoLocation).Assembly.GetManifestResourceStream("country-names.json")!;
+        return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream)!;
+    });
     private const int CountryStart = 16776960;
     private static readonly Lazy<byte[]> Database = new(() =>
     {
@@ -47,7 +51,8 @@ public static class GeoLocation
     public static string CountryName(string code)
     {
         if (code.Length == 0) return UiText.Get("Unknown region");
-        try { return new RegionInfo(code).DisplayName; }
-        catch (ArgumentException) { return code; }
+        // RegionInfo.DisplayName follows the installed Windows UI language.
+        // Use the application's selected language, including on English Windows.
+        return CountryNames.Value[UiText.Language].GetValueOrDefault(code.ToUpperInvariant(), UiText.Get("Unknown region"));
     }
 }

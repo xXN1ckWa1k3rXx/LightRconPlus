@@ -22,6 +22,10 @@ public static class SettingsCatalog
         new("vars.hacker", "Hacker", "Slots & Teams", "bool", Games: SettingGames.BFH),
         new("vars.alwaysAllowSpectators", "Always allow spectators", "Slots & Teams", "bool", Games: SettingGames.BF4 | SettingGames.BFH),
         new("vars.autoBalance", "Auto balance", "Slots & Teams", "bool"),
+        new("vars.teamFactionOverride 1", "Team 1 faction override", "Slots & Teams", "choice", "Default omits this override from Startup.txt; it does not reset a live override.", SettingGames.BF4),
+        new("vars.teamFactionOverride 2", "Team 2 faction override", "Slots & Teams", "choice", "Default omits this override from Startup.txt; it does not reset a live override.", SettingGames.BF4),
+        new("vars.teamFactionOverride 3", "Team 3 faction override", "Slots & Teams", "choice", "Default omits this override from Startup.txt; it does not reset a live override.", SettingGames.BF4),
+        new("vars.teamFactionOverride 4", "Team 4 faction override", "Slots & Teams", "choice", "Default omits this override from Startup.txt; it does not reset a live override.", SettingGames.BF4),
         new("reservedSlotsList.aggressiveJoin", "Reserved slots aggressive join", "Slots & Teams", "bool"),
         new("vars.preset", "Game preset (server side)", "Gameplay", "preset", Games: SettingGames.BF4 | SettingGames.BFH),
         new("vars.friendlyFire", "Friendly fire", "Gameplay", "bool"),
@@ -73,6 +77,7 @@ public static class SettingsCatalog
     public static IReadOnlyList<SettingDefinition> For(GameId game) => All.Where(definition => (definition.Games & Mask(game)) != 0).ToArray();
     public static IReadOnlyList<SettingChoice> Choices(string command, GameId game = GameId.BF4) => command switch
     {
+        _ when IsFactionOverride(command) => [new("default", "Default"), new("0", "US Army"), new("1", "Russian Army"), new("2", "Chinese Army")],
         "vars.gunMasterWeaponsPreset" when game == GameId.BF3 => [new("0", "Standard"), new("1", "Reversed"), new("2", "Lightweight"), new("3", "Heavy gear"), new("4", "Pistol run"), new("5", "Sniper heaven"), new("6", "US arms race"), new("7", "RU arms race"), new("8", "EU arms race")],
         "vars.preset" => [new("NORMAL", "Normal"), new("CLASSIC", "Classic"), new("HARDCORE", "Hardcore"), new("INFANTRY", "Infantry"), new("CUSTOM", "Custom")],
         "vars.gunMasterWeaponsPreset" => [new("0", "Standard"), new("1", "Classic"), new("2", "Pistols"), new("3", "DLC Weapons"), new("4", "Troll")],
@@ -86,11 +91,18 @@ public static class SettingsCatalog
     }
     public static string[] SetCommand(string command, string value)
     {
+        if (IsFactionOverride(command))
+        {
+            if (value == "default") throw new ArgumentException("Default faction overrides are export preferences, not RCON commands.");
+            return [.. command.Split(' '), value];
+        }
         if (command != "vars.preset") return [command, value];
         var (preset, locked) = ParsePreset(value);
         return [command, preset, locked ? "true" : "false"];
     }
     public static SettingDefinition? Find(string command) => All.FirstOrDefault(x => x.Command == command);
+    public static bool IsFactionOverride(string command) => command.StartsWith("vars.teamFactionOverride ", StringComparison.Ordinal) && Find(command) is not null;
+    public static string SettingKey(string[] words) => words.Length >= 2 && words[0] == "vars.teamFactionOverride" ? words[0] + " " + words[1] : words.ElementAtOrDefault(0) ?? "";
     public static void Validate(string command, string value, GameId game = GameId.BF4)
     {
         var definition = Find(command) ?? throw new ArgumentException(UiText.Get("Unknown setting."));
@@ -123,7 +135,7 @@ public static class SettingsCatalog
             output.AppendLine("admin.password " + CommandText.Quote(password));
             var settings = new Dictionary<string, string>(profile.DesiredSettings);
             foreach (var draft in profile.DraftSettings) settings[draft.Key] = draft.Value;
-            foreach (var entry in settings.Where(x => Supports(x.Key, profile.Game)).OrderBy(x => x.Key == "vars.serverType" ? 0 : x.Key == "vars.preset" ? 1 : 2))
+            foreach (var entry in settings.Where(x => Supports(x.Key, profile.Game) && !(IsFactionOverride(x.Key) && x.Value == "default")).OrderBy(x => x.Key == "vars.serverType" ? 0 : x.Key == "vars.preset" ? 1 : 2))
                 output.AppendLine(string.Join(" ", SetCommand(entry.Key, entry.Value).Select((word, index) => index == 0 ? word : CommandText.Quote(word))));
             return output.ToString();
         }

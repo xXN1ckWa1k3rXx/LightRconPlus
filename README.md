@@ -9,9 +9,13 @@
 
 A native Windows RCON manager for **Battlefield 3, Battlefield 4 and Battlefield Hardline**, inspired by Procon Frostbite. LightRcon+ aims to make everyday server administration lighter and faster through a focused WPF desktop interface and a separate console host.
 
-**Pre-alpha 1.1.** Built with C# and .NET 10. Lower resource use is a design goal. BF3/BF4/BFHL support is tested with local protocol simulators. Live-server compatibility still needs validation.
+**Pre-alpha 1.2.** Built with C# and .NET 10. Lower resource use is a design goal. BF3/BF4/BFHL support is tested with local protocol simulators. Live-server compatibility still needs validation.
+
+Pre-alpha 1.2 reduces recurring allocations and uses a GC policy favoring lower memory retention. Local Host comparisons and their practical limits are documented in [Memory use](docs/MEMORY.md).
 
 Maintainer: **xXN1ckWa1k3rXx**. Powered by **Codex (gpt-6.1-sol)**.
+
+
 
 ## vs. Procon Frostbite
 
@@ -21,6 +25,7 @@ If you are looking for stable and long-term server management or plugins support
 Plugin support is experimental. See [Writing and running plugins](docs/PLUGINS.md).
 
 ### [List of compatibity for PRoCon plugin](PRoCon-COMPATIBILITY.md)
+### [LightRcon+ Lua plugin API Docs](https://nick-walker-1.gitbook.io/lightrconplus-lua-plugin)
 
 | Area | LightRcon+ | Procon Frostbite v1.x |
 | --- | --- | --- |
@@ -81,6 +86,10 @@ Welcome retains Open / Edit / Remove for each instance. The sidebar expands afte
 On unexpected disconnect, client preferences and drafts are saved and a connection-lost banner appears. Before reconnect synchronization, client state is saved again. Locally preferred server settings and pending rotation edits take priority over differing remote values; rejected settings are reported in Console. Keep this behavior in mind when multiple administrators edit the same server.
 
 Map changes use server-side RCON `mapList` commands, not a file on the client PC. Saving persists the rotation using `mapList.save`; explicitly loading MapList.txt uses `mapList.load` and replaces the live rotation. An immediate switch sets the selected index before running the next round. Layer Startup exports replace `admin.password` with `*MUST REPLACE TO YOUR RCON PASSWORD*`.
+
+Layer uses reliable TCP/TLS. Current clients negotiate batch snapshots for game capabilities, settings, players and maps, avoiding per-item RCON queries during login. Requests can complete while ordered chat history continues replaying. Older Layer hosts and clients retain the protocol 1 command interface. Settings edits execute on the host's RCON connection and update its saved configuration. Geo shows bundled country flags alongside the offline IP-country code; this indicates IP location, not citizenship.
+
+Current map rotations are pushed after host/Layer edits; external changes are detected by the host's five-second poll. Updated clients submit complete rotation edits as one checked host transaction. Dragging maps shows the insertion position. Player actions show the IP-country name beside a selectable player name and copyable identity/connection fields. Chat supports a player-name/known GUID filter plus **Only Chat message**; both preferences are saved per connection. Chinese **Second Assault** is displayed as **再次进击**.
 
 ## Headless deployment
 
@@ -151,7 +160,7 @@ dotnet run --project tests/LightRcon.Desktop.Tests -c Release
 
 The test projects are executable regression harnesses; use `dotnet run`. Desktop checks open temporary WPF windows and need an interactive desktop. Tests use isolated temporary data and loopback mocks, with no real game-server credentials. Reconnect checks intentionally take at least 20 seconds.
 
-The publish script creates four single-file Windows x64 ZIP packages in the sibling `<checkout> release` directory (for example, `../LightRcon+ release/`). Names follow `LightRconPlus-Desktop-x86_64_win.zip` and `LightRconPlus-Host-x86_64_win.zip`; the two ` (with dotnet)` variants include the runtime. Use `-FrameworkDependent` or `-SelfContained` to build only one variant, and `-OutputDirectory PATH` to choose another location. Each package includes documentation, license notices and empty `plugins/BF3`, `plugins/BF4` and `plugins/BFH` folders. Install third-party plugins separately. Stop the application before replacing an installed copy. Intermediates and local application data are excluded from Git.
+The publish script creates four single-file Windows x64 ZIP packages in the sibling `<checkout> release` directory (for example, `../LightRcon+ release/`). Names follow `LightRconPlus-Desktop-x86_64_win.zip` and `LightRconPlus-Host-x86_64_win.zip`; the two ` (with dotnet)` variants include the runtime. Use `-FrameworkDependent` or `-SelfContained` to build only one variant, and `-OutputDirectory PATH` to choose another location. Runtime packages include a short README, required license notices and the `plugins/BF3`, `plugins/BF4` and `plugins/BFH` directories. Pictures, API assemblies/manifests, examples, contributor documents and GitBook sources stay in the repository. Install third-party plugins separately. Stop the application before replacing an installed copy. Intermediates and local application data are excluded from Git.
 
 See [validation notes](docs/VALIDATION.md) for tested scope and remaining gaps. Mock success is not live-server or production acceptance. Unsupported settings are disabled. BF4 ticket estimates are reference values; BF3/BFHL do not reuse them. Live team scores come from `serverInfo`. Unknown player fields display as unavailable; Play Time is the client's observed duration. Map rotation edits are not atomic server transactions and competing administrators can cause conflicts.
 

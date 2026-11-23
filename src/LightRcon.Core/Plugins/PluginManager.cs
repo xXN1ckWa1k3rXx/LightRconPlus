@@ -16,7 +16,9 @@ public sealed class PluginManager
         {
             this.runtime = runtime;
             worker = Task.Run(async () => { await foreach (var operation in queue.Reader.ReadAllAsync()) await operation(); });
-            clock = Task.Run(async () => {
+            // Native plugins have no Tick work. Do not keep ten queue entries per
+            // second and a timer alive for every native plugin.
+            clock = runtime is not LuaPlugin ? Task.CompletedTask : Task.Run(async () => {
                 using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
                 try { while (await timer.WaitForNextTickAsync(ticking.Token)) if (Enabled) Post(() => runtime.Tick(), error); }
                 catch (OperationCanceledException) { }
@@ -54,6 +56,7 @@ public sealed class PluginManager
     private readonly Dictionary<string, PluginSetting[]> cachedSettings = new(StringComparer.OrdinalIgnoreCase);
     private long settingsRevision;
     private ProconPlugin? procon;
+    private ProconPlugin? failedProcon;
     private readonly HashSet<string> proconPaths = new(StringComparer.OrdinalIgnoreCase);
     private PluginDetails[] remotePlugins = [];
     private string? libraryStamp;
@@ -167,12 +170,14 @@ public sealed class PluginManager
     }
     private void RecordError(string path, Exception error)
     {
+        var message = error.GetBaseException().Message;
+        if (Path.GetExtension(path).Equals(".lua", StringComparison.OrdinalIgnoreCase)) message = PluginDiagnostics.Redact(message);
         lock (details)
         {
             var value = details.GetValueOrDefault(path) ?? new(path, Path.GetFileNameWithoutExtension(path), "", "", "", "", "");
-            details[path] = value with { Error = error.GetBaseException().Message };
+            details[path] = value with { Error = message };
         }
-        session.Log("Plugin", Path.GetFileName(path) + ": " + error.GetBaseException().Message);
+        session.Log("Plugin", Path.GetFileName(path) + ": " + message);
     }
     private async Task RebuildProcon(string path)
     {
@@ -499,15 +504,19 @@ public sealed class PluginManager
     internal void Dispatch(string[] words)
     {
         lock (active) foreach (var plugin in active) plugin.Value.Dispatch(words, error => RecordError(plugin.Key, error));
-        try { procon?.Handle(words); }
+        var runtime = procon;
+        try { runtime?.Handle(words); }
         catch (Exception error)
         {
+            var stopped = runtime is not { IsAlive: true };
+            if (stopped && ReferenceEquals(Interlocked.Exchange(ref failedProcon, runtime), runtime)) return;
             string[] paths; lock (active) paths = proconPaths.ToArray();
             foreach (var path in paths)
             {
+                if (stopped) lock (details) details[path] = details[path] with { Enabled = false };
                 RecordError(path, error);
-                if (procon is not { IsAlive: true }) lock (details) details[path] = details[path] with { Enabled = false };
             }
+            if (stopped) Changed?.Invoke();
         }
     }
     internal async Task<System.Text.Json.JsonElement> ProconCommand(string[] words)

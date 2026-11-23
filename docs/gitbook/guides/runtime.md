@@ -6,6 +6,10 @@ Lua plugins run in MoonSharp's hard sandbox. Arbitrary .NET objects, operating-s
 
 Each plugin processes events, timers and settings changes on one queue. A Lua invocation has a **100,000-instruction** budget; exceeding it or yielding raises an error. The event queue holds **512** operations. Keep callbacks short.
 
+`pcall` and `xpcall` are enabled for handling expected errors. The host converts failed API calls into catchable Lua errors. The instruction budget also stops an infinite loop inside `pcall`; it never resumes that callback automatically. A later event runs in a fresh coroutine. A failed timer is removed without stopping unrelated timers.
+
+Uncaught load, syntax, event, setting and timer errors appear in Plugin console with a script filename, source location and `stack traceback` caller frames. Module names are relative to the plugin directory. Absolute Windows, UNC and Unix paths in Lua print/log/exception output are redacted before storage or Layer forwarding. Useful filenames and script line numbers remain visible. Interactive breakpoints and single stepping are not provided.
+
 Command and HTTP calls block the plugin queue until they finish. Catch expected failures:
 
 ```lua

@@ -15,7 +15,16 @@ public sealed class LayerServer : IAsyncDisposable
         public TcpClient Client { get; } = client;
         public string Username { get; set; } = "";
         public Channel<LayerFrame> Queue { get; } = Channel.CreateBounded<LayerFrame>(new BoundedChannelOptions(256) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true });
-        public void Send(LayerFrame frame) { if (!Queue.Writer.TryWrite(frame)) Client.Close(); }
+        public Channel<LayerFrame> Responses { get; } = Channel.CreateBounded<LayerFrame>(256);
+        public SemaphoreSlim Signal { get; } = new(0);
+        public void Send(LayerFrame frame)
+        {
+            // Plugin snapshots must retain their ordering relative to responses: clients
+            // invalidate their cached settings before the associated request completes.
+            var writer = frame.Type is "response" or "plugins" or "plugin.console" or "maps" or "disconnect" ? Responses.Writer : Queue.Writer;
+            if (!writer.TryWrite(frame)) Client.Close();
+            else Signal.Release();
+        }
     }
     private readonly ServerSession session;
     private readonly ProfileStore store;
@@ -59,6 +68,7 @@ public sealed class LayerServer : IAsyncDisposable
         session.RemoteEvent += OnEvent;
         session.Plugins.Changed += OnPluginsChanged;
         session.Logged += OnPluginConsole;
+        session.MapsChanged += OnMapsChanged;
         accepting = AcceptAsync();
         return Task.CompletedTask;
     }
@@ -135,7 +145,7 @@ public sealed class LayerServer : IAsyncDisposable
                 return;
             }
             peer.Username = account.Username;
-            await LayerWire.WriteAsync(stream, new() { Type = "welcome", Permissions = permissions.Value }, sendGate, loginTimeout.Token);
+            await LayerWire.WriteAsync(stream, new() { Type = "welcome", Permissions = permissions.Value, SupportsSnapshots = true, SupportsMapUpdates = true }, sendGate, loginTimeout.Token);
             // Subscribe before replay. Duplicate sequence numbers are ignored by clients;
             // replay must complete before live frames are drained to retain ordering.
             lock (publishGate)
@@ -145,13 +155,8 @@ public sealed class LayerServer : IAsyncDisposable
                 foreach (var chunk in session.ConsoleSnapshot().Where(entry => entry.IsPluginConsole).TakeLast(300).Chunk(20))
                     peer.Send(new() { Type = "plugin.console", ConsoleEntries = chunk });
             }
-            foreach (var chunk in session.Journal.Replay())
-            {
-                using var replayTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
-                replayTimeout.CancelAfter(TimeSpan.FromSeconds(20));
-                await LayerWire.WriteAsync(stream, new() { Type = "history", Entries = chunk }, sendGate, replayTimeout.Token);
-            }
-            sending = SendLoopAsync(peer, stream, sendGate, token);
+            // Read requests immediately; the writer preserves history order while prioritizing responses.
+            sending = Task.Run(() => SendLoopAsync(peer, stream, sendGate, token), token);
             session.Log("Layer", UiText.Format("{0} signed in ({1})", peer.Username, ip));
             RequestLibraryScan();
             // Initial synchronization reads many settings in a short burst. Bound that burst
@@ -183,6 +188,22 @@ public sealed class LayerServer : IAsyncDisposable
                         if (frame.Words[0] == "admin.listPlayers")
                             response.Words = FrostbiteParser.WithPlayerAddresses(response.Words, session.PlayerSnapshot());
                         session.Log("Layer audit", $"{peer.Username}: {frame.Words[0]}");
+                    }
+                    else if (frame.Type == "session.snapshot")
+                    {
+                        if (frame.Words.Length != 1 || frame.Words[0] is not ("settings" or "state")) throw new ArgumentException("Invalid snapshot request.");
+                        response.Snapshot = session.CreateLayerSnapshot(frame.Words[0] == "settings");
+                        if (System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(response).Length > LayerWire.MaxFrameBytes)
+                            response.Snapshot = null;
+                    }
+                    else if (frame.Type == "maps.replace")
+                    {
+                        LayerAuthorization.Demand(current, LayerPermission.Maps);
+                        if (frame.Maps is null || frame.ExpectedMaps is null) throw new ArgumentException("Invalid map request.");
+                        await session.MutateMapsAsync(maps => maps.SequenceEqual(frame.ExpectedMaps)
+                            ? frame.Maps.Entries.ToList() : throw new ArgumentException(UiText.Get("The map list changed. Select the map again.")), token, frame.ExpectedMaps);
+                        response.Words = ["OK"];
+                        session.Log("Layer audit", $"{peer.Username}: maps.replace");
                     }
                     else if (frame.Type.StartsWith("plugin.", StringComparison.Ordinal))
                     {
@@ -227,6 +248,7 @@ public sealed class LayerServer : IAsyncDisposable
             peers.TryRemove(id, out _);
             tokenSource.Cancel();
             peer.Queue.Writer.TryComplete();
+            peer.Responses.Writer.TryComplete();
             client.Close();
             if (sending is not null) try { await sending; } catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException) { }
         }
@@ -291,8 +313,19 @@ public sealed class LayerServer : IAsyncDisposable
     {
         try
         {
-            await foreach (var frame in peer.Queue.Reader.ReadAllAsync(token))
+            using var replay = session.Journal.Replay().GetEnumerator();
+            var replaying = true;
+            while (!token.IsCancellationRequested)
             {
+                LayerFrame frame;
+                if (peer.Responses.Reader.TryRead(out var response)) { frame = response; peer.Signal.Wait(0); }
+                else if (replaying)
+                {
+                    if (!replay.MoveNext()) { replaying = false; continue; }
+                    frame = new() { Type = "history", Entries = replay.Current };
+                }
+                else if (peer.Queue.Reader.TryRead(out var queued)) { frame = queued; peer.Signal.Wait(0); }
+                else { await peer.Signal.WaitAsync(token); continue; }
                 if (frame.Type == "disconnect") { peer.Client.Close(); return; }
                 await LayerWire.WriteAsync(stream, frame, gate, token).WaitAsync(TimeSpan.FromSeconds(20), token);
             }
@@ -333,6 +366,12 @@ public sealed class LayerServer : IAsyncDisposable
                 if (PermissionsFor(peer.Username)?.HasFlag(LayerPermission.View) == true)
                     peer.Send(new() { Type = "plugin.console", ConsoleEntries = [entry] });
     }
+    private void OnMapsChanged(LayerMapUpdate maps)
+    {
+        lock (publishGate)
+            foreach (var peer in peers.Values)
+                if (PermissionsFor(peer.Username)?.HasFlag(LayerPermission.View) == true) peer.Send(new() { Type = "maps", Maps = maps });
+    }
     private void OnActivity(ActivityEntry[] entries)
     {
         lock (publishGate)
@@ -357,6 +396,7 @@ public sealed class LayerServer : IAsyncDisposable
         session.RemoteEvent -= OnEvent;
         session.Plugins.Changed -= OnPluginsChanged;
         session.Logged -= OnPluginConsole;
+        session.MapsChanged -= OnMapsChanged;
         lifetime.Cancel(); listener?.Stop();
         foreach (var peer in peers.Values) peer.Client.Close();
         if (accepting is not null) await accepting;

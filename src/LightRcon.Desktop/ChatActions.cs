@@ -7,6 +7,11 @@ namespace LightRcon.Desktop;
 
 public partial class MainWindow
 {
+    private void ChatFilter_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!ready || switching || selected is null) return;
+        SaveClient(); store.Save(); UpdateChat();
+    }
     private void DisplayBox_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (YellTimePanel is not null) YellTimePanel.Visibility = ComboText(DisplayBox) == "Yell" ? Visibility.Visible : Visibility.Collapsed; }
     private async void SendChat_Click(object sender, RoutedEventArgs e) => await SendChat();
     private async void ChatInput_KeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { e.Handled = true; await SendChat(); } }

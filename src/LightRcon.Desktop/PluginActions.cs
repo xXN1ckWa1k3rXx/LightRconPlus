@@ -30,6 +30,8 @@ public partial class MainWindow
         if (EnabledPluginList is null) return;
         var changedSession = pluginSession != session;
         pluginSession = session;
+        PluginPathPanel.Visibility = session.Profile.IsLayer ? Visibility.Collapsed : Visibility.Visible;
+        if (session.Profile.IsLayer) PluginPathText.Text = "";
         var plugins = session.Plugins.Snapshot();
         if (changedSession || pluginLanguage != UiText.Language || EnabledPluginList.ItemsSource is not PluginDetails[] previous || !previous.SequenceEqual(plugins))
         {
@@ -128,7 +130,7 @@ public partial class MainWindow
             ProconBanner.Visibility = Visibility.Collapsed;
             PluginPageStatus.Text = UiText.Get("Select a plugin to view its details and settings."); return;
         }
-        PluginNameText.Text = plugin.Name; PluginPathText.Text = plugin.Path;
+        PluginNameText.Text = plugin.Name; PluginPathText.Text = session.Profile.IsLayer ? "" : plugin.Path;
         PluginVersionText.Text = plugin.Version; PluginAuthorText.Text = plugin.Author; PluginWebsiteText.Text = plugin.Website;
         PluginDescriptionText.Text = "";
         PluginErrorText.Text = plugin.Error;
@@ -145,7 +147,7 @@ public partial class MainWindow
             PluginAuthorText.Text = details.Author;
             PluginWebsiteText.Text = details.Website;
             PluginDescriptionText.Text = WebUtility.HtmlDecode(Regex.Replace(Regex.Replace(details.Description, @"<(br\s*/?|/p|/h\d|/li)>", "\n", RegexOptions.IgnoreCase), "<[^>]+>", ""));
-            PluginPathText.Text = details.Path;
+            PluginPathText.Text = session.Profile.IsLayer ? "" : details.Path;
             PluginErrorText.Text = details.Error;
             PluginPageStatus.Text = details.Kind + " · " + details.Status;
             BuildPluginSettings(settings);
